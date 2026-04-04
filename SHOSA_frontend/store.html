@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>SHOSA Store – Official Merchandise</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Playfair+Display:wght@600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --blue:#2563eb;--blue-mid:#1d4ed8;--blue-deep:#1e3a8a;--blue-faint:rgba(37,99,235,.07);
+  --gold:#ca8a04;--gold-warm:#d97706;--gold-light:#eab308;--gold-faint:rgba(202,138,4,.1);
+  --bg:#f8fafc;--white:#ffffff;
+  --ink:#0f172a;--ink-mid:#334155;--ink-soft:#64748b;
+  --border:rgba(37,99,235,.13);--border-light:#e2e8f0;
+  --radius:10px;--radius-lg:16px;
+  --shadow:0 2px 12px rgba(15,23,42,.08);--shadow-md:0 6px 24px rgba(15,23,42,.1);--shadow-lg:0 16px 48px rgba(15,23,42,.14);
+  --font-serif:'Playfair Display',Georgia,serif;
+  --font-sans:'Inter',system-ui,sans-serif;
+  --ease:cubic-bezier(.4,0,.2,1);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;font-size:16px;}
+body{font-family:var(--font-sans);background:var(--bg);color:var(--ink);line-height:1.65;overflow-x:hidden;}
+a{color:inherit;text-decoration:none;}img{max-width:100%;display:block;}ul{list-style:none;}
+.wrap{width:100%;max-width:1140px;margin:0 auto;padding:0 24px;}
+.btn{display:inline-flex;align-items:center;gap:8px;font-family:var(--font-sans);font-size:.875rem;font-weight:600;letter-spacing:.02em;padding:12px 24px;border-radius:6px;transition:all .2s var(--ease);cursor:pointer;border:none;white-space:nowrap;line-height:1;}
+.btn-primary{background:var(--blue);color:#fff;}.btn-primary:hover{background:var(--blue-mid);transform:translateY(-1px);box-shadow:0 6px 20px rgba(37,99,235,.3);}
+.btn-gold{background:var(--gold);color:#fff;}.btn-gold:hover{background:var(--gold-warm);transform:translateY(-1px);box-shadow:0 6px 20px rgba(202,138,4,.35);}
+.btn-secondary{background:var(--blue-faint);color:var(--blue);border:1px solid var(--border);}.btn-secondary:hover{background:rgba(37,99,235,.14);color:var(--blue-mid);}
+.btn-outline{background:transparent;color:var(--blue);border:1.5px solid var(--blue);}.btn-outline:hover{background:var(--blue);color:#fff;}
+.btn-outline-white{background:transparent;color:#fff;border:1.5px solid rgba(255,255,255,.5);}.btn-outline-white:hover{border-color:#fff;background:rgba(255,255,255,.1);}
+.btn-sm{padding:8px 16px;font-size:.8rem;}.btn-lg{padding:15px 32px;font-size:.95rem;}.btn-block{width:100%;justify-content:center;}
+#nav{position:sticky;top:0;z-index:200;background:var(--blue-deep);border-bottom:1px solid rgba(255,255,255,.08);}
+.nav-inner{display:flex;align-items:center;justify-content:space-between;height:66px;}
+.nav-brand{display:flex;align-items:center;gap:11px;font-family:var(--font-serif);font-size:1.4rem;font-weight:700;color:#fff;}
+.nav-badge{width:44px;height:44px;border-radius:7px;overflow:hidden;display:grid;place-items:center;background:transparent;flex-shrink:0;}
+.nav-brand-meta{display:flex;flex-direction:column;line-height:1.1;}
+.nav-brand-sub{font-size:.62rem;font-family:var(--font-sans);font-weight:400;color:rgba(255,255,255,.45);letter-spacing:.07em;text-transform:uppercase;}
+.nav-links{display:flex;align-items:center;gap:30px;}
+.nav-links a{font-size:.85rem;font-weight:500;color:rgba(255,255,255,.72);transition:color .18s;}
+.nav-links a:hover,.nav-links a.active{color:var(--gold-light);}
+.nav-actions{display:flex;align-items:center;gap:9px;}.nav-actions .btn{padding:9px 20px;font-size:.8rem;}
+.hamburger{display:none;flex-direction:column;gap:5px;background:none;border:none;cursor:pointer;padding:6px;}
+.hamburger span{display:block;width:21px;height:2px;background:rgba(255,255,255,.85);border-radius:2px;transition:all .3s;}
+.hamburger.open span:nth-child(1){transform:translateY(7px) rotate(45deg);}.hamburger.open span:nth-child(2){opacity:0;}.hamburger.open span:nth-child(3){transform:translateY(-7px) rotate(-45deg);}
+.mobile-nav{display:none;flex-direction:column;background:var(--blue-deep);border-top:1px solid rgba(255,255,255,.08);}.mobile-nav.open{display:flex;}
+.mobile-nav a{padding:14px 24px;font-size:.9rem;font-weight:500;color:rgba(255,255,255,.78);border-bottom:1px solid rgba(255,255,255,.06);transition:background .18s,color .18s;}
+.mobile-nav a:hover{background:rgba(255,255,255,.05);color:var(--gold-light);} .mobile-nav-btns{padding:16px 24px;display:flex;flex-direction:column;gap:9px;} .mobile-nav-btns .btn{justify-content:center;}
+.hero-main{min-height:72vh;background:linear-gradient(160deg,rgba(30,58,138,.92) 0%,rgba(29,78,216,.8) 55%,rgba(30,58,138,.9) 100%),radial-gradient(circle at top right,rgba(234,179,8,.18),transparent 32%);display:flex;flex-direction:column;justify-content:center;padding:88px 0 72px;position:relative;overflow:hidden;}
+.hero-pill{display:inline-flex;align-items:center;gap:7px;background:rgba(234,179,8,.15);border:1px solid rgba(234,179,8,.3);color:var(--gold-light);padding:5px 13px;border-radius:100px;font-size:.75rem;font-weight:700;letter-spacing:.07em;text-transform:uppercase;margin-bottom:24px;}
+.hero-pill-dot{width:6px;height:6px;border-radius:50%;background:var(--gold-light);} 
+.hero-main h1{font-family:var(--font-serif);font-size:clamp(2.4rem,5.5vw,4.8rem);font-weight:900;line-height:1.03;color:#fff;letter-spacing:-.01em;max-width:840px;margin-bottom:18px;}
+.hero-main h1 em{font-style:italic;color:var(--gold-light);} 
+.hero-main .hero-p{font-size:clamp(.98rem,1.8vw,1.12rem);color:rgba(255,255,255,.76);max-width:680px;margin-bottom:30px;line-height:1.72;font-weight:300;}
+.hero-cta{display:flex;flex-wrap:wrap;gap:11px;margin-bottom:32px;} .hero-stats{display:flex;flex-wrap:wrap;gap:18px;align-items:center;} .hero-stat{padding:14px 18px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.05);border-radius:14px;min-width:150px;} .hero-stat-num{font-family:var(--font-serif);font-size:1.6rem;font-weight:700;color:var(--gold-light);} .hero-stat-label{font-size:.75rem;color:rgba(255,255,255,.55);text-transform:uppercase;letter-spacing:.06em;}
+.section{padding:72px 0;} .section-header{text-align:center;max-width:720px;margin:0 auto 48px;} .section-label{font-size:.72rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--gold);margin-bottom:10px;display:block;} .section-label::before{content:'';display:inline-block;width:18px;height:1.5px;background:var(--gold);margin-right:8px;vertical-align:middle;} h2.heading{font-family:var(--font-serif);font-size:clamp(1.8rem,3.5vw,2.8rem);font-weight:700;line-height:1.12;color:var(--ink);letter-spacing:-.01em;} h2.heading em{font-style:italic;color:var(--blue);} .lead{font-size:1rem;color:var(--ink-soft);line-height:1.72;font-weight:300;margin-top:14px;}
+.grid{display:grid;gap:22px;} .products-grid{grid-template-columns:repeat(auto-fit,minmax(245px,1fr));align-items:stretch;}
+.card{background:var(--white);border-radius:var(--radius-lg);border:1px solid var(--border-light);padding:26px;box-shadow:var(--shadow);position:relative;} .card:hover{box-shadow:var(--shadow-md);} .card-title{font-family:var(--font-serif);font-size:1.15rem;font-weight:700;color:var(--ink);margin-bottom:8px;line-height:1.3;} .card-subtitle{font-size:.92rem;color:var(--ink-soft);line-height:1.65;} .tag{display:inline-flex;font-size:.72rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;padding:4px 10px;border-radius:100px;background:var(--blue-faint);color:var(--blue);margin-bottom:10px;} .tag-gold{background:var(--gold-faint);color:var(--gold);} .tag-green{background:rgba(22,163,74,.1);color:#15803d;}
+.product-icon{width:56px;height:56px;border-radius:18px;background:linear-gradient(135deg,rgba(37,99,235,.12),rgba(202,138,4,.12));display:grid;place-items:center;font-size:1.6rem;margin-bottom:16px;}
+.product-meta{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px;margin-bottom:18px;}
+.price{font-size:1.45rem;font-weight:800;color:var(--blue);letter-spacing:-.02em;}
+.product-actions{display:flex;align-items:center;justify-content:space-between;gap:14px;margin-top:16px;}
+.qty{display:flex;align-items:center;gap:10px;background:#f8fafc;border:1px solid var(--border-light);border-radius:999px;padding:6px;} .qty button{width:32px;height:32px;border:none;border-radius:50%;background:#fff;color:var(--blue);font-size:1rem;font-weight:700;cursor:pointer;box-shadow:var(--shadow);} .qty span{min-width:18px;text-align:center;font-weight:700;color:var(--ink);} 
+.layout-2col{display:grid;grid-template-columns:minmax(0,1.4fr) minmax(320px,.85fr);gap:28px;align-items:start;}
+.sticky-card{position:sticky;top:92px;} .summary-list{display:flex;flex-direction:column;gap:12px;margin-top:18px;} .summary-item{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;padding-bottom:12px;border-bottom:1px solid var(--border-light);} .summary-item:last-child{border-bottom:none;padding-bottom:0;} .summary-empty{color:var(--ink-soft);font-size:.92rem;} .summary-total{display:flex;justify-content:space-between;align-items:center;margin-top:18px;padding-top:16px;border-top:1px solid var(--border-light);font-weight:800;font-size:1rem;}
+.form-card{background:var(--white);border-radius:var(--radius-lg);border:1px solid var(--border-light);padding:32px;box-shadow:var(--shadow);} .form-title{font-family:var(--font-serif);font-size:1.6rem;font-weight:700;color:var(--ink);margin-bottom:6px;line-height:1.2;} .form-subtitle{font-size:.92rem;color:var(--ink-soft);line-height:1.65;margin-bottom:24px;} .form-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:18px;margin-bottom:18px;} .form-group{display:flex;flex-direction:column;gap:6px;} .form-group label{font-size:.82rem;font-weight:600;color:var(--ink-mid);letter-spacing:.01em;} input,select,textarea{width:100%;padding:11px 14px;border:1.5px solid var(--border-light);border-radius:7px;font-family:var(--font-sans);font-size:.9rem;color:var(--ink);background:var(--white);transition:border-color .18s,box-shadow .18s;outline:none;-webkit-appearance:none;} input:focus,select:focus,textarea:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(37,99,235,.12);} textarea{resize:vertical;min-height:96px;}
+.info-strip{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:18px;} .info-box{padding:22px;border-radius:18px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);} .info-box h3{color:#fff;font-size:1rem;margin-bottom:8px;} .info-box p{color:rgba(255,255,255,.68);font-size:.92rem;}
+.alert{padding:12px 16px;border-radius:8px;font-size:.875rem;font-weight:500;margin-top:16px;display:none;line-height:1.5;} .alert:not(:empty){display:block;} .alert-info{background:var(--blue-faint);color:var(--blue-mid);border:1px solid var(--border);} .alert-success{background:rgba(22,163,74,.08);color:#16a34a;border:1px solid rgba(22,163,74,.2);}
+footer{background:var(--blue-deep);padding:56px 0 0;} .footer-grid{display:grid;grid-template-columns:1.8fr 1fr 1fr 1fr;gap:36px;padding-bottom:48px;border-bottom:1px solid rgba(255,255,255,.08);} .footer-brand h3{font-family:var(--font-serif);font-size:1.5rem;font-weight:700;color:#fff;margin-bottom:10px;} .footer-brand p{font-size:.875rem;color:rgba(255,255,255,.55);line-height:1.7;max-width:260px;margin-bottom:20px;} .footer-col h4{font-size:.72rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:rgba(255,255,255,.35);margin-bottom:16px;} .footer-col ul{display:flex;flex-direction:column;gap:10px;} .footer-col li a{font-size:.875rem;color:rgba(255,255,255,.6);transition:color .18s;} .footer-col li a:hover{color:var(--gold-light);} .footer-bottom{padding:20px 0;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;} .footer-bottom p{font-size:.8rem;color:rgba(255,255,255,.3);} .footer-bottom-links a{font-size:.8rem;color:rgba(255,255,255,.4);margin-left:18px;transition:color .18s;} .footer-bottom-links a:hover{color:var(--gold-light);} 
+.fade-up{opacity:0;transform:translateY(22px);transition:opacity .5s var(--ease),transform .5s var(--ease);} .fade-up.visible{opacity:1;transform:translateY(0);} .d1{transition-delay:.08s;}.d2{transition-delay:.16s;}.d3{transition-delay:.24s;}.d4{transition-delay:.32s;}
+@media(max-width:980px){.nav-links,.nav-actions{display:none;}.hamburger{display:flex;}.layout-2col{grid-template-columns:1fr;}.sticky-card{position:static;}.footer-grid{grid-template-columns:1fr 1fr;}}
+@media(max-width:640px){.hero-main{padding-top:92px;padding-bottom:56px;min-height:auto;} .hero-main h1{font-size:2.55rem;} .hero-stats{gap:12px;} .hero-stat{width:calc(50% - 6px);min-width:unset;} .section{padding:52px 0;} .form-card,.card{padding:22px 18px;} .footer-grid{grid-template-columns:1fr;} .footer-bottom{flex-direction:column;text-align:center;} .product-actions{flex-direction:column;align-items:stretch;} .qty{justify-content:center;}}
+</style>
+<link rel="stylesheet" href="assets/css/worldclass-theme.css">
+</head>
+<body class="shosa-worldclass page-store">
+<nav id="nav">
+  <div class="wrap">
+    <div class="nav-inner">
+      <a href="index.html" class="nav-brand">
+        <div class="nav-badge"><img src="assets/images/logos/shosa-logo.jpeg" alt="SHOSA" style="width:100%;height:100%;object-fit:contain;"></div>
+        <div class="nav-brand-meta">SHOSA<span class="nav-brand-sub">Seeta High Old Students</span></div>
+      </a>
+      <ul class="nav-links"><li><a href="index.html">Home</a></li>
+<li><a href="events.html">Events</a></li>
+<li><a href="gallery.html">Gallery</a></li>
+<li><a href="store.html" class="active">Store</a></li>
+<li><a href="about.html">About</a></li>
+<li><a href="contact.html">Contact</a></li></ul>
+      <div class="nav-actions" id="navActionsDesktop">
+        <a href="alumni-login.html" class="btn btn-outline-white btn-sm guest-only">Log in</a>
+        <a href="#order-form" class="btn btn-gold btn-sm guest-only">Place order →</a>
+        <a href="alumni-dashboard.html" class="btn btn-outline-white btn-sm alumni-only" style="display:none;">Dashboard</a>
+        <a href="profile.html" class="btn btn-outline-white btn-sm alumni-only" style="display:none;">Profile</a>
+        <button type="button" class="btn btn-gold btn-sm alumni-only" id="navLogoutDesktop" style="display:none;">Logout</button>
+        <a href="admin-dashboard.html" class="btn btn-outline-white btn-sm admin-only" style="display:none;">Admin Dashboard</a>
+        <button type="button" class="btn btn-gold btn-sm admin-only" id="adminNavLogoutDesktop" style="display:none;">Logout</button>
+      </div>
+      <button class="hamburger" id="ham" aria-label="Menu"><span></span><span></span><span></span></button>
+    </div>
+  </div>
+  <div class="mobile-nav" id="mobNav">
+    <a href="index.html">Home</a>
+    <a href="events.html">Events</a>
+    <a href="gallery.html">Gallery</a>
+    <a href="store.html" class="active">Store</a>
+    <a href="about.html">About</a>
+    <a href="contact.html">Contact</a>
+    <div class="mobile-nav-btns">
+      <a href="#order-form" class="btn btn-gold btn-block">Start an order</a>
+      <a href="alumni-register.html" class="btn btn-secondary btn-block">Register as Alumni</a>
+    </div>
+  </div>
+</nav>
+<script>(function(){var ham=document.getElementById('ham'),mob=document.getElementById('mobNav');if(ham&&mob)ham.addEventListener('click',function(){ham.classList.toggle('open');mob.classList.toggle('open');});})();</script>
+
+<section class="hero-main">
+  <div class="wrap">
+    <div class="hero-pill"><span class="hero-pill-dot"></span> Official merchandise</div>
+    <h1>Wear the <em>SHOSA identity</em> with a cleaner, easier ordering experience.</h1>
+    <p class="hero-p">This store keeps merchandise clearly separate from SACCO payments and donations. Alumni can browse products, build a quick cart, and send one polished order summary to the SHOSA team on WhatsApp.</p>
+    <div class="hero-cta">
+      <a href="#products" class="btn btn-gold btn-lg">Browse items</a>
+      <a href="#order-form" class="btn btn-outline-white btn-lg">Start an order</a>
+      <a href="https://wa.me/256700847088" target="_blank" rel="noopener" class="btn btn-outline-white btn-lg">WhatsApp SHOSA</a>
+    </div>
+    <div class="hero-stats">
+      <div class="hero-stat"><div class="hero-stat-num">6</div><div class="hero-stat-label">Official items</div></div>
+      <div class="hero-stat"><div class="hero-stat-num">UGX 5k+</div><div class="hero-stat-label">Entry accessories</div></div>
+      <div class="hero-stat"><div class="hero-stat-num">Mobile</div><div class="hero-stat-label">Fast checkout flow</div></div>
+      <div class="hero-stat"><div class="hero-stat-num">WhatsApp</div><div class="hero-stat-label">Order-ready summary</div></div>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="products">
+  <div class="wrap">
+    <div class="section-header fade-up">
+      <span class="section-label">SHOSA Store</span>
+      <h2 class="heading">Choose from the <em>signature collection</em></h2>
+      <p class="lead">Premium apparel for formal SHOSA representation, plus lighter accessories for visibility, gifting, and event packs.</p>
+    </div>
+    <div class="grid products-grid">
+      <article class="card fade-up d1 product-card" data-sku="tshirt" data-name="SHOSA T-Shirt" data-price="35000">
+        <div class="tag">Best seller</div>
+        <div class="product-icon">👕</div>
+        <div class="card-title">SHOSA T-Shirt</div>
+        <div class="card-subtitle">Classic alumni tee for reunions, volunteering, sports days, and everyday SHOSA pride.</div>
+        <div class="product-meta"><span class="tag">Cotton</span><span class="tag">Unisex</span></div>
+        <div class="price">UGX 35,000</div>
+        <div class="product-actions">
+          <div class="qty"><button type="button" data-action="decrease">−</button><span data-qty>0</span><button type="button" data-action="increase">+</button></div>
+          <button type="button" class="btn btn-primary btn-sm" data-quick-add>Add to order</button>
+        </div>
+      </article>
+      <article class="card fade-up d2 product-card" data-sku="collared" data-name="Collared T-Shirt" data-price="55000">
+        <div class="tag tag-gold">Smart wear</div>
+        <div class="product-icon">🧥</div>
+        <div class="card-title">Collared T-Shirt</div>
+        <div class="card-subtitle">A sharper branded look for committee work, official school visits, and alumni functions.</div>
+        <div class="product-meta"><span class="tag">Formal casual</span><span class="tag">Event ready</span></div>
+        <div class="price">UGX 55,000</div>
+        <div class="product-actions">
+          <div class="qty"><button type="button" data-action="decrease">−</button><span data-qty>0</span><button type="button" data-action="increase">+</button></div>
+          <button type="button" class="btn btn-primary btn-sm" data-quick-add>Add to order</button>
+        </div>
+      </article>
+      <article class="card fade-up d3 product-card" data-sku="hoodie" data-name="SHOSA Hoodie" data-price="80000">
+        <div class="tag">Premium</div>
+        <div class="product-icon">🧶</div>
+        <div class="card-title">SHOSA Hoodie</div>
+        <div class="card-subtitle">Warm premium layer for travel, evenings, league weekends, and alumni outdoor events.</div>
+        <div class="product-meta"><span class="tag">Heavyweight</span><span class="tag">Premium</span></div>
+        <div class="price">UGX 80,000</div>
+        <div class="product-actions">
+          <div class="qty"><button type="button" data-action="decrease">−</button><span data-qty>0</span><button type="button" data-action="increase">+</button></div>
+          <button type="button" class="btn btn-primary btn-sm" data-quick-add>Add to order</button>
+        </div>
+      </article>
+      <article class="card fade-up d1 product-card" data-sku="cap" data-name="SHOSA Cap" data-price="30000">
+        <div class="tag tag-gold">Accessories</div>
+        <div class="product-icon">🧢</div>
+        <div class="card-title">SHOSA Cap</div>
+        <div class="card-subtitle">A simple branded cap for outreach days, road trips, school activity, and casual wear.</div>
+        <div class="product-meta"><span class="tag">Adjustable</span><span class="tag">Outdoor</span></div>
+        <div class="price">UGX 30,000</div>
+        <div class="product-actions">
+          <div class="qty"><button type="button" data-action="decrease">−</button><span data-qty>0</span><button type="button" data-action="increase">+</button></div>
+          <button type="button" class="btn btn-primary btn-sm" data-quick-add>Add to order</button>
+        </div>
+      </article>
+      <article class="card fade-up d2 product-card" data-sku="stickers" data-name="SHOSA Stickers" data-price="10000">
+        <div class="tag">Accessory pack</div>
+        <div class="product-icon">🏷️</div>
+        <div class="card-title">SHOSA Stickers</div>
+        <div class="card-subtitle">Great for laptops, notebooks, gifts, and small event packs that keep the brand visible.</div>
+        <div class="product-meta"><span class="tag">Giftable</span><span class="tag">Pack item</span></div>
+        <div class="price">UGX 10,000</div>
+        <div class="product-actions">
+          <div class="qty"><button type="button" data-action="decrease">−</button><span data-qty>0</span><button type="button" data-action="increase">+</button></div>
+          <button type="button" class="btn btn-primary btn-sm" data-quick-add>Add to order</button>
+        </div>
+      </article>
+      <article class="card fade-up d3 product-card" data-sku="wristband" data-name="SHOSA Wristband" data-price="5000">
+        <div class="tag tag-green">Budget friendly</div>
+        <div class="product-icon">🎗️</div>
+        <div class="card-title">SHOSA Wristband</div>
+        <div class="card-subtitle">Affordable for awareness campaigns, team identity, giveaway bags, and youth engagement.</div>
+        <div class="product-meta"><span class="tag">Campaigns</span><span class="tag">Low cost</span></div>
+        <div class="price">UGX 5,000</div>
+        <div class="product-actions">
+          <div class="qty"><button type="button" data-action="decrease">−</button><span data-qty>0</span><button type="button" data-action="increase">+</button></div>
+          <button type="button" class="btn btn-primary btn-sm" data-quick-add>Add to order</button>
+        </div>
+      </article>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="order-form" style="padding-top:24px;">
+  <div class="wrap layout-2col">
+    <div class="form-card fade-up">
+      <div class="form-title">Send a merchandise request</div>
+      <p class="form-subtitle">Build your order, add your details, then send a clean summary to SHOSA on WhatsApp. Your draft is kept in this browser until you clear it.</p>
+      <form id="storeOrderForm">
+        <div class="form-grid">
+          <div class="form-group"><label for="customerName">Full name</label><input id="customerName" name="customerName" placeholder="Your full name" required></div>
+          <div class="form-group"><label for="customerPhone">Phone / WhatsApp</label><input id="customerPhone" name="customerPhone" placeholder="0700 000 000" required></div>
+          <div class="form-group"><label for="customerEmail">Email</label><input id="customerEmail" name="customerEmail" type="email" placeholder="you@example.com"></div>
+          <div class="form-group"><label for="deliveryMode">Delivery option</label><select id="deliveryMode" name="deliveryMode"><option value="Pick up from SHOSA">Pick up from SHOSA</option><option value="Delivery / rider arrangement">Delivery / rider arrangement</option><option value="Reserve for next event">Reserve for next event</option></select></div>
+          <div class="form-group"><label for="sizeInfo">Preferred sizes</label><input id="sizeInfo" name="sizeInfo" placeholder="e.g. T-shirt L, Hoodie XL"></div>
+          <div class="form-group"><label for="timeline">When do you need it?</label><select id="timeline" name="timeline"><option value="As soon as available">As soon as available</option><option value="Before the next event">Before the next event</option><option value="Within this week">Within this week</option><option value="Flexible">Flexible</option></select></div>
+        </div>
+        <div class="form-group"><label for="orderNotes">Extra notes</label><textarea id="orderNotes" name="orderNotes" placeholder="Colours, quantity clarifications, pickup preferences, or any special notes."></textarea></div>
+        <div id="storeAlert" class="alert alert-info"></div>
+        <div style="display:flex;flex-wrap:wrap;gap:12px;margin-top:18px;">
+          <button type="submit" class="btn btn-gold">Send order to WhatsApp</button>
+          <button type="button" class="btn btn-outline" id="copyOrderBtn">Copy order summary</button>
+          <button type="button" class="btn btn-secondary" id="clearOrderBtn">Clear order</button>
+        </div>
+      </form>
+    </div>
+    <aside class="card sticky-card fade-up d2">
+      <div class="tag tag-gold">Live order summary</div>
+      <div class="card-title">Your SHOSA cart</div>
+      <div class="card-subtitle">This summary updates as you add quantities. It becomes the message sent to the SHOSA store contact.</div>
+      <div id="summaryList" class="summary-list"><div class="summary-empty">No items added yet. Use the + buttons above to start building your order.</div></div>
+      <div class="summary-total"><span>Estimated total</span><span id="summaryTotal">UGX 0</span></div>
+      <div class="alert alert-info" style="display:block;margin-top:18px;">Store contact: <strong>+256 700 847 088</strong><br>Orders are sent through WhatsApp for quick confirmation and fulfillment follow-up.</div>
+    </aside>
+  </div>
+</section>
+
+
+<footer>
+  <div class="wrap">
+    <div class="footer-grid">
+      <div class="footer-brand">
+        <h3>SHOSA</h3>
+        <p>Seeta High Old Students Association — connecting alumni, investing together and building the school's future.</p>
+        <a href="#order-form" class="btn btn-gold btn-sm">Start a store order →</a>
+      </div>
+      <div class="footer-col"><h4>Community</h4><ul><li><a href="alumni-register.html">Register as Alumni</a></li><li><a href="gallery.html">Alumni Gallery</a></li><li><a href="events.html">Events</a></li><li><a href="store.html">Official Merchandise</a></li></ul></div>
+      <div class="footer-col"><h4>SACCO</h4><ul><li><a href="sacco-register.html">Join / Update</a></li><li><a href="sacco-payments.html">Make a payment</a></li><li><a href="donate.html">Make a donation</a></li></ul></div>
+      <div class="footer-col"><h4>About</h4><ul><li><a href="about.html">About SHOSA</a></li><li><a href="contact.html">Contact the team</a></li><li><a href="store.html">SHOSA Store</a></li></ul></div>
+    </div>
+    <div class="footer-bottom">
+      <p>© 2026 SHOSA · Seeta High Old Students Association. All rights reserved.</p>
+      <div class="footer-bottom-links"><a href="contact.html">Contact</a><a href="store.html">Store</a><a href="alumni-register.html">Register</a><a href="admin-login.html">Admin</a></div>
+    </div>
+  </div>
+</footer>
+<script src="assets/js/worldclass-site.js"></script>
+<script src="assets/js/store.js"></script>
+</body>
+</html>

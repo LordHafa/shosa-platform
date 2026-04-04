@@ -1,0 +1,18 @@
+node_modules/
+.env
+.env.local
+.env.production
+*.db
+*.db-shm
+*.db-wal
+uploads/*
+!uploads/.gitkeep
+.DS_Store
+Thumbs.db
+
+# local runtime files
+SHOSA_backend/backend_full/.env
+SHOSA_backend/backend_full/.env.production
+SHOSA_backend/backend_full/shosa.db
+SHOSA_backend/backend_full/node_modules/
+.git/

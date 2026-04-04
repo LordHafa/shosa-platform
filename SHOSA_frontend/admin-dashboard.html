@@ -1,0 +1,805 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SHOSA Admin Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/worldclass-theme.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <style>
+    :root{
+      --navy:#0b1e3c;
+      --navy2:#13315f;
+      --gold:#d4af37;
+      --gold2:#f0d27b;
+      --bg:#08172f;
+      --panel:rgba(12,30,58,.92);
+      --panel2:rgba(18,43,80,.92);
+      --panel3:rgba(255,255,255,.04);
+      --line:rgba(255,255,255,.08);
+      --text:#eef4ff;
+      --muted:#b9c6de;
+      --shadow:0 18px 50px rgba(0,0,0,.28);
+      --radius:18px;
+    }
+
+    *{box-sizing:border-box}
+    html,body{
+      margin:0;
+      padding:0;
+      font-family:"Plus Jakarta Sans",sans-serif;
+      background:linear-gradient(180deg,#071327 0%,#0b1e3c 100%);
+      color:var(--text);
+      min-height:100%;
+    }
+    a{text-decoration:none;color:inherit}
+    .wrap{width:min(1200px,calc(100% - 32px));margin:0 auto}
+
+    .site-nav{
+      position:sticky;top:0;z-index:1000;
+      background:rgba(7,18,36,.94);
+      border-bottom:1px solid rgba(255,255,255,.06);
+      backdrop-filter:blur(10px);
+    }
+    .site-nav-inner{
+      min-height:78px;
+      display:flex;align-items:center;justify-content:space-between;gap:20px;
+    }
+    .brand{display:flex;align-items:center;gap:14px}
+    .brand img{
+      width:46px;height:46px;object-fit:contain;border-radius:10px;
+      background:rgba(255,255,255,.06);padding:3px;
+    }
+    .brand-copy h1{
+      margin:0;font-family:"Playfair Display",serif;font-size:1.85rem;color:#fff;
+    }
+    .brand-copy p{
+      margin:3px 0 0;font-size:.72rem;letter-spacing:.12em;text-transform:uppercase;color:var(--gold2);
+    }
+    .nav-links{display:flex;gap:24px;flex-wrap:wrap}
+    .nav-links a{color:#dce7fb}
+    .nav-links a:hover{color:var(--gold2)}
+    .nav-actions{display:flex;gap:10px;flex-wrap:wrap}
+
+    .btn{
+      border:none;cursor:pointer;border-radius:999px;
+      padding:11px 18px;font-size:.92rem;font-weight:700;
+      display:inline-flex;align-items:center;justify-content:center;
+    }
+    .btn-gold{background:linear-gradient(135deg,var(--gold),#f2d57f);color:#10284a}
+    .btn-outline{background:rgba(255,255,255,.04);color:#eef4ff;border:1px solid rgba(255,255,255,.16)}
+
+    .page-shell{padding:36px 0 72px}
+    .hero{
+      background:linear-gradient(135deg,rgba(212,175,55,.12),transparent 35%),linear-gradient(180deg,var(--navy2),var(--navy));
+      border:1px solid rgba(212,175,55,.22);
+      border-radius:24px;
+      box-shadow:var(--shadow);
+      padding:28px;
+      margin-bottom:24px;
+    }
+    .hero-top{display:flex;justify-content:space-between;align-items:flex-start;gap:18px;flex-wrap:wrap}
+    .hero h2{margin:0 0 10px;font-family:"Playfair Display",serif;font-size:2rem;color:#fff}
+    .hero p{margin:0;color:var(--muted);line-height:1.7}
+
+    .kpi-grid{
+      display:grid;
+      grid-template-columns:repeat(3,minmax(0,1fr));
+      gap:18px;
+      margin-bottom:22px;
+    }
+    .card,.table-panel,.summary-card,.analytics-panel{
+      background:var(--panel);
+      border:1px solid var(--line);
+      border-radius:var(--radius);
+      box-shadow:var(--shadow);
+    }
+    .card{padding:22px}
+    .kpi-label{
+      font-size:.78rem;text-transform:uppercase;letter-spacing:.09em;color:var(--gold2);font-weight:700;margin-bottom:10px;
+    }
+    .kpi-value{font-size:2rem;font-weight:800;color:#fff;margin-bottom:6px}
+    .kpi-sub{color:var(--muted);font-size:.94rem}
+
+    .tab-row{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:22px}
+    .tab-btn{
+      border-radius:999px;padding:11px 18px;font-size:.92rem;font-weight:700;
+      border:1px solid rgba(255,255,255,.1);
+      background:rgba(255,255,255,.045);color:#f1f6ff;cursor:pointer;
+    }
+    .tab-btn.active{
+      background:linear-gradient(135deg,var(--gold),#f4d983);
+      color:#10284a;border-color:rgba(212,175,55,.45);
+    }
+
+    .summary-grid{
+      display:grid;
+      grid-template-columns:repeat(2,minmax(0,1fr));
+      gap:18px;
+      margin-bottom:20px;
+    }
+    .summary-card{
+      padding:22px;
+      background:linear-gradient(135deg,rgba(212,175,55,.1),transparent 42%),var(--panel2);
+      border:1px solid rgba(212,175,55,.22);
+    }
+    .summary-card h3{margin:0 0 8px;font-size:.9rem;color:var(--muted);font-weight:600}
+    .summary-card .amount{font-size:2rem;font-weight:800;color:#fff}
+    .hidden{display:none!important}
+
+    .analytics-wrap{
+      display:grid;
+      grid-template-columns:1.2fr .8fr;
+      gap:18px;
+      margin-bottom:20px;
+    }
+    .analytics-panel{
+      padding:20px;
+      background:linear-gradient(180deg,rgba(255,255,255,.03),rgba(255,255,255,.015));
+    }
+    .analytics-head{
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap:12px;
+      margin-bottom:16px;
+      flex-wrap:wrap;
+    }
+    .analytics-head h3{
+      margin:0;
+      font-family:"Playfair Display",serif;
+      font-size:1.2rem;
+      color:#fff;
+    }
+    .analytics-head p{
+      margin:4px 0 0;
+      color:var(--muted);
+      font-size:.9rem;
+    }
+    .analytics-pill{
+      border:1px solid rgba(255,255,255,.08);
+      background:var(--panel3);
+      color:var(--gold2);
+      padding:6px 10px;
+      border-radius:999px;
+      font-size:.78rem;
+      font-weight:700;
+      white-space:nowrap;
+    }
+    .mini-stats{
+      margin-top:16px;
+      display:grid;
+      grid-template-columns:repeat(3,minmax(0,1fr));
+      gap:12px;
+    }
+    .mini-stat{
+      background:rgba(255,255,255,.035);
+      border:1px solid rgba(255,255,255,.06);
+      border-radius:14px;
+      padding:14px;
+    }
+    .mini-stat .label{
+      font-size:.74rem;
+      color:var(--muted);
+      text-transform:uppercase;
+      letter-spacing:.08em;
+      margin-bottom:6px;
+    }
+    .mini-stat .value{
+      font-size:1.1rem;
+      font-weight:800;
+      color:#fff;
+    }
+    .chart-box{
+      position:relative;
+      height:260px;
+    }
+
+    .table-head-wrap{
+      padding:22px 24px 14px;
+      border-bottom:1px solid var(--line);
+      background:rgba(255,255,255,.03);
+    }
+    .table-head-wrap h3{margin:0 0 6px;font-family:"Playfair Display",serif;font-size:1.5rem;color:#fff}
+    .table-head-wrap p{margin:0;color:var(--muted);font-size:.95rem}
+    .table-scroll{width:100%;overflow-x:auto}
+    table{width:100%;border-collapse:collapse;min-width:950px}
+    thead tr{background:rgba(255,255,255,.04)}
+    th{
+      text-align:left;padding:14px 18px;font-size:.76rem;text-transform:uppercase;letter-spacing:.09em;
+      color:var(--gold2);border-bottom:1px solid var(--line);white-space:nowrap;
+    }
+    td{
+      padding:15px 18px;border-bottom:1px solid rgba(255,255,255,.06);color:#edf3ff;vertical-align:top;
+    }
+    tbody tr:hover{background:rgba(255,255,255,.03)}
+    .money{font-weight:700;color:#fff}
+    .status-chip{
+      display:inline-flex;align-items:center;padding:6px 10px;border-radius:999px;font-size:.78rem;font-weight:700;
+      background:rgba(255,255,255,.08);color:#fff;border:1px solid rgba(255,255,255,.08);
+    }
+    .status-chip.active{background:rgba(34,197,94,.14);color:#c4ffd8;border-color:rgba(34,197,94,.22)}
+    .status-chip.pending{background:rgba(212,175,55,.16);color:#ffe9aa;border-color:rgba(212,175,55,.24)}
+    .status-chip.inactive,.status-chip.rejected{background:rgba(239,68,68,.14);color:#ffd0d0;border-color:rgba(239,68,68,.22)}
+
+    footer{
+      margin-top:54px;border-top:1px solid rgba(255,255,255,.08);background:rgba(7,18,36,.82);
+    }
+    .footer-inner{
+      padding:24px 0;display:flex;justify-content:space-between;gap:14px;flex-wrap:wrap;color:var(--muted);font-size:.9rem;
+    }
+    .footer-links{display:flex;gap:18px;flex-wrap:wrap}
+    .footer-links a:hover{color:var(--gold2)}
+
+    @media (max-width:980px){
+      .site-nav-inner{flex-direction:column;align-items:flex-start;padding:14px 0}
+      .nav-links,.nav-actions{width:100%}
+      .kpi-grid,.summary-grid,.analytics-wrap,.mini-stats{grid-template-columns:1fr}
+    }
+    @media (max-width:640px){
+      .hero{padding:22px 18px}
+      .hero h2{font-size:1.6rem}
+      .kpi-value,.summary-card .amount{font-size:1.6rem}
+      .tab-btn,.btn{width:100%}
+      .chart-box{height:220px}
+    }
+  </style>
+</head>
+<body>
+  <nav class="site-nav">
+    <div class="wrap">
+      <div class="site-nav-inner">
+        <a href="index.html" class="brand">
+          <img src="assets/images/logos/shosa-logo.jpeg" alt="SHOSA Logo">
+          <div class="brand-copy">
+            <h1>SHOSA</h1>
+            <p>Seeta High Old Students</p>
+          </div>
+        </a>
+
+        <div class="nav-links">
+          <a href="index.html">Home</a>
+          <a href="store.html">Store</a>
+          <a href="events.html">Events</a>
+          <a href="gallery.html">Gallery</a>
+          <a href="about.html">About</a>
+          <a href="contact.html">Contact</a>
+        </div>
+
+        <div class="nav-actions">
+          <a href="admin-login.html" class="btn btn-outline">Admin Login</a>
+          <button id="adminLogoutBtn" class="btn btn-gold" type="button">Logout</button>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <main class="page-shell">
+    <div class="wrap">
+      <section class="hero">
+        <div class="hero-top">
+          <div>
+            <h2>SHOSA Admin Dashboard</h2>
+            <p>Review alumni records, SACCO membership progress, payments, and a quick visual picture of how the SACCO is performing.</p>
+          </div>
+          <div class="nav-actions">
+            <a href="admin-gallery.html" class="btn btn-outline">Gallery Uploads</a>
+          </div>
+        </div>
+      </section>
+
+      <section class="kpi-grid">
+        <article class="card">
+          <div class="kpi-label">Total Alumni</div>
+          <div class="kpi-value" id="kpiAlumni">—</div>
+          <div class="kpi-sub">Registered SHOSA alumni</div>
+        </article>
+        <article class="card">
+          <div class="kpi-label">Active SACCO Memberships</div>
+          <div class="kpi-value" id="kpiSacco">—</div>
+          <div class="kpi-sub">Members currently in the SACCO flow</div>
+        </article>
+        <article class="card">
+          <div class="kpi-label">Total Payments</div>
+          <div class="kpi-value" id="kpiPayments">—</div>
+          <div class="kpi-sub">Recorded financial activity</div>
+        </article>
+      </section>
+
+      <section id="saccoAnalyticsSection">
+        <div class="summary-grid" style="margin-bottom:18px;">
+          <article class="summary-card">
+            <h3>Total SACCO Amount Recorded</h3>
+            <div class="amount" id="saccoGrandTotal">UGX 0</div>
+          </article>
+          <article class="summary-card">
+            <h3>Members Who Paid Registration Fee</h3>
+            <div class="amount" id="saccoMembershipFeePaidCount">0</div>
+          </article>
+        </div>
+
+        <div class="kpi-grid" style="margin-bottom:18px;">
+          <article class="card">
+            <div class="kpi-label">Activated Members</div>
+            <div class="kpi-value" id="kpiActivatedMembers">—</div>
+            <div class="kpi-sub">Members with first fee paid</div>
+          </article>
+          <article class="card">
+            <div class="kpi-label">This Month's Collections</div>
+            <div class="kpi-value" id="kpiThisMonthCollections">UGX 0</div>
+            <div class="kpi-sub">All SACCO-linked payments this month</div>
+          </article>
+          <article class="card">
+            <div class="kpi-label">Average Paid Per Member</div>
+            <div class="kpi-value" id="kpiAveragePerMember">UGX 0</div>
+            <div class="kpi-sub">Based on recorded SACCO members</div>
+          </article>
+        </div>
+
+        <div class="analytics-wrap">
+          <section class="analytics-panel">
+            <div class="analytics-head">
+              <div>
+                <h3>Collections Trend</h3>
+                <p>Monthly SACCO payment performance over the last 6 months.</p>
+              </div>
+              <div class="analytics-pill">Last 6 months</div>
+            </div>
+            <div class="chart-box">
+              <canvas id="collectionsTrendChart"></canvas>
+            </div>
+            <div class="mini-stats">
+              <div class="mini-stat">
+                <div class="label">Highest Month</div>
+                <div class="value" id="trendHighestMonth">—</div>
+              </div>
+              <div class="mini-stat">
+                <div class="label">Average / Month</div>
+                <div class="value" id="trendAverageMonth">UGX 0</div>
+              </div>
+              <div class="mini-stat">
+                <div class="label">Latest Month</div>
+                <div class="value" id="trendLatestMonth">UGX 0</div>
+              </div>
+            </div>
+          </section>
+
+          <section class="analytics-panel">
+            <div class="analytics-head">
+              <div>
+                <h3>Payment Breakdown</h3>
+                <p>Where the recorded SACCO money is coming from.</p>
+              </div>
+              <div class="analytics-pill">Current</div>
+            </div>
+            <div class="chart-box">
+              <canvas id="paymentBreakdownChart"></canvas>
+            </div>
+            <div class="mini-stats">
+              <div class="mini-stat">
+                <div class="label">Registration Fees</div>
+                <div class="value" id="breakdownRegFees">UGX 0</div>
+              </div>
+              <div class="mini-stat">
+                <div class="label">Monthly Savings</div>
+                <div class="value" id="breakdownMonthlySavings">UGX 0</div>
+              </div>
+              <div class="mini-stat">
+                <div class="label">Quarterly Savings</div>
+                <div class="value" id="breakdownQuarterlySavings">UGX 0</div>
+              </div>
+            </div>
+          </section>
+        </div>
+      </section>
+
+      <section class="tab-row">
+        <button class="tab-btn active" id="tabAlumni" type="button" onclick="showTab('alumni')">Alumni</button>
+        <button class="tab-btn" id="tabSacco" type="button" onclick="showTab('sacco')">SACCO Members</button>
+        <button class="tab-btn" id="tabPayments" type="button" onclick="showTab('payments')">Payments</button>
+      </section>
+
+      <section class="table-panel">
+        <div class="table-head-wrap">
+          <h3 id="tableTitle">Alumni</h3>
+          <p id="tableHint">Loading data…</p>
+        </div>
+        <div class="table-scroll">
+          <table>
+            <thead id="tableHead"></thead>
+            <tbody id="tableBody"></tbody>
+          </table>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <footer>
+    <div class="wrap">
+      <div class="footer-inner">
+        <div>© 2026 SHOSA · Administrative Console</div>
+        <div class="footer-links">
+          <a href="index.html">Home</a>
+          <a href="store.html">Store</a>
+          <a href="gallery.html">Gallery</a>
+          <a href="contact.html">Contact</a>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    const API = window.SHOSA_API || "http://localhost:4000";
+    const token = localStorage.getItem("shosa_admin_token");
+    let collectionsTrendChart = null;
+    let paymentBreakdownChart = null;
+
+    function authHeaders() {
+      return { Authorization: "Bearer " + token };
+    }
+
+    function fmtMoney(v) {
+      return "UGX " + Number(v || 0).toLocaleString("en-UG");
+    }
+
+    function fmtMoneyShort(v) {
+      const n = Number(v || 0);
+      if (n >= 1000000) return "UGX " + (n / 1000000).toFixed(1).replace(/\.0$/, "") + "M";
+      if (n >= 1000) return "UGX " + (n / 1000).toFixed(0) + "K";
+      return "UGX " + n.toLocaleString("en-UG");
+    }
+
+    function fmtDate(v) {
+      if (!v) return "—";
+      return String(v).split("T")[0];
+    }
+
+    function statusChip(status) {
+      const s = String(status || "—").toLowerCase();
+      return `<span class="status-chip ${s}">${status || "—"}</span>`;
+    }
+
+    function groupPaymentsByMonth(payments, monthsBack = 6) {
+      const now = new Date();
+      const labels = [];
+      const values = [];
+      const monthKeys = [];
+
+      for (let i = monthsBack - 1; i >= 0; i--) {
+        const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+        const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+        monthKeys.push(key);
+        labels.push(d.toLocaleString("en-US", { month: "short" }));
+        values.push(0);
+      }
+
+      payments.forEach((payment) => {
+        const createdAt = payment.createdAt ? new Date(payment.createdAt) : null;
+        if (!createdAt || isNaN(createdAt)) return;
+        const key = `${createdAt.getFullYear()}-${String(createdAt.getMonth() + 1).padStart(2, "0")}`;
+        const idx = monthKeys.indexOf(key);
+        if (idx !== -1) values[idx] += Number(payment.amount || 0);
+      });
+
+      return { labels, values };
+    }
+
+    function buildPaymentBreakdown(payments) {
+      const breakdown = {
+        registration: 0,
+        monthly: 0,
+        quarterly: 0,
+        yearly: 0,
+        donation: 0,
+        other: 0
+      };
+
+      payments.forEach((payment) => {
+        const type = String(payment.paymentType || "");
+        const amount = Number(payment.amount || 0);
+
+        if (type === "sacco_membership_fee") breakdown.registration += amount;
+        else if (type === "sacco_savings_monthly") breakdown.monthly += amount;
+        else if (type === "sacco_savings_quarterly") breakdown.quarterly += amount;
+        else if (type === "sacco_yearly_subscription") breakdown.yearly += amount;
+        else if (type === "donation") breakdown.donation += amount;
+        else breakdown.other += amount;
+      });
+
+      return breakdown;
+    }
+
+    function renderTrendChart(labels, values) {
+      const ctx = document.getElementById("collectionsTrendChart");
+      if (!ctx) return;
+      if (collectionsTrendChart) collectionsTrendChart.destroy();
+
+      collectionsTrendChart = new Chart(ctx, {
+        type: "bar",
+        data: {
+          labels,
+          datasets: [{
+            label: "Collections",
+            data: values,
+            borderRadius: 10,
+            backgroundColor: [
+              "rgba(240, 210, 123, 0.85)",
+              "rgba(212, 175, 55, 0.85)",
+              "rgba(83, 152, 255, 0.85)",
+              "rgba(67, 128, 255, 0.85)",
+              "rgba(49, 99, 214, 0.9)",
+              "rgba(34, 78, 185, 0.95)"
+            ]
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { display: false } },
+          scales: {
+            x: { ticks: { color: "#b9c6de" }, grid: { display: false } },
+            y: {
+              ticks: { color: "#b9c6de", callback: (value) => fmtMoneyShort(value).replace("UGX ", "") },
+              grid: { color: "rgba(255,255,255,0.06)" }
+            }
+          }
+        }
+      });
+    }
+
+    function renderBreakdownChart(breakdown) {
+      const ctx = document.getElementById("paymentBreakdownChart");
+      if (!ctx) return;
+      if (paymentBreakdownChart) paymentBreakdownChart.destroy();
+
+      paymentBreakdownChart = new Chart(ctx, {
+        type: "doughnut",
+        data: {
+          labels: ["Registration Fees","Monthly Savings","Quarterly Savings","Yearly Subscription","Donations","Other"],
+          datasets: [{
+            data: [breakdown.registration,breakdown.monthly,breakdown.quarterly,breakdown.yearly,breakdown.donation,breakdown.other],
+            backgroundColor: [
+              "rgba(240, 210, 123, 0.95)",
+              "rgba(83, 152, 255, 0.95)",
+              "rgba(49, 99, 214, 0.95)",
+              "rgba(34, 197, 94, 0.9)",
+              "rgba(212, 175, 55, 0.65)",
+              "rgba(255,255,255,0.25)"
+            ],
+            borderWidth: 0
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          cutout: "65%",
+          plugins: {
+            legend: {
+              position: "bottom",
+              labels: { color: "#b9c6de", boxWidth: 12, padding: 14 }
+            }
+          }
+        }
+      });
+    }
+
+    async function loadSaccoAnalytics() {
+      try {
+        const [saccoRes, paymentsRes] = await Promise.all([
+          fetch(API + "/api/admin/sacco", { headers: authHeaders() }),
+          fetch(API + "/api/admin/payments", { headers: authHeaders() })
+        ]);
+
+        if (saccoRes.status === 401 || paymentsRes.status === 401) {
+          window.location.href = "admin-login.html";
+          return;
+        }
+
+        const saccoData = await saccoRes.json();
+        const paymentsData = await paymentsRes.json();
+
+        const memberships = saccoData.memberships || [];
+        const payments = paymentsData.payments || [];
+
+        const grandTotalPaid = Number(saccoData.grandTotalPaid || 0);
+        const membershipFeePaidCount = Number(saccoData.membershipFeePaidCount || 0);
+        const activatedMembers = memberships.filter(m => String(m.status || "").toLowerCase() === "active").length;
+
+        const now = new Date();
+        const thisMonthCollections = payments
+          .filter((p) => {
+            if (!p.createdAt) return false;
+            const d = new Date(p.createdAt);
+            return d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth();
+          })
+          .reduce((sum, p) => sum + Number(p.amount || 0), 0);
+
+        const averagePerMember = memberships.length ? grandTotalPaid / memberships.length : 0;
+
+        document.getElementById("saccoGrandTotal").textContent = fmtMoney(grandTotalPaid);
+        document.getElementById("saccoMembershipFeePaidCount").textContent = membershipFeePaidCount.toLocaleString("en-UG");
+        document.getElementById("kpiActivatedMembers").textContent = activatedMembers.toLocaleString("en-UG");
+        document.getElementById("kpiThisMonthCollections").textContent = fmtMoney(thisMonthCollections);
+        document.getElementById("kpiAveragePerMember").textContent = fmtMoney(Math.round(averagePerMember));
+
+        const trend = groupPaymentsByMonth(payments, 6);
+        renderTrendChart(trend.labels, trend.values);
+
+        const maxValue = Math.max(...trend.values, 0);
+        const maxIndex = trend.values.findIndex(v => v === maxValue);
+        document.getElementById("trendHighestMonth").textContent =
+          maxValue > 0 && maxIndex >= 0 ? `${trend.labels[maxIndex]} · ${fmtMoneyShort(maxValue)}` : "—";
+        document.getElementById("trendAverageMonth").textContent =
+          fmtMoney(Math.round(trend.values.reduce((a,b) => a+b, 0) / (trend.values.length || 1)));
+        document.getElementById("trendLatestMonth").textContent = fmtMoney(trend.values[trend.values.length - 1] || 0);
+
+        const breakdown = buildPaymentBreakdown(payments);
+        renderBreakdownChart(breakdown);
+        document.getElementById("breakdownRegFees").textContent = fmtMoney(breakdown.registration);
+        document.getElementById("breakdownMonthlySavings").textContent = fmtMoney(breakdown.monthly);
+        document.getElementById("breakdownQuarterlySavings").textContent = fmtMoney(breakdown.quarterly);
+      } catch (err) {
+        console.error("SACCO analytics load error:", err);
+      }
+    }
+
+    document.getElementById("adminLogoutBtn")?.addEventListener("click", () => {
+      localStorage.removeItem("shosa_admin_token");
+      window.location.href = "admin-login.html";
+    });
+
+    function setActiveTab(tab) {
+      ["alumni", "sacco", "payments"].forEach((name) => {
+        const el = document.getElementById("tab" + name.charAt(0).toUpperCase() + name.slice(1));
+        if (!el) return;
+        el.classList.toggle("active", name === tab);
+      });
+    }
+
+    async function loadKPIs() {
+      try {
+        const res = await fetch(API + "/api/admin/stats", { headers: authHeaders() });
+        if (res.status === 401) {
+          window.location.href = "admin-login.html";
+          return;
+        }
+        const data = await res.json();
+        document.getElementById("kpiAlumni").textContent = Number(data.totalAlumni || 0).toLocaleString("en-UG");
+        document.getElementById("kpiSacco").textContent = Number(data.totalSaccoMembers || 0).toLocaleString("en-UG");
+        document.getElementById("kpiPayments").textContent = Number(data.totalPayments || 0).toLocaleString("en-UG");
+      } catch (err) {
+        console.error("KPI load error:", err);
+      }
+    }
+
+    async function loadTable(tab) {
+      const tableTitle = document.getElementById("tableTitle");
+      const tableHint = document.getElementById("tableHint");
+      const tableHead = document.getElementById("tableHead");
+      const tableBody = document.getElementById("tableBody");
+
+      setActiveTab(tab);
+      tableBody.innerHTML = "";
+      tableHint.textContent = "Loading data…";
+
+      let endpoint = "";
+      let headRow = "";
+
+      if (tab === "alumni") {
+        tableTitle.textContent = "Alumni";
+        endpoint = API + "/api/admin/alumni";
+        headRow = `
+          <tr>
+            <th>Full Name</th>
+            <th>Email</th>
+            <th>Phone</th>
+            <th>Campus</th>
+            <th>Grad Year</th>
+            <th>Registered</th>
+          </tr>
+        `;
+      } else if (tab === "sacco") {
+        tableTitle.textContent = "SACCO Members";
+        endpoint = API + "/api/admin/sacco";
+        headRow = `
+          <tr>
+            <th>Member</th>
+            <th>Email</th>
+            <th>Phone</th>
+            <th>Membership Type</th>
+            <th>Monthly Contribution</th>
+            <th>Total Paid</th>
+            <th>Status</th>
+            <th>Start Date</th>
+          </tr>
+        `;
+      } else {
+        tableTitle.textContent = "Payments";
+        endpoint = API + "/api/admin/payments";
+        headRow = `
+          <tr>
+            <th>Date</th>
+            <th>Alumni</th>
+            <th>Payment Type</th>
+            <th>Network</th>
+            <th>Phone</th>
+            <th>Amount</th>
+          </tr>
+        `;
+      }
+
+      tableHead.innerHTML = headRow;
+
+      try {
+        const res = await fetch(endpoint, { headers: authHeaders() });
+
+        if (res.status === 401) {
+          window.location.href = "admin-login.html";
+          return;
+        }
+
+        const data = await res.json();
+        const items = data.alumni || data.memberships || data.payments || data.data || [];
+
+        if (!items.length) {
+          tableHint.textContent = "No records found.";
+          return;
+        }
+
+        tableHint.textContent = `${items.length} record${items.length === 1 ? "" : "s"} loaded.`;
+
+        if (tab === "alumni") {
+          tableBody.innerHTML = items.map((item) => `
+            <tr>
+              <td>${item.fullName || "—"}</td>
+              <td>${item.email || "—"}</td>
+              <td>${item.phone || "—"}</td>
+              <td>${item.campus || "—"}</td>
+              <td>${item.gradYear || "—"}</td>
+              <td>${fmtDate(item.createdAt)}</td>
+            </tr>
+          `).join("");
+        } else if (tab === "sacco") {
+          tableBody.innerHTML = items.map((item) => `
+            <tr>
+              <td>${item.alumniName || "—"}</td>
+              <td>${item.alumniEmail || "—"}</td>
+              <td>${item.alumniPhone || "—"}</td>
+              <td>${item.membershipType || "—"}</td>
+              <td class="money">${fmtMoney(item.monthlyContribution || 0)}</td>
+              <td class="money">${fmtMoney(item.totalPaid || 0)}</td>
+              <td>${statusChip(item.status || "—")}</td>
+              <td>${fmtDate(item.startDate)}</td>
+            </tr>
+          `).join("");
+        } else {
+          tableBody.innerHTML = items.map((item) => `
+            <tr>
+              <td>${fmtDate(item.createdAt)}</td>
+              <td>${item.alumniName || item.alumniEmail || "—"}</td>
+              <td>${item.paymentType || "—"}</td>
+              <td>${item.network || "—"}</td>
+              <td>${item.phone || "—"}</td>
+              <td class="money">${fmtMoney(item.amount || 0)}</td>
+            </tr>
+          `).join("");
+        }
+      } catch (err) {
+        console.error("Table load error:", err);
+        tableHint.textContent = "Unable to reach SHOSA backend.";
+      }
+    }
+
+    function showTab(tab) { loadTable(tab); }
+
+    loadKPIs();
+    loadSaccoAnalytics();
+    loadTable("alumni");
+  </script>
+
+  <script src="assets/js/worldclass-site.js"></script>
+</body>
+</html>

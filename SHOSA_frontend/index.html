@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SHOSA – Seeta High Old Students Association</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Playfair+Display:wght@600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --blue: #3558c9;
+      --blue-2: #2747a1;
+      --blue-3: #4f75f2;
+      --gold: #e8c85e;
+      --gold-2: #f3dd8e;
+      --navy: #071327;
+      --navy-2: #0d1f46;
+      --ink: #eef3ff;
+      --muted: #c4d0ec;
+      --panel: rgba(255,255,255,.08);
+      --line: rgba(255,255,255,.14);
+      --shadow: 0 18px 44px rgba(0,0,0,.22);
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; font-family: Inter, sans-serif; color: var(--ink); background: linear-gradient(180deg,#101b44 0%,#3156c8 42%,#0a1634 100%); }
+    a { text-decoration: none; color: inherit; }
+    img { display: block; max-width: 100%; }
+    .wrap { width: min(1180px, calc(100% - 32px)); margin: 0 auto; }
+    .btn { display: inline-flex; align-items: center; justify-content: center; padding: 11px 20px; border-radius: 999px; font-weight: 700; transition: .2s ease; }
+    .btn:hover { transform: translateY(-1px); }
+    .btn-ghost { border: 1px solid rgba(255,255,255,.2); background: rgba(255,255,255,.04); color: #fff; }
+    .btn-gold { background: linear-gradient(135deg,var(--gold),var(--gold-2)); color: #14274e; }
+    .btn-blue { background: linear-gradient(135deg,var(--blue-3),var(--blue)); color: #fff; box-shadow: 0 12px 28px rgba(53,88,201,.35); }
+
+    .site-nav { position: sticky; top: 0; z-index: 100; background: rgba(5,12,26,.78); backdrop-filter: blur(14px); border-bottom: 1px solid rgba(255,255,255,.08); }
+    .nav-inner { min-height: 76px; display: flex; align-items: center; justify-content: space-between; gap: 18px; }
+    .brand { display: flex; align-items: center; gap: 12px; color: #fff; }
+    .brand img { width: 48px; height: 48px; border-radius: 12px; background: rgba(255,255,255,.06); padding: 4px; }
+    .brand strong { display: block; font-family: 'Playfair Display', serif; font-size: 1.9rem; line-height: 1; }
+    .brand span { display: block; font-size: .72rem; letter-spacing: .14em; text-transform: uppercase; color: var(--gold-2); }
+    .links { display: flex; gap: 24px; flex-wrap: wrap; color: #dbe6ff; }
+    .links a:hover, .links a.active { color: var(--gold-2); }
+    .actions { display: flex; gap: 10px; }
+
+    .preview-bar { background: rgba(255,255,255,.05); border-bottom: 1px solid rgba(255,255,255,.07); }
+    .preview-inner { padding: 10px 0; font-size: .9rem; color: var(--muted); }
+    .preview-inner a { color: var(--gold-2); }
+
+    .hero { position: relative; overflow: hidden; }
+    .hero::before { content: ''; position: absolute; inset: 0; background: linear-gradient(rgba(20,37,98,.56),rgba(8,16,35,.78)), url('assets/images/hero/alumni-orientation.jpg') center/cover no-repeat; }
+    .hero > .wrap { position: relative; padding: 84px 0 96px; display: grid; grid-template-columns: 1.15fr .85fr; gap: 30px; align-items: end; }
+    .eyebrow { display: inline-flex; gap: 10px; align-items: center; font-size: .82rem; letter-spacing: .14em; text-transform: uppercase; color: var(--gold-2); font-weight: 700; }
+    .eyebrow::before { content: ''; width: 44px; height: 1px; background: currentColor; opacity: .7; }
+    h1 { font-family: 'Playfair Display', serif; font-size: clamp(3rem,6vw,5.6rem); line-height: .96; margin: 16px 0 18px; color: #fff; }
+    h1 em { font-style: italic; color: var(--gold-2); }
+    .hero p { font-size: 1.08rem; max-width: 660px; color: #eef3ff; line-height: 1.8; }
+    .hero-stack { display: flex; gap: 14px; flex-wrap: wrap; margin-top: 26px; }
+    .hero-panel { background: rgba(255,255,255,.1); border: 1px solid rgba(255,255,255,.15); backdrop-filter: blur(8px); border-radius: 24px; padding: 22px; }
+    .hero-panel h3 { font-family: 'Playfair Display', serif; font-size: 2rem; margin: 12px 0; color: #fff; }
+
+    .section { padding: 74px 0; }
+    .section-alt { background: linear-gradient(180deg, rgba(7,19,39,.26), rgba(11,20,53,.15)); }
+    .section-dark { background: linear-gradient(180deg,#091834 0%,#0e2451 100%); }
+    .section-title { text-align: center; margin-bottom: 34px; }
+    .section-title h2 { font-family: 'Playfair Display', serif; font-size: clamp(2rem,4vw,3.2rem); margin: 10px 0; color: #fff; }
+    .section-title h2 em { color: var(--gold-2); font-style: italic; }
+    .section-title p { max-width: 720px; margin: 0 auto; color: var(--muted); }
+
+    .grid-3 { display: grid; grid-template-columns: repeat(3,1fr); gap: 22px; }
+    .grid-2 { display: grid; grid-template-columns: repeat(2,1fr); gap: 22px; }
+    .card { background: linear-gradient(180deg,rgba(81,112,255,.22),rgba(18,40,100,.34)); border: 1px solid var(--line); border-radius: 26px; padding: 26px; backdrop-filter: blur(10px); box-shadow: var(--shadow); }
+    .card h3 { font-family: 'Playfair Display', serif; font-size: 2rem; margin: 14px 0 10px; color: #fff; }
+    .card p { color: var(--muted); margin: 0 0 18px; line-height: 1.75; }
+    .chip { display: inline-flex; padding: 8px 14px; border-radius: 999px; background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.14); color: var(--gold-2); font-weight: 700; font-size: .8rem; letter-spacing: .08em; text-transform: uppercase; }
+
+    .store-highlight { padding: 78px 0; background: linear-gradient(180deg,#935e10 0%,#d2a442 100%); }
+    .store-grid { display: grid; grid-template-columns: repeat(2,1fr); gap: 24px; }
+    .product-card { background: linear-gradient(180deg,rgba(255,255,255,.15),rgba(255,255,255,.08)); border: 1px solid rgba(255,255,255,.15); border-radius: 30px; padding: 18px; overflow: hidden; backdrop-filter: blur(8px); }
+    .product-image { height: 260px; border-radius: 24px; background: rgba(255,255,255,.08); display: flex; align-items: center; justify-content: center; padding: 16px; margin-bottom: 18px; }
+    .product-image img { max-height: 100%; width: auto; object-fit: contain; filter: drop-shadow(0 14px 22px rgba(0,0,0,.22)); }
+    .product-card h3 { font-family: 'Playfair Display', serif; font-size: 2.25rem; margin: 0 0 6px; color: #fff; }
+    .price { font-weight: 800; font-size: 1.06rem; color: var(--gold-2); }
+    .product-cta { margin-top: 16px; }
+
+    .event-card .meta, .news-card .meta, .gallery-card .meta { color: var(--gold-2); font-size: .85rem; font-weight: 700; margin-bottom: 10px; }
+    .event-card h3, .news-card h3, .gallery-card h3 { font-size: 1.7rem; }
+    .gallery-card img { border-radius: 20px; aspect-ratio: 16/10; object-fit: cover; margin-bottom: 16px; }
+    .news-card p:last-child, .event-card p:last-child, .gallery-card p:last-child { margin-bottom: 0; }
+
+    .steps { display: grid; grid-template-columns: repeat(3,1fr); gap: 22px; }
+    .step-card { background: rgba(255,255,255,.08); border: 1px solid rgba(255,255,255,.12); border-radius: 26px; padding: 24px; box-shadow: var(--shadow); }
+    .step-number { width: 42px; height: 42px; display: grid; place-items: center; border-radius: 50%; background: linear-gradient(135deg,var(--gold),var(--gold-2)); color: #14274e; font-weight: 800; margin-bottom: 14px; }
+    .step-card h3 { font-family: 'Playfair Display', serif; margin: 0 0 10px; font-size: 1.6rem; }
+    .step-card p { margin: 0; color: var(--muted); line-height: 1.75; }
+
+    .contact-strip { background: linear-gradient(180deg,#10275f 0%,#0a1634 100%); border-top: 1px solid rgba(255,255,255,.08); border-bottom: 1px solid rgba(255,255,255,.08); }
+    .contact-grid { display: grid; grid-template-columns: 1.1fr .9fr; gap: 24px; align-items: center; }
+    .contact-box { background: rgba(255,255,255,.08); border: 1px solid rgba(255,255,255,.12); border-radius: 26px; padding: 24px; }
+    .contact-box h3 { font-family: 'Playfair Display', serif; font-size: 2rem; margin: 0 0 10px; }
+    .contact-list { display: grid; gap: 12px; color: var(--muted); }
+    .contact-list strong { color: #fff; }
+
+    footer { padding: 44px 0 26px; border-top: 1px solid rgba(255,255,255,.08); background: rgba(4,10,23,.5); }
+    .footer-grid { display: grid; grid-template-columns: 1.2fr 1fr 1fr 1fr; gap: 22px; margin-bottom: 20px; }
+    .footer-brand strong { display: block; font-family: 'Playfair Display', serif; font-size: 2rem; margin-bottom: 10px; color: #fff; }
+    .footer-brand p, .footer-col a { color: var(--muted); line-height: 1.8; }
+    .footer-col h4 { margin: 0 0 10px; color: var(--gold-2); font-size: .9rem; letter-spacing: .08em; text-transform: uppercase; }
+    .footer-col { display: grid; gap: 6px; }
+    .footer-bottom { display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; color: var(--muted); font-size: .92rem; padding-top: 16px; border-top: 1px solid rgba(255,255,255,.08); }
+
+    @media (max-width: 980px) {
+      .nav-inner, .hero > .wrap, .contact-grid { grid-template-columns: 1fr; display: block; }
+      .links, .actions { display: none; }
+      .grid-3, .grid-2, .store-grid, .steps, .footer-grid { grid-template-columns: 1fr; }
+      .hero > .wrap { padding: 72px 0 88px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="preview-bar">
+    <div class="wrap preview-inner">A brighter SHOSA public experience — alumni, SACCO, events, gallery and merchandise in one place. <a href="alumni-register.html">Join now →</a></div>
+  </div>
+
+  <nav class="site-nav">
+    <div class="wrap nav-inner">
+      <a href="index.html" class="brand">
+        <img src="assets/images/logos/shosa-logo.jpeg" alt="SHOSA logo">
+        <div>
+          <strong>SHOSA</strong>
+          <span>Seeta High Old Students Association</span>
+        </div>
+      </a>
+      <div class="links">
+        <a href="index.html" class="active">Home</a>
+        <a href="store.html">Store</a>
+        <a href="events.html">Events</a>
+        <a href="gallery.html">Gallery</a>
+        <a href="about.html">About</a>
+        <a href="contact.html">Contact</a>
+      </div>
+      <div class="actions" id="navActionsDesktop">
+        <a class="btn btn-ghost guest-only" href="alumni-login.html">Log in</a>
+        <a class="btn btn-gold guest-only" href="alumni-register.html">Register →</a>
+        <a class="btn btn-ghost alumni-only" href="alumni-dashboard.html" style="display:none;">Dashboard</a>
+        <a class="btn btn-ghost alumni-only" href="profile.html" style="display:none;">Profile</a>
+        <button type="button" class="btn btn-gold alumni-only" id="navLogoutDesktop" style="display:none;">Logout</button>
+        <a class="btn btn-ghost admin-only" href="admin-dashboard.html" style="display:none;">Admin Dashboard</a>
+        <button type="button" class="btn btn-gold admin-only" id="adminNavLogoutDesktop" style="display:none;">Logout</button>
+      </div>
+    </div>
+  </nav>
+
+  <section class="hero">
+    <div class="wrap">
+      <div>
+        <span class="eyebrow">Ways to engage</span>
+        <h1>Whether reconnecting or <em>driving change,</em> there is a place for you.</h1>
+        <p>A brighter SHOSA public experience for students, fresh alumni, mentors, volunteers and supporters — bold enough to feel current, but still grounded in the SHOSA story.</p>
+        <div class="hero-stack">
+          <a class="btn btn-blue" href="alumni-register.html">Join SHOSA</a>
+          <a class="btn btn-gold" href="sacco-register.html">Join SACCO</a>
+          <a class="btn btn-ghost" href="store.html">Explore the store</a>
+        </div>
+      </div>
+      <div class="hero-panel">
+        <span class="eyebrow">This term at Seeta High Nama</span>
+        <h3>Alumni showing up for the next generation</h3>
+        <p>From student orientation to mentorship, SACCO growth, merchandise and community support, SHOSA is not just a memory — it is a living network.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="wrap">
+      <div class="section-title">
+        <span class="eyebrow">Ways to engage</span>
+        <h2>A youth-facing alumni experience that still feels unmistakably SHOSA.</h2>
+        <p>Keep the SHOSA soul, but make the public side brighter, more visual and easier to connect with for students, young alumni and first-time visitors.</p>
+      </div>
+      <div class="grid-3">
+        <article class="card">
+          <span class="chip">Alumni network</span>
+          <h3>Stay connected</h3>
+          <p>Keep in touch with classmates, discover alumni in your field and build relationships that keep SHOSA alive across generations.</p>
+          <a class="btn btn-gold" href="alumni-register.html">Register now</a>
+        </article>
+        <article class="card">
+          <span class="chip">SHOSA SACCO</span>
+          <h3>Invest together</h3>
+          <p>A member-owned savings and investment vehicle that helps alumni grow together through structured contributions and long-term support.</p>
+          <a class="btn btn-blue" href="sacco-register.html">Join SHOSA SACCO</a>
+        </article>
+        <article class="card">
+          <span class="chip">Support & giving</span>
+          <h3>Give back</h3>
+          <p>Support SHOSA projects, student orientation, mentorship, events and school-facing initiatives that make a visible difference.</p>
+          <a class="btn btn-ghost" href="donate.html">Make a donation</a>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section class="store-highlight">
+    <div class="wrap">
+      <div class="section-title">
+        <span class="eyebrow">SHOSA Store</span>
+        <h2>Wear SHOSA with <em>quiet pride.</em></h2>
+      </div>
+      <div class="store-grid">
+        <article class="product-card">
+          <div class="product-image"><img src="assets/images/store/cap-clean.png" alt="SHOSA cap"></div>
+          <h3>SHOSA Cap</h3>
+          <div class="price">UGX 30,000</div>
+          <div class="product-cta"><a class="btn btn-gold" href="store.html">See products</a></div>
+        </article>
+        <article class="product-card">
+          <div class="product-image"><img src="assets/images/store/stickers-wristbands.png" alt="Stickers and wristbands"></div>
+          <h3>Stickers & Wristbands</h3>
+          <div class="price">UGX 5,000 – 10,000</div>
+          <div class="product-cta"><a class="btn btn-ghost" href="store.html">Build a cart</a></div>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section class="section section-alt">
+    <div class="wrap">
+      <div class="section-title">
+        <span class="eyebrow">Upcoming events</span>
+        <h2>Come through for what’s next.</h2>
+        <p>SHOSA is strongest when alumni actually show up — on campus, at gatherings and in service to the next generation.</p>
+      </div>
+      <div class="grid-3">
+        <article class="card event-card">
+          <div class="meta">Orientation support · This term</div>
+          <h3>Student Orientation</h3>
+          <p>Alumni presence during orientation reminds new students that SHOSA is a community they can one day grow into.</p>
+          <a class="btn btn-gold" href="events.html">View events</a>
+        </article>
+        <article class="card event-card">
+          <div class="meta">Community sports</div>
+          <h3>SHOSA League</h3>
+          <p>Sport remains one of the easiest ways for different alumni generations to reconnect and create shared memories again.</p>
+          <a class="btn btn-blue" href="events.html">See highlights</a>
+        </article>
+        <article class="card event-card">
+          <div class="meta">Giving back</div>
+          <h3>Mentorship & Career Talks</h3>
+          <p>Share your experience, open opportunities and help students see paths they may not yet know are possible.</p>
+          <a class="btn btn-ghost" href="events.html">Get involved</a>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="wrap">
+      <div class="section-title">
+        <span class="eyebrow">Gallery</span>
+        <h2>Moments that keep the community real.</h2>
+        <p>Not just a website — a living record of gatherings, mentoring, celebration and support across SHOSA life.</p>
+      </div>
+      <div class="grid-3">
+        <article class="card gallery-card">
+          <img src="assets/images/hero/alumni-orientation.jpg" alt="Alumni orientation support">
+          <div class="meta">Current term</div>
+          <h3>Orientation at Seeta High Nama</h3>
+          <p>Real alumni presence, real faces, real continuity between the school and the association.</p>
+        </article>
+        <article class="card gallery-card">
+          <img src="assets/images/store/cap-clean.png" alt="SHOSA merchandise">
+          <div class="meta">Identity & pride</div>
+          <h3>Merchandise with meaning</h3>
+          <p>Store items help members carry the SHOSA story into everyday life in a subtle but visible way.</p>
+        </article>
+        <article class="card gallery-card">
+          <img src="assets/images/store/stickers-wristbands.png" alt="SHOSA community items">
+          <div class="meta">Small signals, strong belonging</div>
+          <h3>Community symbols</h3>
+          <p>Simple pieces like stickers and wristbands make SHOSA easier to notice, share and remember.</p>
+        </article>
+      </div>
+      <div style="text-align:center;margin-top:24px;"><a class="btn btn-gold" href="gallery.html">View full gallery</a></div>
+    </div>
+  </section>
+
+  <section class="section section-dark">
+    <div class="wrap">
+      <div class="section-title">
+        <span class="eyebrow">News & updates</span>
+        <h2>What’s moving in SHOSA right now.</h2>
+        <p>Keep the homepage feeling alive with recent activity, opportunities and association-wide updates.</p>
+      </div>
+      <div class="grid-3">
+        <article class="card news-card">
+          <div class="meta">Association update</div>
+          <h3>Alumni onboarding has gone digital</h3>
+          <p>Members can now register, log in and start their SHOSA journey online in a cleaner and more structured way.</p>
+        </article>
+        <article class="card news-card">
+          <div class="meta">SACCO progress</div>
+          <h3>Clear membership journey now live</h3>
+          <p>Alumni can join the SACCO, complete the required registration fee and proceed into active participation with a clearer flow.</p>
+        </article>
+        <article class="card news-card">
+          <div class="meta">Community life</div>
+          <h3>More ways to show up and belong</h3>
+          <p>Events, merchandise, gallery stories and giving options now help SHOSA feel active, visible and worth joining.</p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="wrap">
+      <div class="grid-2">
+        <article class="card">
+          <span class="chip">Why join SHOSA</span>
+          <h3>Register once. Stay in the story.</h3>
+          <p>Registration helps you stay visible to the community, access alumni features, take part in SACCO flows and remain connected to school and classmates.</p>
+          <div class="hero-stack">
+            <a class="btn btn-blue" href="alumni-register.html">Register as alumni</a>
+            <a class="btn btn-ghost" href="alumni-login.html">Already registered?</a>
+          </div>
+        </article>
+        <article class="card">
+          <span class="chip">Why it matters</span>
+          <h3>More than nostalgia.</h3>
+          <p>SHOSA exists to connect, organize and empower alumni so that the association can support members, strengthen school culture and give students a visible future to look up to.</p>
+          <a class="btn btn-gold" href="about.html">Read about SHOSA</a>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section class="section section-alt">
+    <div class="wrap">
+      <div class="section-title">
+        <span class="eyebrow">How SHOSA SACCO works</span>
+        <h2>A clear path into active membership.</h2>
+        <p>Keep the SACCO journey understandable for first-time users and young alumni coming into the system.</p>
+      </div>
+      <div class="steps">
+        <article class="step-card">
+          <div class="step-number">1</div>
+          <h3>Register as alumni</h3>
+          <p>Create your alumni profile first so the system knows who you are and links your participation to the wider SHOSA community.</p>
+        </article>
+        <article class="step-card">
+          <div class="step-number">2</div>
+          <h3>Join or update SACCO</h3>
+          <p>Submit your SACCO membership details so your participation is captured properly before you begin operating as a member.</p>
+        </article>
+        <article class="step-card">
+          <div class="step-number">3</div>
+          <h3>Pay the UGX 50,000 registration fee</h3>
+          <p>The first SACCO payment activates your membership. After that, other SACCO payments and member actions open up normally.</p>
+        </article>
+      </div>
+      <div style="text-align:center;margin-top:24px;"><a class="btn btn-gold" href="sacco-register.html">Start the SACCO journey</a></div>
+    </div>
+  </section>
+
+  <section class="section contact-strip">
+    <div class="wrap contact-grid">
+      <div>
+        <span class="eyebrow">Reach SHOSA</span>
+        <h2 style="font-family:'Playfair Display',serif;font-size:clamp(2rem,4vw,3.2rem);margin:10px 0;color:#fff;">Need help, want to join, or ready to support?</h2>
+        <p style="color:var(--muted);max-width:660px;line-height:1.8;">Give visitors an easy way to move from interest into action without having to hunt through the site for contact details.</p>
+      </div>
+      <div class="contact-box">
+        <h3>Contact & support</h3>
+        <div class="contact-list">
+          <div><strong>WhatsApp / Phone:</strong> +256 700 847 088</div>
+          <div><strong>Email:</strong> info@shosa.org</div>
+          <div><strong>Community pages:</strong> Alumni, SACCO, Events, Gallery and Store</div>
+        </div>
+        <div class="hero-stack" style="margin-top:18px;">
+          <a class="btn btn-gold" href="contact.html">Contact SHOSA</a>
+          <a class="btn btn-ghost" href="store.html">Visit the store</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <div class="wrap">
+      <div class="footer-grid">
+        <div class="footer-brand">
+          <strong>SHOSA</strong>
+          <p>Seeta High Old Students Association — building alumni connection, financial participation, school support and visible community identity.</p>
+        </div>
+        <div class="footer-col">
+          <h4>Alumni</h4>
+          <a href="alumni-register.html">Register as alumni</a>
+          <a href="alumni-login.html">Alumni login</a>
+          <a href="about.html">About SHOSA</a>
+        </div>
+        <div class="footer-col">
+          <h4>SACCO</h4>
+          <a href="sacco-register.html">Join / Update</a>
+          <a href="sacco-payments.html">Make payment</a>
+          <a href="donate.html">Support SHOSA</a>
+        </div>
+        <div class="footer-col">
+          <h4>Explore</h4>
+          <a href="store.html">Store</a>
+          <a href="events.html">Events</a>
+          <a href="gallery.html">Gallery</a>
+          <a href="contact.html">Contact</a>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <div>© 2026 SHOSA · Seeta High Old Students Association</div>
+        <div>Built to connect alumni, strengthen community and support the school.</div>
+      </div>
+    </div>
+  </footer>
+  <script src="assets/js/worldclass-site.js"></script>
+</body>
+</html>

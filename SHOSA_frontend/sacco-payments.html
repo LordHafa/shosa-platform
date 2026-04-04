@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>SACCO Payments – SHOSA</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700;900&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/css/worldclass-theme.css">
+<style>
+  :root{
+    --bg:#071426;
+    --bg-2:#0b1e3c;
+    --panel:#112748;
+    --panel-2:#17335e;
+    --line:rgba(255,255,255,.10);
+    --text:#edf3ff;
+    --muted:rgba(237,243,255,.72);
+    --gold:#d4a43b;
+    --gold-2:#f0c15d;
+    --success:#4ade80;
+    --danger:#fb7185;
+    --info:#60a5fa;
+    --shadow:0 18px 48px rgba(0,0,0,.28);
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body.page-sacco-payments{
+    margin:0;
+    font-family:'Inter',system-ui,sans-serif;
+    background:linear-gradient(180deg,#071426 0%, #0b1e3c 40%, #081528 100%);
+    color:var(--text);
+  }
+  .wrap{max-width:1180px;margin:0 auto;padding:0 22px}
+  #nav{position:sticky;top:0;z-index:100;background:rgba(7,20,38,.96);backdrop-filter:blur(10px);border-bottom:1px solid rgba(255,255,255,.07)}
+  .nav-inner{display:flex;align-items:center;justify-content:space-between;gap:24px;min-height:72px}
+  .nav-brand{display:flex;align-items:center;gap:12px;text-decoration:none;color:#fff}
+  .nav-badge{width:46px;height:46px;border-radius:10px;overflow:hidden;background:#0f2748;display:grid;place-items:center;border:1px solid rgba(255,255,255,.08)}
+  .nav-badge img{width:100%;height:100%;object-fit:contain}
+  .nav-brand-meta{display:flex;flex-direction:column;line-height:1.05}
+  .nav-brand-meta strong{font-family:'Playfair Display',serif;font-size:1.3rem;font-weight:700;letter-spacing:.01em}
+  .nav-brand-meta span{font-size:.68rem;letter-spacing:.10em;text-transform:uppercase;color:rgba(255,255,255,.55)}
+  .nav-links,.nav-actions{display:flex;align-items:center;gap:18px}
+  .nav-links a{color:rgba(255,255,255,.78);text-decoration:none;font-size:.95rem}
+  .nav-links a:hover,.nav-links a.active{color:var(--gold-2)}
+  .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border:none;border-radius:12px;padding:12px 18px;font-weight:700;font-size:.95rem;cursor:pointer;text-decoration:none;transition:.2s ease;outline:none}
+  .btn:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{box-shadow:0 0 0 3px rgba(240,193,93,.35),0 0 0 6px rgba(255,255,255,.10)}
+  .btn-gold{background:linear-gradient(180deg,var(--gold-2),var(--gold));color:#12213b}
+  .btn-gold:hover{transform:translateY(-1px);filter:brightness(1.05)}
+  .btn-outline{background:transparent;color:#fff;border:1px solid rgba(255,255,255,.2)}
+  .btn-outline:hover{border-color:rgba(240,193,93,.6);color:var(--gold-2)}
+  .hero{padding:56px 0 28px;border-bottom:1px solid rgba(255,255,255,.05);background:radial-gradient(circle at top right, rgba(212,164,59,.16), transparent 30%)}
+  .eyebrow{display:inline-flex;align-items:center;gap:8px;padding:7px 12px;border-radius:999px;background:rgba(212,164,59,.12);border:1px solid rgba(240,193,93,.26);color:var(--gold-2);font-size:.76rem;font-weight:800;letter-spacing:.08em;text-transform:uppercase}
+  .hero h1{font-family:'Playfair Display',serif;font-size:clamp(2rem,4vw,3.3rem);margin:18px 0 12px;line-height:1.08}
+  .hero p{max-width:760px;color:var(--muted);font-size:1.02rem;line-height:1.7;margin:0}
+  .hero-actions{display:flex;flex-wrap:wrap;gap:12px;margin-top:24px}
+  .section{padding:34px 0}
+  .grid{display:grid;grid-template-columns:1.1fr .9fr;gap:22px;align-items:start}
+  .panel{background:linear-gradient(180deg,rgba(23,51,94,.96),rgba(14,34,64,.96));border:1px solid var(--line);border-radius:22px;box-shadow:var(--shadow)}
+  .panel-head{padding:24px 24px 0}
+  .panel-body{padding:24px}
+  .panel h2,.panel h3{margin:0;font-family:'Playfair Display',serif;line-height:1.15}
+  .panel h2{font-size:1.55rem}
+  .panel h3{font-size:1.18rem}
+  .sub{margin-top:10px;color:var(--muted);line-height:1.7}
+  .status-strip{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:22px}
+  .mini{padding:18px;border-radius:16px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08)}
+  .mini .k{font-size:.74rem;text-transform:uppercase;letter-spacing:.09em;color:rgba(255,255,255,.58);font-weight:800}
+  .mini .v{margin-top:8px;font-size:1.02rem;font-weight:700;color:#fff;line-height:1.4}
+  .notice{padding:16px 18px;border-radius:16px;margin-top:18px;border:1px solid transparent;line-height:1.65}
+  .notice.info{background:rgba(96,165,250,.12);border-color:rgba(96,165,250,.24);color:#dbeafe}
+  .notice.warn{background:rgba(240,193,93,.11);border-color:rgba(240,193,93,.24);color:#fde7b0}
+  .notice.success{background:rgba(74,222,128,.10);border-color:rgba(74,222,128,.24);color:#d1fae5}
+  .notice.error{background:rgba(251,113,133,.10);border-color:rgba(251,113,133,.22);color:#ffe1e7}
+  .form-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+  .field{display:flex;flex-direction:column;gap:8px}
+  .field.full{grid-column:1 / -1}
+  label{font-size:.86rem;font-weight:700;color:#f7f8fb}
+  input,select,textarea{
+    width:100%;padding:13px 14px;border-radius:12px;
+    background:#0c1e39;color:#f7fbff;border:1px solid rgba(255,255,255,.16);
+    font:inherit;outline:none;
+  }
+  select option{background:#0c1e39;color:#f7fbff}
+  input::placeholder,textarea::placeholder{color:rgba(255,255,255,.42)}
+  textarea{min-height:110px;resize:vertical}
+  .muted{font-size:.85rem;color:var(--muted);line-height:1.6}
+  .stack{display:flex;flex-direction:column;gap:14px}
+  .actions{display:flex;flex-wrap:wrap;gap:12px;margin-top:8px}
+  .alert{display:none;padding:14px 16px;border-radius:14px;font-size:.95rem;line-height:1.6;border:1px solid transparent}
+  .alert.show{display:block}
+  .alert.error{background:rgba(251,113,133,.10);border-color:rgba(251,113,133,.22);color:#ffe1e7}
+  .alert.success{background:rgba(74,222,128,.10);border-color:rgba(74,222,128,.22);color:#d1fae5}
+  .alert.info{background:rgba(96,165,250,.10);border-color:rgba(96,165,250,.22);color:#dbeafe}
+  .pill-row{display:flex;flex-wrap:wrap;gap:10px;margin-top:8px}
+  .pill{display:inline-flex;align-items:center;padding:8px 12px;border-radius:999px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08);font-size:.8rem;font-weight:700;color:#fff}
+  .pill.locked{background:rgba(240,193,93,.12);border-color:rgba(240,193,93,.24);color:#fde7b0}
+  .history-list{display:flex;flex-direction:column;gap:12px;margin-top:10px}
+  .history-item{display:flex;justify-content:space-between;gap:16px;padding:16px;border-radius:16px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08)}
+  .history-item h4{margin:0 0 6px;font-size:1rem}
+  .history-item p{margin:0;color:var(--muted);font-size:.9rem;line-height:1.6}
+  .history-amt{font-weight:800;color:var(--gold-2);white-space:nowrap}
+  .empty{padding:18px;border-radius:16px;background:rgba(255,255,255,.04);border:1px dashed rgba(255,255,255,.14);color:var(--muted)}
+  footer{margin-top:34px;border-top:1px solid rgba(255,255,255,.06);background:#06111f}
+  .footer-grid{display:grid;grid-template-columns:1.5fr 1fr 1fr 1fr;gap:22px;padding:42px 0 26px}
+  .footer-grid h4,.footer-grid h3{margin:0 0 12px}
+  .footer-grid h3{font-family:'Playfair Display',serif;font-size:1.35rem}
+  .footer-grid p,.footer-grid a{color:rgba(255,255,255,.68);text-decoration:none;line-height:1.7}
+  .footer-grid a:hover{color:var(--gold-2)}
+  .footer-bottom{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;padding:18px 0 26px;border-top:1px solid rgba(255,255,255,.06);color:rgba(255,255,255,.46);font-size:.88rem}
+  @media (max-width: 980px){
+    .grid{grid-template-columns:1fr}
+    .status-strip{grid-template-columns:1fr}
+    .footer-grid{grid-template-columns:1fr 1fr}
+  }
+  @media (max-width: 720px){
+    .nav-links,.nav-actions{display:none}
+    .form-grid{grid-template-columns:1fr}
+    .footer-grid{grid-template-columns:1fr}
+    .history-item{flex-direction:column}
+  }
+</style>
+</head>
+<body class="shosa-worldclass page-sacco-payments">
+  <nav id="nav">
+    <div class="wrap nav-inner">
+      <a href="index.html" class="nav-brand">
+        <div class="nav-badge"><img src="assets/images/logos/shosa-logo.jpeg" alt="SHOSA logo"></div>
+        <div class="nav-brand-meta">
+          <strong>SHOSA</strong>
+          <span>Seeta High Old Students</span>
+        </div>
+      </a>
+      <div class="nav-links">
+        <a href="index.html">Home</a>
+        <a href="about.html">About</a>
+        <a href="events.html">Events</a>
+        <a href="gallery.html">Gallery</a>
+        <a href="store.html">Store</a>
+        <a href="sacco-register.html">Join / Update SACCO</a>
+        <a href="sacco-payments.html" class="active">Make Payment</a>
+      </div>
+      <div class="nav-actions" id="navActionsDesktop">
+        <a class="btn btn-outline guest-only" href="alumni-login.html">Log in</a>
+        <a class="btn btn-gold guest-only" href="alumni-register.html">Register →</a>
+        <a class="btn btn-outline alumni-only" href="alumni-dashboard.html" style="display:none;">Dashboard</a>
+        <a class="btn btn-outline alumni-only" href="profile.html" style="display:none;">Profile</a>
+        <button type="button" class="btn btn-gold alumni-only" id="navLogoutDesktop" style="display:none;">Logout</button>
+        <a class="btn btn-outline admin-only" href="admin-dashboard.html" style="display:none;">Admin Dashboard</a>
+        <button type="button" class="btn btn-gold admin-only" id="adminNavLogoutDesktop" style="display:none;">Logout</button>
+      </div>
+    </div>
+  </nav>
+
+  <header class="hero">
+    <div class="wrap">
+      <span class="eyebrow">SACCO Payments</span>
+      <h1>Secure your SACCO standing and manage your SHOSA payments with clarity.</h1>
+      <p>This page shows your SACCO status, what payment is required next, and your recent SACCO payment records. For a new SACCO member, the first payment is always the <strong>UGX 50,000 membership registration fee</strong>.</p>
+      <div class="hero-actions">
+        <a href="#payment-form" class="btn btn-gold">Go to payment form</a>
+        <a href="sacco-register.html" class="btn btn-outline">Join / Update SACCO</a>
+      </div>
+    </div>
+  </header>
+
+  <main class="section">
+    <div class="wrap grid">
+      <section class="panel">
+        <div class="panel-head">
+          <h2>Your SACCO payment desk</h2>
+          <p class="sub">We’ll guide the member journey in the right order so no one enters as an active member before the compulsory registration fee is recorded.</p>
+        </div>
+        <div class="panel-body">
+          <div id="topAlert" class="alert"></div>
+
+          <div class="status-strip">
+            <div class="mini">
+              <div class="k">Membership</div>
+              <div class="v" id="membershipState">Checking…</div>
+            </div>
+            <div class="mini">
+              <div class="k">First fee status</div>
+              <div class="v" id="feeState">Checking…</div>
+            </div>
+            <div class="mini">
+              <div class="k">Next required step</div>
+              <div class="v" id="nextStep">Checking…</div>
+            </div>
+          </div>
+
+          <div id="statusNotice" class="notice info">Loading your SACCO status…</div>
+
+          <div class="pill-row" id="statusPills"></div>
+
+          <form id="payment-form" class="stack" style="margin-top:24px;">
+            <div class="form-grid">
+              <div class="field">
+                <label for="paymentType">Payment type</label>
+                <select id="paymentType" name="paymentType" required>
+                  <option value="sacco_membership_fee">SACCO membership registration — UGX 50,000</option>
+                  <option value="sacco_yearly_subscription">SACCO yearly subscription — UGX 100,000</option>
+                  <option value="sacco_savings_monthly">SACCO monthly savings deposit — minimum UGX 50,000</option>
+                  <option value="sacco_savings_quarterly">SACCO quarterly savings deposit — minimum UGX 200,000</option>
+                  <option value="donation">Donation</option>
+                </select>
+                <small class="muted" id="paymentTypeHelp">Your first SACCO payment is locked to the membership registration fee until it is paid.</small>
+              </div>
+
+              <div class="field">
+                <label for="amount">Amount (UGX)</label>
+                <input id="amount" name="amount" type="number" min="1000" step="1000" required />
+                <small class="muted" id="amountHelp">The amount updates automatically based on the selected payment type.</small>
+              </div>
+
+              <div class="field">
+                <label for="phone">Mobile money number</label>
+                <input id="phone" name="phone" type="tel" placeholder="e.g. 0700123456" required />
+              </div>
+
+              <div class="field">
+                <label for="network">Network</label>
+                <select id="network" name="network" required>
+                  <option value="">Select network</option>
+                  <option value="MTN">MTN</option>
+                  <option value="Airtel">Airtel</option>
+                </select>
+              </div>
+
+              <div class="field full">
+                <label for="description">Description / note</label>
+                <textarea id="description" name="description" placeholder="Optional note for the treasurer or SACCO office."></textarea>
+              </div>
+            </div>
+
+            <div class="actions">
+              <button type="submit" class="btn btn-gold" id="submitBtn">Record payment</button>
+              <a href="sacco-register.html" class="btn btn-outline">Join / Update SACCO</a>
+            </div>
+          </form>
+        </div>
+      </section>
+
+      <aside class="panel">
+        <div class="panel-head">
+          <h3>Recent payments</h3>
+          <p class="sub">This list updates from your saved payment records so you can confirm what has already been captured.</p>
+        </div>
+        <div class="panel-body">
+          <div id="historyEmpty" class="empty">Loading payment history…</div>
+          <div id="historyList" class="history-list" style="display:none"></div>
+        </div>
+      </aside>
+    </div>
+  </main>
+
+  <footer>
+    <div class="wrap footer-grid">
+      <div>
+        <h3>SHOSA</h3>
+        <p>Seeta High Old Students Association — alumni connection, SACCO growth, service, and practical community support.</p>
+      </div>
+      <div>
+        <h4>Explore</h4>
+        <p><a href="index.html">Home</a></p>
+        <p><a href="about.html">About</a></p>
+        <p><a href="gallery.html">Gallery</a></p>
+      </div>
+      <div>
+        <h4>SACCO</h4>
+        <p><a href="sacco-register.html">Join / Update</a></p>
+        <p><a href="sacco-payments.html">Make Payment</a></p>
+        <p><a href="sacco-dashboard.html">SACCO Dashboard</a></p>
+      </div>
+      <div>
+        <h4>Contact</h4>
+        <p><a href="contact.html">Contact SHOSA</a></p>
+        <p><a href="store.html">Store</a></p>
+        <p><a href="donate.html">Donate</a></p>
+      </div>
+    </div>
+    <div class="wrap footer-bottom">
+      <div>© 2026 SHOSA. All rights reserved.</div>
+      <div>Built for a clean launch weekend.</div>
+    </div>
+  </footer>
+
+  <script src="assets/js/worldclass-site.js"></script>
+  <script>
+    (function(){
+      const API = window.SHOSA_API || 'http://localhost:4000';
+      const token = localStorage.getItem('shosa_token');
+      const topAlert = document.getElementById('topAlert');
+      const statusNotice = document.getElementById('statusNotice');
+      const membershipState = document.getElementById('membershipState');
+      const feeState = document.getElementById('feeState');
+      const nextStep = document.getElementById('nextStep');
+      const paymentType = document.getElementById('paymentType');
+      const amount = document.getElementById('amount');
+      const phone = document.getElementById('phone');
+      const network = document.getElementById('network');
+      const description = document.getElementById('description');
+      const submitBtn = document.getElementById('submitBtn');
+      const historyList = document.getElementById('historyList');
+      const historyEmpty = document.getElementById('historyEmpty');
+      const statusPills = document.getElementById('statusPills');
+      let saccoStatus = null;
+
+      const PAYMENT_META = {
+        sacco_membership_fee: { amount: 50000, locked: true, label: 'Membership registration fee' },
+        sacco_yearly_subscription: { amount: 100000, locked: true, label: 'Yearly subscription' },
+        sacco_savings_monthly: { amount: 50000, min: true, label: 'Monthly savings deposit' },
+        sacco_savings_quarterly: { amount: 200000, min: true, label: 'Quarterly savings deposit' },
+        donation: { amount: 1000, min: true, label: 'Donation' }
+      };
+
+      function authHeaders(){ return token ? { 'Authorization':'Bearer ' + token, 'Content-Type':'application/json' } : { 'Content-Type':'application/json' }; }
+      function showAlert(type, message){ topAlert.className = 'alert show ' + type; topAlert.textContent = message; }
+      function clearAlert(){ topAlert.className = 'alert'; topAlert.textContent = ''; }
+      function formatMoney(v){ return 'UGX ' + Number(v || 0).toLocaleString(); }
+      function escapeHtml(v){ return String(v || '').replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
+
+      function enforcePaymentRules(){
+        const selected = paymentType.value;
+        const meta = PAYMENT_META[selected] || {};
+        const firstFeePending = saccoStatus && saccoStatus.membership && !saccoStatus.membershipFeePaid;
+
+        Array.from(paymentType.options).forEach(opt => {
+          if(!saccoStatus || !saccoStatus.membership){
+            opt.disabled = opt.value !== 'sacco_membership_fee' && opt.value !== 'donation';
+            return;
+          }
+          if(firstFeePending){
+            opt.disabled = opt.value !== 'sacco_membership_fee';
+          } else {
+            opt.disabled = false;
+          }
+        });
+
+        if(firstFeePending){
+          paymentType.value = 'sacco_membership_fee';
+          amount.value = 50000;
+          amount.readOnly = true;
+          document.getElementById('paymentTypeHelp').textContent = 'Your SACCO membership is saved, but it remains inactive until the UGX 50,000 registration fee is recorded.';
+          document.getElementById('amountHelp').textContent = 'This first SACCO payment is fixed at UGX 50,000.';
+        } else {
+          amount.readOnly = !!meta.locked;
+          if(meta.amount){ amount.value = meta.amount; }
+          document.getElementById('paymentTypeHelp').textContent = 'You can now make the appropriate SACCO payment based on your current need.';
+          document.getElementById('amountHelp').textContent = meta.min ? ('Minimum required: ' + formatMoney(meta.amount) + '.') : ('Required amount: ' + formatMoney(meta.amount || 0) + '.');
+        }
+      }
+
+      function renderStatus(status){
+        saccoStatus = status;
+        membershipState.textContent = status.membership ? (status.membership.status || 'saved') : 'Not registered yet';
+        feeState.textContent = status.membershipFeePaid ? 'Paid' : 'Pending';
+        nextStep.textContent = !status.membership ? 'Join SACCO first' : (!status.membershipFeePaid ? 'Pay UGX 50,000 membership fee' : 'You can proceed normally');
+
+        statusPills.innerHTML = '';
+        const pills = [];
+        if(status.membership){ pills.push('<span class="pill">Membership saved</span>'); }
+        if(status.membershipFeePaid){ pills.push('<span class="pill">First fee paid</span>'); }
+        else if(status.membership){ pills.push('<span class="pill locked">Activation fee required</span>'); }
+        if(status.membership && status.membership.membershipType){ pills.push('<span class="pill">' + escapeHtml(status.membership.membershipType) + '</span>'); }
+        statusPills.innerHTML = pills.join('');
+
+        if(!status.membership){
+          statusNotice.className = 'notice info';
+          statusNotice.innerHTML = 'You have not joined the SACCO yet. Complete your SACCO registration first, then return here to make your first payment.';
+          submitBtn.disabled = true;
+          paymentType.disabled = true;
+          amount.disabled = true;
+          phone.disabled = true;
+          network.disabled = true;
+          description.disabled = true;
+        } else if(!status.membershipFeePaid){
+          statusNotice.className = 'notice warn';
+          statusNotice.innerHTML = 'Your SACCO membership details are saved. To activate your membership and access member benefits, pay the compulsory <strong>UGX 50,000 membership registration fee</strong> now.';
+          submitBtn.disabled = false;
+          paymentType.disabled = false;
+          amount.disabled = false;
+          phone.disabled = false;
+          network.disabled = false;
+          description.disabled = false;
+        } else {
+          statusNotice.className = 'notice success';
+          statusNotice.innerHTML = 'Your SACCO membership is active. You can now make other SACCO payments normally.';
+          submitBtn.disabled = false;
+          paymentType.disabled = false;
+          amount.disabled = false;
+          phone.disabled = false;
+          network.disabled = false;
+          description.disabled = false;
+        }
+
+        const required = new URLSearchParams(window.location.search).get('required');
+        if(required === 'sacco_membership_fee' && status.membership && !status.membershipFeePaid){
+          paymentType.value = 'sacco_membership_fee';
+        }
+        enforcePaymentRules();
+      }
+
+      function renderHistory(rows){
+        if(!rows || !rows.length){
+          historyList.style.display = 'none';
+          historyEmpty.style.display = 'block';
+          historyEmpty.textContent = 'No payment records yet. Once you submit a payment, it will appear here.';
+          return;
+        }
+        historyEmpty.style.display = 'none';
+        historyList.style.display = 'flex';
+        historyList.innerHTML = rows.map(row => `
+          <div class="history-item">
+            <div>
+              <h4>${escapeHtml(row.label || row.paymentType)}</h4>
+              <p>${escapeHtml(row.network || '')}${row.phone ? ' · ' + escapeHtml(row.phone) : ''}</p>
+              <p>${new Date(row.createdAt).toLocaleString()}</p>
+            </div>
+            <div class="history-amt">${formatMoney(row.amount)}</div>
+          </div>
+        `).join('');
+      }
+
+      async function fetchStatus(){
+        if(!token){
+          window.location.href = 'alumni-login.html';
+          return;
+        }
+        const res = await fetch(API + '/api/sacco/status', { headers: { 'Authorization':'Bearer ' + token } });
+        if(res.status === 401){
+          localStorage.removeItem('shosa_token');
+          localStorage.removeItem('shosa_alumni');
+          window.location.href = 'alumni-login.html';
+          return;
+        }
+        const data = await res.json();
+        renderStatus(data);
+      }
+
+      async function fetchHistory(){
+        const res = await fetch(API + '/api/payments/my', { headers: { 'Authorization':'Bearer ' + token } });
+        const data = await res.json().catch(() => ({ payments: [] }));
+        renderHistory(data.payments || []);
+      }
+
+      paymentType.addEventListener('change', function(){
+        clearAlert();
+        const meta = PAYMENT_META[paymentType.value];
+        if(!meta) return;
+        amount.value = meta.amount || '';
+        amount.readOnly = !!meta.locked;
+        document.getElementById('amountHelp').textContent = meta.min ? ('Minimum required: ' + formatMoney(meta.amount) + '.') : ('Required amount: ' + formatMoney(meta.amount || 0) + '.');
+        enforcePaymentRules();
+      });
+
+      document.getElementById('payment-form').addEventListener('submit', async function(e){
+        e.preventDefault();
+        clearAlert();
+        if(!saccoStatus || !saccoStatus.membership){
+          showAlert('error', 'Please join the SACCO first before making a SACCO payment.');
+          return;
+        }
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Recording…';
+        try {
+          const payload = {
+            paymentType: paymentType.value,
+            amount: Number(amount.value),
+            phone: phone.value.trim(),
+            network: network.value,
+            description: description.value.trim()
+          };
+          const res = await fetch(API + '/api/payments/mobilemoney', {
+            method: 'POST',
+            headers: authHeaders(),
+            body: JSON.stringify(payload)
+          });
+          const data = await res.json().catch(() => ({}));
+          if(!res.ok){
+            throw new Error(data.error || 'Payment could not be recorded.');
+          }
+          showAlert('success', data.message || 'Payment recorded successfully.');
+          description.value = '';
+          await fetchStatus();
+          await fetchHistory();
+        } catch(err){
+          showAlert('error', err.message || 'Payment failed.');
+        } finally {
+          submitBtn.disabled = false;
+          submitBtn.textContent = 'Record payment';
+        }
+      });
+
+      fetchStatus().then(fetchHistory).catch(function(){
+        showAlert('error', 'We could not load your SACCO payment details right now.');
+      });
+    })();
+  </script>
+</body>
+</html>
