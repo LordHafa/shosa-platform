@@ -1,18 +1,30 @@
+# Node
 node_modules/
+npm-debug.log
+
+# Env
 .env
-.env.local
-.env.production
-*.db
-*.db-shm
-*.db-wal
-uploads/*
-!uploads/.gitkeep
+
+# OS
 .DS_Store
 Thumbs.db
 
-# local runtime files
-SHOSA_backend/backend_full/.env
-SHOSA_backend/backend_full/.env.production
-SHOSA_backend/backend_full/shosa.db
-SHOSA_backend/backend_full/node_modules/
-.git/
+# Logs
+logs/
+*.log
+
+# Uploads
+uploads/
+
+# IDE
+.vscode/
+.idea/
+
+# Windows junk
+AppData/
+Documents/
+Downloads/
+
+# Misc
+*.zip
+*.exe
