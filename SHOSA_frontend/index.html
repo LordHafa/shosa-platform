@@ -108,6 +108,11 @@
     .footer-col { display: grid; gap: 6px; }
     .footer-bottom { display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; color: var(--muted); font-size: .92rem; padding-top: 16px; border-top: 1px solid rgba(255,255,255,.08); }
 
+    /* Dynamic hero support */
+    .hero{background:linear-gradient(rgba(4,12,35,.70),rgba(4,12,35,.78)),url('assets/images/hero/alumni-orientation.jpg') center\/cover no-repeat;}
+    .hero::before{opacity:.18!important;mix-blend-mode:screen;background:radial-gradient(circle at top right,rgba(250,204,21,.22),transparent 36%)!important;}
+    .hero.dynamic-hero-ready::before{background:radial-gradient(circle at top right,rgba(250,204,21,.22),transparent 36%)!important;}
+
     @media (max-width: 980px) {
       .nav-inner, .hero > .wrap, .contact-grid { grid-template-columns: 1fr; display: block; }
       .links, .actions { display: none; }
