@@ -748,3 +748,1058 @@ body.page-home .btn:focus-visible,
 body.page-admin-dashboard .btn:focus-visible{outline:3px solid rgba(255,229,139,.38)!important;outline-offset:3px!important;}
 @media(max-width:1100px){.admin-command-grid{grid-template-columns:1fr 1fr}.admin-command-primary{grid-column:1/-1}}
 @media(max-width:700px){.admin-command-grid{grid-template-columns:1fr}body.page-home .grid-3,body.page-home .grid-2,body.page-home .store-grid{grid-template-columns:1fr!important}}
+
+
+/* =====================================================================
+   SHOSA HYBRID LUXURY BACKGROUND SYSTEM
+   Warm cream/light-gold base + preserved blue/gold SHOSA identity.
+   ===================================================================== */
+
+:root{
+  --shosa-cream:#f6f1e7;
+  --shosa-cream-2:#efe7d8;
+  --shosa-cream-3:#fffdfa;
+  --shosa-warm-line:rgba(202,138,4,.14);
+  --shosa-navy-text:#102041;
+  --shosa-navy-muted:#40506e;
+}
+
+/* Public pages get breathing room: cream base instead of dark everywhere */
+body.shosa-worldclass:not(.theme-bright):not(.clean-login):not(.page-admin-dashboard):not(.page-alumni-dashboard):not(.page-sacco-dashboard){
+  background:
+    radial-gradient(circle at 8% 4%,rgba(242,201,76,.22),transparent 24%),
+    radial-gradient(circle at 92% 10%,rgba(47,91,234,.10),transparent 28%),
+    linear-gradient(180deg,var(--shosa-cream) 0%,var(--shosa-cream-2) 48%,#f8f3ea 100%) !important;
+  color:var(--shosa-navy-text) !important;
+}
+
+/* Keep navigation, heroes, footer, dashboards premium/dark */
+body.shosa-worldclass:not(.theme-bright) nav,
+body.shosa-worldclass:not(.theme-bright) #nav,
+body.shosa-worldclass:not(.theme-bright) footer,
+body.shosa-worldclass:not(.theme-bright) .hero-main,
+body.shosa-worldclass:not(.theme-bright) .hero,
+body.shosa-worldclass:not(.theme-bright) .page-hero,
+body.shosa-worldclass:not(.theme-bright) .dash-hero{
+  color:#eef4ff !important;
+}
+
+/* Cream content sections on public pages */
+body.shosa-worldclass:not(.theme-bright):not(.clean-login):not(.page-admin-dashboard):not(.page-alumni-dashboard):not(.page-sacco-dashboard) .section,
+body.shosa-worldclass:not(.theme-bright):not(.clean-login):not(.page-admin-dashboard):not(.page-alumni-dashboard):not(.page-sacco-dashboard) main{
+  background:
+    radial-gradient(circle at 92% 12%,rgba(242,201,76,.12),transparent 26%),
+    linear-gradient(180deg,rgba(255,253,250,.78),rgba(246,241,231,.62)) !important;
+}
+
+/* Cards become warm glass/ivory on public content, while hero cards stay glassy */
+body.shosa-worldclass:not(.theme-bright):not(.clean-login):not(.page-admin-dashboard):not(.page-alumni-dashboard):not(.page-sacco-dashboard) .section .card,
+body.shosa-worldclass:not(.theme-bright):not(.clean-login):not(.page-admin-dashboard):not(.page-alumni-dashboard):not(.page-sacco-dashboard) .section .form-card,
+body.shosa-worldclass:not(.theme-bright):not(.clean-login):not(.page-admin-dashboard):not(.page-alumni-dashboard):not(.page-sacco-dashboard) .section .panel,
+body.shosa-worldclass:not(.theme-bright):not(.clean-login):not(.page-admin-dashboard):not(.page-alumni-dashboard):not(.page-sacco-dashboard) .section .sticky-card{
+  background:linear-gradient(180deg,rgba(255,253,250,.92),rgba(255,248,235,.82)) !important;
+  border:1px solid var(--shosa-warm-line) !important;
+  color:var(--shosa-navy-text) !important;
+  box-shadow:0 18px 52px rgba(92,65,22,.10) !important;
+}
+
+/* Readability on cream sections */
+body.shosa-worldclass:not(.theme-bright):not(.clean-login):not(.page-admin-dashboard):not(.page-alumni-dashboard):not(.page-sacco-dashboard) .section h1,
+body.shosa-worldclass:not(.theme-bright):not(.clean-login):not(.page-admin-dashboard):not(.page-alumni-dashboard):not(.page-sacco-dashboard) .section h2,
+body.shosa-worldclass:not(.theme-bright):not(.clean-login):not(.page-admin-dashboard):not(.page-alumni-dashboard):not(.page-sacco-dashboard) .section h3,
+body.shosa-worldclass:not(.theme-bright):not(.clean-login):not(.page-admin-dashboard):not(.page-alumni-dashboard):not(.page-sacco-dashboard) .section h4,
+body.shosa-worldclass:not(.theme-bright):not(.clean-login):not(.page-admin-dashboard):not(.page-alumni-dashboard):not(.page-sacco-dashboard) .section .heading,
+body.shosa-worldclass:not(.theme-bright):not(.clean-login):not(.page-admin-dashboard):not(.page-alumni-dashboard):not(.page-sacco-dashboard) .section .card-title,
+body.shosa-worldclass:not(.theme-bright):not(.clean-login):not(.page-admin-dashboard):not(.page-alumni-dashboard):not(.page-sacco-dashboard) .section .form-title,
+body.shosa-worldclass:not(.theme-bright):not(.clean-login):not(.page-admin-dashboard):not(.page-alumni-dashboard):not(.page-sacco-dashboard) .section .price{
+  color:var(--shosa-navy-text) !important;
+}
+
+body.shosa-worldclass:not(.theme-bright):not(.clean-login):not(.page-admin-dashboard):not(.page-alumni-dashboard):not(.page-sacco-dashboard) .section p,
+body.shosa-worldclass:not(.theme-bright):not(.clean-login):not(.page-admin-dashboard):not(.page-alumni-dashboard):not(.page-sacco-dashboard) .section li,
+body.shosa-worldclass:not(.theme-bright):not(.clean-login):not(.page-admin-dashboard):not(.page-alumni-dashboard):not(.page-sacco-dashboard) .section small,
+body.shosa-worldclass:not(.theme-bright):not(.clean-login):not(.page-admin-dashboard):not(.page-alumni-dashboard):not(.page-sacco-dashboard) .section .lead,
+body.shosa-worldclass:not(.theme-bright):not(.clean-login):not(.page-admin-dashboard):not(.page-alumni-dashboard):not(.page-sacco-dashboard) .section .card-subtitle,
+body.shosa-worldclass:not(.theme-bright):not(.clean-login):not(.page-admin-dashboard):not(.page-alumni-dashboard):not(.page-sacco-dashboard) .section .form-subtitle,
+body.shosa-worldclass:not(.theme-bright):not(.clean-login):not(.page-admin-dashboard):not(.page-alumni-dashboard):not(.page-sacco-dashboard) .section .summary-empty{
+  color:var(--shosa-navy-muted) !important;
+}
+
+/* Form controls on cream sections */
+body.shosa-worldclass:not(.theme-bright):not(.clean-login):not(.page-admin-dashboard):not(.page-alumni-dashboard):not(.page-sacco-dashboard) .section input,
+body.shosa-worldclass:not(.theme-bright):not(.clean-login):not(.page-admin-dashboard):not(.page-alumni-dashboard):not(.page-sacco-dashboard) .section select,
+body.shosa-worldclass:not(.theme-bright):not(.clean-login):not(.page-admin-dashboard):not(.page-alumni-dashboard):not(.page-sacco-dashboard) .section textarea{
+  background:#fffdfa !important;
+  color:var(--shosa-navy-text) !important;
+  border-color:rgba(16,32,65,.16) !important;
+}
+
+/* Store product cards: warm premium catalogue look */
+body.page-store:not(.theme-bright) .product-card{
+  background:
+    radial-gradient(circle at top right,rgba(242,201,76,.18),transparent 28%),
+    linear-gradient(180deg,#fffdfa,#fff6df) !important;
+}
+
+body.page-store:not(.theme-bright) .qty{
+  background:#fff8e8 !important;
+  border-color:rgba(202,138,4,.16) !important;
+}
+
+body.page-store:not(.theme-bright) .qty span{
+  color:var(--shosa-navy-text) !important;
+}
+
+body.page-store:not(.theme-bright) .summary-list,
+body.page-store:not(.theme-bright) #summaryList,
+body.page-store:not(.theme-bright) #summaryList *,
+body.page-store:not(.theme-bright) .summary-total,
+body.page-store:not(.theme-bright) .summary-total *,
+body.page-store:not(.theme-bright) .sticky-card .alert,
+body.page-store:not(.theme-bright) .sticky-card .alert *,
+body.page-store:not(.theme-bright) .sticky-card strong{
+  color:var(--shosa-navy-text) !important;
+}
+
+/* Keep homepage store highlight rich and intentional */
+body.page-home:not(.theme-bright) .store-highlight{
+  background:
+    radial-gradient(circle at 18% 18%,rgba(255,229,139,.18),transparent 30%),
+    linear-gradient(135deg,#9b6414,#d7a63e 54%,#6f4510) !important;
+  color:#fff !important;
+}
+
+/* Dynamic hero should win over previous hardcoded hero backgrounds */
+body.shosa-worldclass .dynamic-hero-ready{
+  background-size:cover !important;
+  background-position:center !important;
+  background-repeat:no-repeat !important;
+}
+
+body.page-store .store-hero{
+  min-height:76vh;
+}
+
+body.page-store .store-hero::after{
+  content:'';
+  position:absolute;
+  inset:0;
+  background:
+    radial-gradient(circle at 84% 18%,rgba(255,229,139,.22),transparent 28%),
+    linear-gradient(90deg,rgba(6,14,32,.20),rgba(6,14,32,.72));
+  pointer-events:none;
+}
+
+body.page-store .store-hero > .wrap{
+  position:relative;
+  z-index:2;
+}
+
+body.page-store .store-hero-merch-orbit{
+  display:flex;
+  flex-wrap:wrap;
+  gap:10px;
+  margin:0 0 24px;
+}
+
+body.page-store .store-hero-merch-orbit span{
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  padding:9px 13px;
+  border-radius:999px;
+  background:rgba(255,255,255,.10);
+  border:1px solid rgba(255,255,255,.16);
+  color:#fff;
+  font-size:.82rem;
+  font-weight:800;
+  backdrop-filter:blur(10px);
+}
+
+/* =====================================================================
+   SHOSA UI OVERHAUL PASS 2026-05-02
+   Systemwide warm luxury background + readable forms + sexier dashboards
+   ===================================================================== */
+:root{
+  --shosa-cream:#f6f1e7;
+  --shosa-cream-soft:#fbf6ea;
+  --shosa-cream-card:#fffdf8;
+  --shosa-cream-border:rgba(202,138,4,.16);
+  --shosa-navy:#081120;
+  --shosa-navy-2:#102041;
+  --shosa-navy-3:#173f98;
+  --shosa-body-text:#102041;
+  --shosa-body-muted:#53627d;
+  --shosa-blue-glow:0 26px 80px rgba(47,91,234,.24);
+  --shosa-gold-glow:0 20px 52px rgba(242,201,76,.24);
+}
+
+/* One visual language across the whole system */
+html{background:var(--shosa-cream)!important;}
+body.shosa-worldclass,
+body.page-admin-dashboard,
+body.page-alumni-dashboard,
+body.page-sacco-dashboard{
+  background:
+    radial-gradient(circle at 8% 4%,rgba(242,201,76,.22),transparent 25%),
+    radial-gradient(circle at 92% 10%,rgba(47,91,234,.13),transparent 27%),
+    linear-gradient(180deg,var(--shosa-cream) 0%,#f2eadc 45%,#fbf6ea 100%)!important;
+  color:var(--shosa-body-text)!important;
+}
+body.shosa-worldclass.theme-bright{
+  background:
+    radial-gradient(circle at 10% 5%,rgba(255,229,139,.26),transparent 30%),
+    radial-gradient(circle at 85% 12%,rgba(255,255,255,.20),transparent 26%),
+    linear-gradient(180deg,#3868ff 0%,#2453bd 46%,#123681 100%)!important;
+  color:#fff!important;
+}
+
+/* Keep official SHOSA frame premium */
+body.shosa-worldclass nav,
+body.shosa-worldclass #nav,
+body.page-admin-dashboard nav,
+body.page-admin-dashboard #nav{
+  background:rgba(7,12,24,.78)!important;
+  border-bottom:1px solid rgba(216,178,93,.18)!important;
+  box-shadow:0 12px 32px rgba(8,17,32,.16)!important;
+  backdrop-filter:blur(18px)!important;
+}
+body.shosa-worldclass footer,
+body.page-admin-dashboard footer{
+  background:#071120!important;
+  border-top:1px solid rgba(216,178,93,.18)!important;
+}
+body.shosa-worldclass .hero-main,
+body.shosa-worldclass .hero,
+body.shosa-worldclass .page-hero{
+  color:#eef4ff!important;
+}
+
+/* Readability fix: cream cards and forms */
+body.shosa-worldclass .section .form-card,
+body.shosa-worldclass .section .card,
+body.shosa-worldclass .section .panel,
+body.shosa-worldclass .section .sticky-card,
+body.shosa-worldclass .section .summary-card,
+body.shosa-worldclass .section .info-box,
+body.shosa-worldclass .form-card,
+body.shosa-worldclass .card{
+  border-radius:28px!important;
+}
+body.shosa-worldclass:not(.theme-bright) .section .form-card,
+body.shosa-worldclass:not(.theme-bright) .section .card,
+body.shosa-worldclass:not(.theme-bright) .section .panel,
+body.shosa-worldclass:not(.theme-bright) .section .sticky-card,
+body.shosa-worldclass:not(.theme-bright) .section .summary-card,
+body.shosa-worldclass:not(.theme-bright) .section .info-box,
+body.shosa-worldclass:not(.theme-bright) .page-hero + .section .form-card,
+body.shosa-worldclass:not(.theme-bright) .page-hero + .section .card{
+  background:linear-gradient(180deg,rgba(255,253,248,.96),rgba(255,248,235,.88))!important;
+  border:1px solid var(--shosa-cream-border)!important;
+  box-shadow:0 22px 70px rgba(92,65,22,.10)!important;
+  color:var(--shosa-body-text)!important;
+}
+
+/* Dark premium cards remain inside dashboard pages but sit on the same cream system background */
+body.page-admin-dashboard .card,
+body.page-admin-dashboard .analytics-panel,
+body.page-admin-dashboard .table-panel,
+body.page-admin-dashboard .summary-card,
+body.page-admin-dashboard .admin-command-card,
+body.page-admin-dashboard .hero,
+body.page-alumni-dashboard .card,
+body.page-alumni-dashboard .dash-hero,
+body.page-sacco-dashboard .card,
+body.page-sacco-dashboard .dash-hero{
+  background:
+    radial-gradient(circle at 88% 12%,rgba(242,201,76,.08),transparent 34%),
+    linear-gradient(180deg,rgba(13,24,49,.94),rgba(17,33,67,.88))!important;
+  color:#eef4ff!important;
+  border:1px solid rgba(255,255,255,.14)!important;
+  box-shadow:0 26px 80px rgba(7,17,40,.24)!important;
+  backdrop-filter:blur(18px)!important;
+}
+body.page-admin-dashboard .hero,
+body.page-alumni-dashboard .dash-hero,
+body.page-sacco-dashboard .dash-hero{
+  background:
+    radial-gradient(circle at 12% 14%,rgba(77,117,255,.34),transparent 34%),
+    radial-gradient(circle at 88% 14%,rgba(242,201,76,.18),transparent 30%),
+    linear-gradient(135deg,#183f9f,#071120)!important;
+}
+
+/* Cream sections: all labels and helper text must be readable */
+body.shosa-worldclass:not(.theme-bright) .section label,
+body.shosa-worldclass:not(.theme-bright) .section .form-group label,
+body.shosa-worldclass:not(.theme-bright) .section small,
+body.shosa-worldclass:not(.theme-bright) .section .form-subtitle,
+body.shosa-worldclass:not(.theme-bright) .section .card-subtitle,
+body.shosa-worldclass:not(.theme-bright) .section .lead,
+body.shosa-worldclass:not(.theme-bright) .section p,
+body.shosa-worldclass:not(.theme-bright) .section li,
+body.shosa-worldclass:not(.theme-bright) .section .summary-empty{
+  color:var(--shosa-body-muted)!important;
+}
+body.shosa-worldclass:not(.theme-bright) .section h1,
+body.shosa-worldclass:not(.theme-bright) .section h2,
+body.shosa-worldclass:not(.theme-bright) .section h3,
+body.shosa-worldclass:not(.theme-bright) .section h4,
+body.shosa-worldclass:not(.theme-bright) .section .heading,
+body.shosa-worldclass:not(.theme-bright) .section .form-title,
+body.shosa-worldclass:not(.theme-bright) .section .card-title,
+body.shosa-worldclass:not(.theme-bright) .section .price,
+body.shosa-worldclass:not(.theme-bright) .section strong{
+  color:var(--shosa-body-text)!important;
+}
+body.shosa-worldclass:not(.theme-bright) .section input,
+body.shosa-worldclass:not(.theme-bright) .section select,
+body.shosa-worldclass:not(.theme-bright) .section textarea{
+  background:#fffdf8!important;
+  border:1.5px solid rgba(16,32,65,.16)!important;
+  color:var(--shosa-body-text)!important;
+  box-shadow:0 10px 26px rgba(8,17,32,.045)!important;
+}
+body.shosa-worldclass:not(.theme-bright) .section input::placeholder,
+body.shosa-worldclass:not(.theme-bright) .section textarea::placeholder{
+  color:rgba(83,98,125,.48)!important;
+}
+
+/* File picker readability on cream cards */
+body.shosa-worldclass:not(.theme-bright) .section .shosa-file-picker{
+  background:linear-gradient(135deg,#fff9e9,#fffdf8)!important;
+  border-color:rgba(202,138,4,.35)!important;
+  box-shadow:0 18px 42px rgba(92,65,22,.10)!important;
+}
+body.shosa-worldclass:not(.theme-bright) .section .shosa-file-copy strong{
+  color:var(--shosa-body-text)!important;
+}
+body.shosa-worldclass:not(.theme-bright) .section .shosa-file-copy small{
+  color:var(--shosa-body-muted)!important;
+}
+body.shosa-worldclass:not(.theme-bright) .section .shosa-file-name{
+  color:#b8860b!important;
+}
+
+/* Store and public forms: buttons, summary, alerts */
+body.page-store:not(.theme-bright) #summaryList,
+body.page-store:not(.theme-bright) #summaryList *,
+body.page-store:not(.theme-bright) .summary-total,
+body.page-store:not(.theme-bright) .summary-total *,
+body.page-store:not(.theme-bright) .sticky-card .alert,
+body.page-store:not(.theme-bright) .sticky-card .alert *,
+body.page-store:not(.theme-bright) .sticky-card strong,
+body.page-store:not(.theme-bright) #summaryTotal{
+  color:var(--shosa-body-text)!important;
+}
+body.page-store:not(.theme-bright) .sticky-card .alert{
+  background:rgba(16,32,65,.06)!important;
+  border:1px solid rgba(16,32,65,.10)!important;
+}
+body.page-store:not(.theme-bright) .product-card{
+  background:
+    radial-gradient(circle at top right,rgba(242,201,76,.20),transparent 28%),
+    linear-gradient(180deg,#fffdf8,#fff5dd)!important;
+}
+body.page-store:not(.theme-bright) .qty,
+body.page-store:not(.theme-bright) .qty button{
+  background:#fff9e9!important;
+  color:var(--shosa-body-text)!important;
+  border-color:rgba(202,138,4,.16)!important;
+}
+
+/* Page-specific hero polish */
+body.shosa-worldclass .dynamic-hero-ready{
+  background-size:cover!important;
+  background-position:center!important;
+  background-repeat:no-repeat!important;
+}
+body.page-store .store-hero{
+  min-height:78vh!important;
+  position:relative!important;
+}
+body.page-store .store-hero::after{
+  content:'';
+  position:absolute;
+  inset:0;
+  background:
+    radial-gradient(circle at 84% 18%,rgba(255,229,139,.22),transparent 28%),
+    linear-gradient(90deg,rgba(6,14,32,.18),rgba(6,14,32,.76));
+  pointer-events:none;
+}
+body.page-store .store-hero > .wrap{position:relative;z-index:2;}
+body.page-store .store-hero-merch-orbit{display:flex;flex-wrap:wrap;gap:10px;margin:0 0 24px;}
+body.page-store .store-hero-merch-orbit span{
+  display:inline-flex;align-items:center;gap:6px;padding:9px 13px;border-radius:999px;
+  background:rgba(255,255,255,.10);border:1px solid rgba(255,255,255,.16);color:#fff;
+  font-size:.82rem;font-weight:800;backdrop-filter:blur(10px);
+}
+
+/* Dashboard upgrade: less generic, more operations-center */
+body.page-admin-dashboard .admin-command-card,
+body.page-alumni-dashboard .card,
+body.page-sacco-dashboard .card{
+  transition:transform .22s ease,border-color .22s ease,box-shadow .22s ease!important;
+}
+body.page-admin-dashboard .admin-command-card:hover,
+body.page-alumni-dashboard .card:hover,
+body.page-sacco-dashboard .card:hover{
+  transform:translateY(-7px)!important;
+  border-color:rgba(255,229,139,.42)!important;
+  box-shadow:0 34px 96px rgba(47,91,234,.18)!important;
+}
+body.page-alumni-dashboard .card::before,
+body.page-sacco-dashboard .card::before,
+body.page-admin-dashboard .card::before{
+  content:'';
+  display:block;
+  width:54px;
+  height:4px;
+  border-radius:999px;
+  background:linear-gradient(90deg,#f2c94c,#4d75ff);
+  margin-bottom:16px;
+}
+body.page-admin-dashboard .analytics-panel canvas,
+body.page-admin-dashboard canvas{
+  filter:drop-shadow(0 12px 24px rgba(77,117,255,.16));
+}
+body.page-admin-dashboard .kpi-value,
+body.page-admin-dashboard .amount,
+body.page-alumni-dashboard .stat-num,
+body.page-sacco-dashboard .stat-num{
+  text-shadow:0 14px 34px rgba(47,91,234,.25)!important;
+}
+
+/* Remove visually risky hidden/white-on-cream admin/gallery text */
+body.shosa-worldclass:not(.theme-bright) .section .btn-secondary,
+body.shosa-worldclass:not(.theme-bright) .section .btn-outline{
+  color:#2453bd!important;
+  border-color:#2453bd!important;
+}
+body.shosa-worldclass:not(.theme-bright) .section .btn-secondary:hover,
+body.shosa-worldclass:not(.theme-bright) .section .btn-outline:hover{
+  background:#2453bd!important;
+  color:#fff!important;
+}
+
+/* Keep admin/auth nav buttons readable on cream pages */
+body.shosa-worldclass .nav-actions .btn,
+body.shosa-worldclass .mobile-nav-btns .btn{
+  color:inherit;
+}
+
+@media(max-width:720px){
+  body.shosa-worldclass .section .form-card,
+  body.shosa-worldclass .section .card{border-radius:22px!important;}
+  body.page-store .store-hero{min-height:auto!important;padding-top:96px!important;padding-bottom:60px!important;}
+}
+
+/* =====================================================================
+   SHOSA INTEGRATED UI OVERHAUL V4 — FINAL READABILITY + DASHBOARD POLISH
+   Applies after all previous theme rules. Keep this block at the end.
+   ===================================================================== */
+
+:root{
+  --v4-cream:#f6f1e7;
+  --v4-cream-2:#efe7d8;
+  --v4-card:#fffdfa;
+  --v4-card-2:#fff5dc;
+  --v4-navy:#081120;
+  --v4-navy-2:#102041;
+  --v4-blue:#2f5bea;
+  --v4-blue-2:#173f98;
+  --v4-gold:#f2c94c;
+  --v4-gold-2:#ffe58b;
+  --v4-text:#102041;
+  --v4-muted:#40506e;
+  --v4-line:rgba(202,138,4,.16);
+  --v4-shadow:0 22px 70px rgba(92,65,22,.12);
+}
+
+/* Bright/day theme: warm cream, never washed out. */
+body.shosa-worldclass.theme-bright,
+body.page-home.theme-bright,
+body.page-admin-dashboard.theme-bright{
+  background:
+    radial-gradient(circle at 8% 4%,rgba(242,201,76,.24),transparent 24%),
+    radial-gradient(circle at 92% 8%,rgba(47,91,234,.13),transparent 28%),
+    linear-gradient(180deg,var(--v4-cream) 0%,var(--v4-cream-2) 52%,#f8f3ea 100%) !important;
+  color:var(--v4-text)!important;
+}
+
+/* Classic theme also gets the warmer public base, while heroes/nav/footer remain cinematic. */
+body.shosa-worldclass:not(.theme-bright):not(.clean-login){
+  background:
+    radial-gradient(circle at 8% 4%,rgba(242,201,76,.18),transparent 24%),
+    radial-gradient(circle at 92% 8%,rgba(47,91,234,.10),transparent 28%),
+    linear-gradient(180deg,#f6f1e7 0%,#efe7d8 52%,#f8f3ea 100%) !important;
+  color:var(--v4-text)!important;
+}
+
+/* Keep the platform anchor areas dark and premium. */
+body.shosa-worldclass nav,
+body.shosa-worldclass #nav,
+body.page-home .site-nav,
+body.shosa-worldclass footer,
+body.shosa-worldclass .hero,
+body.shosa-worldclass .hero-main,
+body.shosa-worldclass .page-hero,
+body.shosa-worldclass .dash-hero,
+body.page-admin-dashboard .hero{
+  color:#eef4ff!important;
+}
+
+/* Announcement / preview bar readability. */
+body.page-home .preview-bar,
+body.shosa-worldclass .preview-bar{
+  background:linear-gradient(90deg,#fff8e7,#f5e6c8)!important;
+  border-bottom:1px solid rgba(202,138,4,.18)!important;
+}
+body.page-home .preview-inner,
+body.page-home .preview-inner *,
+body.shosa-worldclass .preview-inner,
+body.shosa-worldclass .preview-inner *{
+  color:var(--v4-text)!important;
+  font-weight:800!important;
+}
+body.page-home .preview-inner a{color:#173f98!important;text-decoration:underline;text-underline-offset:3px;}
+
+/* Public content surfaces: readable ivory cards. */
+body.shosa-worldclass .section,
+body.shosa-worldclass main,
+body.page-home .section,
+body.page-home .section-alt,
+body.page-home .section-dark,
+body.page-home .contact-strip{
+  background:
+    radial-gradient(circle at 92% 12%,rgba(242,201,76,.10),transparent 26%),
+    linear-gradient(180deg,rgba(255,253,250,.82),rgba(246,241,231,.68))!important;
+}
+
+/* Homepage hero and store highlight stay high contrast. */
+body.page-home .hero,
+body.page-home .hero *,
+body.page-home .store-highlight,
+body.page-home .store-highlight *,
+body.page-store .hero-main,
+body.page-store .hero-main *{
+  color:#fff!important;
+}
+body.page-home .hero .eyebrow,
+body.page-home .hero em,
+body.page-home .store-highlight .eyebrow,
+body.page-home .store-highlight em,
+body.page-store .hero-pill,
+body.page-store .hero-main em{
+  color:var(--v4-gold-2)!important;
+}
+
+/* Ivory public cards. */
+body.shosa-worldclass .section .card,
+body.shosa-worldclass .section .form-card,
+body.shosa-worldclass .section .panel,
+body.shosa-worldclass .section .sticky-card,
+body.shosa-worldclass .section .summary-card,
+body.page-home .section .card,
+body.page-store .section .card,
+body.page-store .section .form-card,
+body.page-store .section .sticky-card,
+body.page-sacco-payments .panel,
+body.page-profile .form-card,
+body.page-alumni-register .form-card,
+body.page-admin-gallery .form-card,
+body.page-admin-gallery .card{
+  background:linear-gradient(180deg,var(--v4-card),var(--v4-card-2))!important;
+  border:1px solid var(--v4-line)!important;
+  box-shadow:var(--v4-shadow)!important;
+  color:var(--v4-text)!important;
+}
+
+/* Make public-card text navy, not white-on-cream. */
+body.shosa-worldclass .section .card h1,
+body.shosa-worldclass .section .card h2,
+body.shosa-worldclass .section .card h3,
+body.shosa-worldclass .section .card h4,
+body.shosa-worldclass .section .card .card-title,
+body.shosa-worldclass .section .card .form-title,
+body.shosa-worldclass .section .form-card h1,
+body.shosa-worldclass .section .form-card h2,
+body.shosa-worldclass .section .form-card h3,
+body.shosa-worldclass .section .form-card .form-title,
+body.shosa-worldclass .section .panel h1,
+body.shosa-worldclass .section .panel h2,
+body.shosa-worldclass .section .panel h3,
+body.shosa-worldclass .section .panel .panel-head h2,
+body.shosa-worldclass .section .panel .panel-head h3,
+body.page-profile .profile-name,
+body.page-profile .profile-field-value,
+body.page-profile .profile-bio .profile-field-value,
+body.page-sacco-payments .v,
+body.page-sacco-payments .mini .v,
+body.page-store .price,
+body.page-store .summary-total,
+body.page-store #summaryTotal{
+  color:var(--v4-text)!important;
+}
+body.shosa-worldclass .section .card p,
+body.shosa-worldclass .section .card li,
+body.shosa-worldclass .section .card small,
+body.shosa-worldclass .section .card .card-subtitle,
+body.shosa-worldclass .section .form-card p,
+body.shosa-worldclass .section .form-card small,
+body.shosa-worldclass .section .form-card .form-subtitle,
+body.shosa-worldclass .section .panel p,
+body.shosa-worldclass .section .panel .sub,
+body.shosa-worldclass .section .panel .muted,
+body.page-profile .profile-meta,
+body.page-profile .profile-field-label,
+body.page-sacco-payments .k,
+body.page-sacco-payments .mini .k,
+body.page-sacco-payments .sub,
+body.page-store .summary-empty{
+  color:var(--v4-muted)!important;
+}
+
+/* Homepage light buttons inside ivory cards. */
+body.page-home .section .btn-ghost,
+body.page-home .section .btn-outline,
+body.page-home .section .btn-secondary,
+body.shosa-worldclass .section .btn-outline,
+body.shosa-worldclass .section .btn-secondary{
+  color:var(--v4-blue-2)!important;
+  border-color:rgba(23,63,152,.34)!important;
+  background:rgba(47,91,234,.08)!important;
+}
+body.page-home .section .btn-ghost:hover,
+body.page-home .section .btn-outline:hover,
+body.shosa-worldclass .section .btn-outline:hover,
+body.shosa-worldclass .section .btn-secondary:hover{
+  background:linear-gradient(135deg,#2f5bea,#173f98)!important;
+  color:#fff!important;
+}
+body.page-home .section .btn-gold,
+body.shosa-worldclass .section .btn-gold{
+  background:linear-gradient(135deg,#f2c94c,#ffe58b)!important;
+  color:#102041!important;
+}
+
+/* Forms, labels, selects, file uploaders on light cards. */
+body.shosa-worldclass .section input,
+body.shosa-worldclass .section select,
+body.shosa-worldclass .section textarea,
+body.page-profile input,
+body.page-profile select,
+body.page-profile textarea,
+body.page-alumni-register input,
+body.page-alumni-register select,
+body.page-alumni-register textarea,
+body.page-admin-gallery input,
+body.page-admin-gallery select,
+body.page-admin-gallery textarea,
+body.page-sacco-payments input,
+body.page-sacco-payments select,
+body.page-sacco-payments textarea{
+  background:#fffdfa!important;
+  color:var(--v4-text)!important;
+  border-color:rgba(16,32,65,.18)!important;
+}
+body.shosa-worldclass .section label,
+body.page-profile label,
+body.page-alumni-register label,
+body.page-admin-gallery label,
+body.page-sacco-payments label{
+  color:var(--v4-text)!important;
+  font-weight:800!important;
+}
+body.shosa-worldclass .section input::placeholder,
+body.shosa-worldclass .section textarea::placeholder{
+  color:rgba(16,32,65,.48)!important;
+}
+body.shosa-worldclass select option,
+body.shosa-worldclass select optgroup{
+  background:#fffdfa!important;
+  color:#102041!important;
+}
+body.shosa-worldclass .shosa-file-picker{
+  background:linear-gradient(135deg,#fff7df,#fffdfa)!important;
+  color:var(--v4-text)!important;
+  border-color:rgba(202,138,4,.46)!important;
+}
+body.shosa-worldclass .shosa-file-copy strong,
+body.shosa-worldclass .shosa-file-name{color:var(--v4-text)!important;}
+body.shosa-worldclass .shosa-file-copy small{color:var(--v4-muted)!important;}
+
+/* Profile identity card repair. */
+body.page-profile .profile-header{
+  padding:22px!important;
+  border-radius:26px!important;
+  background:linear-gradient(135deg,rgba(47,91,234,.12),rgba(242,201,76,.16))!important;
+  border:1px solid rgba(202,138,4,.16)!important;
+}
+body.page-profile .profile-avatar{
+  background:linear-gradient(135deg,#2f5bea,#f2c94c)!important;
+  color:#fff!important;
+  box-shadow:0 16px 40px rgba(47,91,234,.22)!important;
+}
+body.page-profile .profile-field{
+  padding:14px!important;
+  border-radius:18px!important;
+  background:rgba(47,91,234,.06)!important;
+  border:1px solid rgba(16,32,65,.10)!important;
+}
+body.page-profile .profile-note{
+  color:var(--v4-muted)!important;
+  background:rgba(242,201,76,.12)!important;
+  border:1px solid rgba(202,138,4,.14)!important;
+}
+
+/* SACCO payments desk readability. */
+body.page-sacco-payments .status-strip .mini,
+body.page-sacco-payments .notice,
+body.page-sacco-payments .pill,
+body.page-sacco-payments .history-item,
+body.page-sacco-payments .empty{
+  background:#fff8e8!important;
+  border-color:rgba(202,138,4,.18)!important;
+  color:var(--v4-text)!important;
+}
+body.page-sacco-payments .sacco-policy-note strong{color:var(--v4-text)!important;}
+
+/* Systemwide dashboard background and sexy cards. */
+body.page-admin-dashboard,
+body.page-alumni-dashboard,
+body.page-sacco-dashboard{
+  background:
+    radial-gradient(circle at 8% 4%,rgba(242,201,76,.22),transparent 24%),
+    radial-gradient(circle at 92% 8%,rgba(47,91,234,.14),transparent 28%),
+    linear-gradient(180deg,var(--v4-cream) 0%,var(--v4-cream-2) 52%,#f8f3ea 100%)!important;
+  color:var(--v4-text)!important;
+}
+body.page-admin-dashboard .section,
+body.page-alumni-dashboard .section,
+body.page-sacco-dashboard .section,
+body.page-admin-dashboard .page-shell{
+  background:transparent!important;
+}
+body.page-admin-dashboard .hero,
+body.page-alumni-dashboard .dash-hero,
+body.page-sacco-dashboard .dash-hero{
+  background:
+    radial-gradient(circle at 88% 14%,rgba(255,229,139,.22),transparent 28%),
+    linear-gradient(135deg,#102041 0%,#2f5bea 58%,#081120 100%)!important;
+  border:1px solid rgba(255,229,139,.22)!important;
+  border-radius:34px!important;
+  box-shadow:0 30px 90px rgba(16,32,65,.26)!important;
+  color:#fff!important;
+}
+body.page-admin-dashboard .card,
+body.page-admin-dashboard .summary-card,
+body.page-admin-dashboard .analytics-panel,
+body.page-admin-dashboard .table-panel,
+body.page-admin-dashboard .admin-command-card,
+body.page-alumni-dashboard .card,
+body.page-sacco-dashboard .card{
+  background:
+    radial-gradient(circle at 92% 10%,rgba(242,201,76,.12),transparent 28%),
+    linear-gradient(180deg,rgba(16,32,65,.96),rgba(8,17,32,.94))!important;
+  border:1px solid rgba(255,229,139,.18)!important;
+  color:#eef4ff!important;
+  box-shadow:0 24px 70px rgba(16,32,65,.22)!important;
+  border-radius:28px!important;
+}
+body.page-admin-dashboard .card *,
+body.page-admin-dashboard .summary-card *,
+body.page-admin-dashboard .analytics-panel *,
+body.page-admin-dashboard .table-panel *,
+body.page-admin-dashboard .admin-command-card *,
+body.page-alumni-dashboard .card *,
+body.page-sacco-dashboard .card *{
+  color:inherit;
+}
+body.page-admin-dashboard .kpi-label,
+body.page-admin-dashboard .kpi-sub,
+body.page-admin-dashboard .label,
+body.page-admin-dashboard .analytics-head p,
+body.page-alumni-dashboard .card-subtitle,
+body.page-sacco-dashboard .card-subtitle,
+body.page-sacco-dashboard .simple-list li{
+  color:rgba(238,244,255,.78)!important;
+}
+body.page-admin-dashboard .kpi-value,
+body.page-admin-dashboard .amount,
+body.page-admin-dashboard .value,
+body.page-alumni-dashboard .card-title,
+body.page-sacco-dashboard .card-title,
+body.page-sacco-dashboard strong{
+  color:#fff!important;
+}
+body.page-admin-dashboard .chart-box,
+body.page-admin-dashboard canvas,
+body.page-admin-dashboard .mini-stat{
+  background:rgba(255,255,255,.07)!important;
+  border:1px solid rgba(255,255,255,.13)!important;
+  border-radius:22px!important;
+}
+body.page-sacco-dashboard .simple-list li::before,
+body.page-alumni-dashboard .simple-list li::before{background:var(--v4-gold)!important;}
+
+/* Login page: allow theme toggle again as requested. */
+body.clean-login #theme-toggle.theme-toggle{
+  display:inline-flex!important;
+}
+
+/* Store hero must show product rotation above old generic backgrounds. */
+body.page-store .store-hero.dynamic-hero-ready{
+  background-size:cover!important;
+  background-position:center!important;
+  background-repeat:no-repeat!important;
+}
+body.page-store .store-hero::after{
+  content:''!important;
+  position:absolute!important;
+  inset:0!important;
+  background:
+    radial-gradient(circle at 82% 18%,rgba(255,229,139,.26),transparent 28%),
+    linear-gradient(90deg,rgba(6,14,32,.22),rgba(6,14,32,.78))!important;
+  pointer-events:none!important;
+}
+body.page-store .store-hero > .wrap{position:relative!important;z-index:2!important;}
+body.page-store .store-hero-merch-orbit{display:flex;flex-wrap:wrap;gap:10px;margin:0 0 24px;}
+body.page-store .store-hero-merch-orbit span{
+  display:inline-flex;align-items:center;gap:6px;padding:9px 13px;border-radius:999px;
+  background:rgba(255,255,255,.10);border:1px solid rgba(255,255,255,.16);color:#fff;
+  font-size:.82rem;font-weight:800;backdrop-filter:blur(10px);
+}
+
+/* Remove public admin links from footers. */
+footer a[href="admin-login.html"],
+.footer-bottom-links a[href="admin-login.html"],
+.footer-col a[href="admin-login.html"]{display:none!important;}
+
+@media(max-width:760px){
+  body.page-admin-dashboard .hero,
+  body.page-alumni-dashboard .dash-hero,
+  body.page-sacco-dashboard .dash-hero{border-radius:24px!important;}
+}
+
+
+/* =====================================================================
+   SHOSA V5 READABILITY + NAV + DASHBOARD POLISH PATCH
+   Fixes light-theme unreadable text, homepage auth nav, SACCO payment desk,
+   profile readability, events cards, and sexier dashboard chart surfaces.
+   ===================================================================== */
+
+:root{
+  --v5-cream:#f6f1e7;
+  --v5-cream-card:#fffdfa;
+  --v5-blue:#102041;
+  --v5-blue-soft:#40506e;
+  --v5-gold:#f2c94c;
+  --v5-gold-2:#ffe58b;
+}
+
+/* Homepage announcement bar must remain readable on the cream background. */
+body.page-home .preview-bar,
+body.page-home.theme-bright .preview-bar{
+  background:linear-gradient(90deg,#fff8df,#f6f1e7)!important;
+  border-bottom:1px solid rgba(202,138,4,.20)!important;
+}
+body.page-home .preview-inner,
+body.page-home.theme-bright .preview-inner{
+  color:#102041!important;
+  font-weight:800!important;
+}
+body.page-home .preview-inner a,
+body.page-home.theme-bright .preview-inner a{
+  color:#b7791f!important;
+  font-weight:1000!important;
+}
+
+/* Auth-aware homepage nav buttons after JS injection. */
+body.page-home .site-nav .actions .btn-ghost{
+  color:#fff!important;
+  border-color:rgba(255,255,255,.25)!important;
+  background:rgba(255,255,255,.06)!important;
+}
+body.page-home .site-nav .actions .btn-gold{
+  color:#102041!important;
+}
+
+/* Public cream content: dark readable text, including events/gallery/about/contact/donate/store/register/profile. */
+body.shosa-worldclass:not(.clean-login) .section:not(.section-dark),
+body.shosa-worldclass:not(.clean-login) main,
+body.shosa-worldclass:not(.clean-login) .contact-strip{
+  color:var(--v5-blue)!important;
+}
+body.shosa-worldclass:not(.clean-login) .section:not(.section-dark) .card,
+body.shosa-worldclass:not(.clean-login) .section:not(.section-dark) .product-card,
+body.shosa-worldclass:not(.clean-login) .section:not(.section-dark) .news-card,
+body.shosa-worldclass:not(.clean-login) .section:not(.section-dark) .gallery-card,
+body.shosa-worldclass:not(.clean-login) .section:not(.section-dark) .form-card,
+body.shosa-worldclass:not(.clean-login) .section:not(.section-dark) .panel,
+body.shosa-worldclass:not(.clean-login) .section:not(.section-dark) .sticky-card,
+body.shosa-worldclass:not(.clean-login) .contact-box{
+  background:linear-gradient(180deg,rgba(255,253,250,.96),rgba(255,248,235,.90))!important;
+  border:1px solid rgba(202,138,4,.15)!important;
+  color:var(--v5-blue)!important;
+}
+body.shosa-worldclass:not(.clean-login) .section:not(.section-dark) h1,
+body.shosa-worldclass:not(.clean-login) .section:not(.section-dark) h2,
+body.shosa-worldclass:not(.clean-login) .section:not(.section-dark) h3,
+body.shosa-worldclass:not(.clean-login) .section:not(.section-dark) h4,
+body.shosa-worldclass:not(.clean-login) .section:not(.section-dark) .heading,
+body.shosa-worldclass:not(.clean-login) .section:not(.section-dark) .card-title,
+body.shosa-worldclass:not(.clean-login) .section:not(.section-dark) .form-title,
+body.shosa-worldclass:not(.clean-login) .contact-box h1,
+body.shosa-worldclass:not(.clean-login) .contact-box h2,
+body.shosa-worldclass:not(.clean-login) .contact-box h3,
+body.shosa-worldclass:not(.clean-login) .contact-box strong{
+  color:var(--v5-blue)!important;
+}
+body.shosa-worldclass:not(.clean-login) .section:not(.section-dark) p,
+body.shosa-worldclass:not(.clean-login) .section:not(.section-dark) li,
+body.shosa-worldclass:not(.clean-login) .section:not(.section-dark) small,
+body.shosa-worldclass:not(.clean-login) .section:not(.section-dark) .lead,
+body.shosa-worldclass:not(.clean-login) .section:not(.section-dark) .card-subtitle,
+body.shosa-worldclass:not(.clean-login) .section:not(.section-dark) .form-subtitle,
+body.shosa-worldclass:not(.clean-login) .section:not(.section-dark) .meta,
+body.shosa-worldclass:not(.clean-login) .contact-box,
+body.shosa-worldclass:not(.clean-login) .contact-box *,
+body.shosa-worldclass:not(.clean-login) .contact-list,
+body.shosa-worldclass:not(.clean-login) .contact-list *{
+  color:var(--v5-blue-soft)!important;
+}
+body.shosa-worldclass:not(.clean-login) .contact-box strong,
+body.shosa-worldclass:not(.clean-login) .contact-list strong{
+  color:var(--v5-blue)!important;
+}
+
+/* Light/bright ghost buttons must never disappear. */
+body.page-home .section .btn-ghost,
+body.page-home .contact-strip .btn-ghost,
+body.shosa-worldclass .section:not(.section-dark) .btn-ghost,
+body.shosa-worldclass .section:not(.section-dark) .btn-outline,
+body.shosa-worldclass .contact-box .btn-ghost,
+body.shosa-worldclass .contact-box .btn-outline{
+  color:#173f98!important;
+  border:1px solid rgba(23,63,152,.34)!important;
+  background:rgba(47,91,234,.08)!important;
+  box-shadow:0 14px 30px rgba(23,63,152,.08)!important;
+}
+body.page-home .section .btn-ghost:hover,
+body.page-home .contact-strip .btn-ghost:hover,
+body.shosa-worldclass .section:not(.section-dark) .btn-ghost:hover,
+body.shosa-worldclass .section:not(.section-dark) .btn-outline:hover,
+body.shosa-worldclass .contact-box .btn-ghost:hover,
+body.shosa-worldclass .contact-box .btn-outline:hover{
+  color:#fff!important;
+  background:linear-gradient(135deg,#4d75ff,#173f98)!important;
+}
+
+/* SACCO payments: force the top desk/status card readable in light/bright theme. */
+body.page-sacco-payments .panel,
+body.page-sacco-payments .panel *:not(.btn):not(option),
+body.page-sacco-payments .status-strip,
+body.page-sacco-payments .status-strip *,
+body.page-sacco-payments .notice,
+body.page-sacco-payments .notice *,
+body.page-sacco-payments .pill-row,
+body.page-sacco-payments .pill-row *,
+body.page-sacco-payments .payment-purpose-lanes,
+body.page-sacco-payments .payment-purpose-lanes *{
+  color:var(--v5-blue)!important;
+}
+body.page-sacco-payments .panel{
+  background:linear-gradient(180deg,#fffdfa,#fff7e6)!important;
+  border-color:rgba(202,138,4,.16)!important;
+}
+body.page-sacco-payments .mini,
+body.page-sacco-payments .notice,
+body.page-sacco-payments .pill,
+body.page-sacco-payments .empty,
+body.page-sacco-payments .history-item,
+body.page-sacco-payments .payment-lane{
+  background:linear-gradient(180deg,#fff8e8,#fffdfa)!important;
+  border:1px solid rgba(202,138,4,.18)!important;
+  color:var(--v5-blue)!important;
+}
+body.page-sacco-payments .mini .k,
+body.page-sacco-payments .sub,
+body.page-sacco-payments .muted,
+body.page-sacco-payments .payment-lane span{
+  color:var(--v5-blue-soft)!important;
+}
+body.page-sacco-payments .mini .v,
+body.page-sacco-payments .payment-lane strong,
+body.page-sacco-payments .history-amt{
+  color:var(--v5-blue)!important;
+}
+body.page-sacco-payments .payment-purpose-lanes{
+  display:grid!important;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:12px!important;
+  margin-top:18px!important;
+}
+body.page-sacco-payments .payment-lane{
+  padding:14px 16px!important;
+  border-radius:18px!important;
+}
+body.page-sacco-payments .payment-lane strong{display:block;font-size:.92rem;margin-bottom:6px;}
+body.page-sacco-payments .payment-lane span{display:block;font-size:.82rem;line-height:1.45;}
+
+/* Profile repair: every profile surface is legible in cream/bright mode. */
+body.page-profile,
+body.page-profile main,
+body.page-profile .section{
+  color:var(--v5-blue)!important;
+}
+body.page-profile .card,
+body.page-profile .form-card,
+body.page-profile .profile-card,
+body.page-profile .panel,
+body.page-profile .profile-field,
+body.page-profile .profile-header{
+  background:linear-gradient(180deg,#fffdfa,#fff7e6)!important;
+  border:1px solid rgba(202,138,4,.16)!important;
+  color:var(--v5-blue)!important;
+}
+body.page-profile h1,body.page-profile h2,body.page-profile h3,body.page-profile h4,
+body.page-profile .card-title,body.page-profile .form-title,body.page-profile strong,
+body.page-profile .profile-value,body.page-profile .profile-field-value{
+  color:var(--v5-blue)!important;
+}
+body.page-profile p,body.page-profile span,body.page-profile small,body.page-profile label,
+body.page-profile .profile-label,body.page-profile .profile-meta,body.page-profile .profile-note{
+  color:var(--v5-blue-soft)!important;
+}
+
+/* Dashboard chart glow surfaces. */
+body.page-admin-dashboard .analytics-panel,
+body.page-admin-dashboard .chart-box{
+  background:
+    radial-gradient(circle at 85% 10%,rgba(255,229,139,.11),transparent 30%),
+    linear-gradient(180deg,rgba(16,32,65,.98),rgba(8,17,32,.96))!important;
+  border-color:rgba(255,229,139,.22)!important;
+}
+body.page-admin-dashboard .mini-stat,
+body.page-admin-dashboard .mini-stat *{
+  color:#eef4ff!important;
+}
+body.page-admin-dashboard .mini-stat{
+  background:rgba(255,255,255,.075)!important;
+  border:1px solid rgba(255,255,255,.14)!important;
+}
+
+/* Events page and similar public cards should respond fully to theme changes. */
+body.page-events .card,
+body.page-events .event-card,
+body.page-gallery .card,
+body.page-about .card,
+body.page-contact .card,
+body.page-donate .card{
+  transition:background .25s ease,color .25s ease,border-color .25s ease,transform .25s ease!important;
+}
+
+@media(max-width:820px){
+  body.page-sacco-payments .payment-purpose-lanes{grid-template-columns:1fr!important;}
+}
+

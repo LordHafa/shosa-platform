@@ -35,29 +35,34 @@
 
   function logoutAlumni(){
     localStorage.removeItem('shosa_token'); localStorage.removeItem('shosa_alumni'); localStorage.removeItem('shosa_full_name'); localStorage.removeItem('shosa_user_name'); localStorage.removeItem('shosa_user');
-    window.location.href = 'index.html';
+    window.location.href = 'alumni-login.html';
   }
   function logoutAdmin(){ localStorage.removeItem('shosa_admin_token'); window.location.href = 'alumni-login.html'; }
 
   function bindLogout(id, fn){ var btn = document.getElementById(id); if(btn) btn.addEventListener('click', fn); }
 
   function renderAuthAwareNav(){
-    var desktop = document.querySelector('#nav .nav-actions');
+    var desktop = document.querySelector('#nav .nav-actions') || document.querySelector('.site-nav .actions') || document.getElementById('navActionsDesktop');
     var mobile = document.querySelector('#mobNav .mobile-nav-btns');
+    var desktopBtnClass = document.body.classList.contains('page-home') ? 'btn btn-ghost' : 'btn btn-outline-white btn-sm';
+    var desktopGoldClass = document.body.classList.contains('page-home') ? 'btn btn-gold' : 'btn btn-gold btn-sm';
     if(!desktop && !mobile) return;
+
     if(hasAdmin()){
-      if(desktop) desktop.innerHTML = '<a href="admin-dashboard.html" class="btn btn-outline-white btn-sm">Admin Dashboard</a><button type="button" class="btn btn-gold btn-sm" id="adminNavLogoutDesktop">Logout</button>';
+      if(desktop) desktop.innerHTML = '<a href="admin-dashboard.html" class="' + desktopBtnClass + '">Admin Dashboard</a><button type="button" class="' + desktopGoldClass + '" id="adminNavLogoutDesktop">Logout</button>';
       if(mobile) mobile.innerHTML = '<a href="admin-dashboard.html" class="btn btn-secondary btn-block">Admin Dashboard</a><button type="button" class="btn btn-gold btn-block" id="adminNavLogoutMobile">Logout</button>';
       bindLogout('adminNavLogoutDesktop', logoutAdmin); bindLogout('adminNavLogoutMobile', logoutAdmin);
       return;
     }
+
     if(hasAlumni()){
-      if(desktop) desktop.innerHTML = '<a href="alumni-dashboard.html" class="btn btn-outline-white btn-sm">Dashboard</a><a href="profile.html" class="btn btn-outline-white btn-sm">Profile</a><a href="sacco-register.html" class="btn btn-outline-white btn-sm">SACCO</a><button type="button" class="btn btn-gold btn-sm" id="navLogoutDesktop">Logout</button>';
+      if(desktop) desktop.innerHTML = '<a href="alumni-dashboard.html" class="' + desktopBtnClass + '">Dashboard</a><a href="profile.html" class="' + desktopBtnClass + '">Profile</a><a href="sacco-register.html" class="' + desktopBtnClass + '">SACCO</a><button type="button" class="' + desktopGoldClass + '" id="navLogoutDesktop">Logout</button>';
       if(mobile) mobile.innerHTML = '<a href="alumni-dashboard.html" class="btn btn-secondary btn-block">Dashboard</a><a href="profile.html" class="btn btn-secondary btn-block">Profile</a><a href="sacco-register.html" class="btn btn-secondary btn-block">SACCO</a><button type="button" class="btn btn-gold btn-block" id="navLogoutMobile">Logout</button>';
       bindLogout('navLogoutDesktop', logoutAlumni); bindLogout('navLogoutMobile', logoutAlumni);
       return;
     }
-    if(desktop) desktop.innerHTML = '<a href="alumni-login.html" class="btn btn-outline-white btn-sm">Log in</a><a href="alumni-register.html" class="btn btn-gold btn-sm">Register →</a>';
+
+    if(desktop) desktop.innerHTML = '<a href="alumni-login.html" class="' + desktopBtnClass + '">Log in</a><a href="alumni-register.html" class="' + desktopGoldClass + '">Register →</a>';
     if(mobile) mobile.innerHTML = '<a href="alumni-register.html" class="btn btn-gold btn-block">Register as Alumni</a><a href="alumni-login.html" class="btn btn-secondary btn-block">Log in</a>';
   }
 
@@ -139,27 +144,83 @@
   async function initDynamicHeroes() {
     var heroSections = Array.prototype.slice.call(document.querySelectorAll('.hero, .hero-main, .page-hero, .dynamic-hero'));
     if (!heroSections.length) return;
-    var images = ['assets/images/hero/alumni-orientation.jpg','assets/images/store/cap-clean.png','assets/images/store/stickers-wristbands.png'];
-    try {
-      var res = await fetch(API + '/api/gallery/public');
-      if (res.ok) {
-        var data = await res.json().catch(function(){ return {}; });
-        var uploaded = (data.images || data.gallery || data.items || []).map(function(img){ return img.url || img.imageUrl || img.src; }).filter(Boolean).map(function(url){ return url.indexOf('/uploads/') === 0 ? API + url : url; });
-        if (uploaded.length) images = uploaded.concat(images);
+
+    var isStorePage = document.body.classList.contains('page-store') || /store\.html$/i.test(location.pathname);
+    var isHomePage = document.body.classList.contains('page-home') || /index\.html$/i.test(location.pathname) || location.pathname.endsWith('/');
+
+    var homeImages = [
+      'assets/images/hero/alumni-orientation.jpg'
+    ];
+
+    var storeImages = [
+      'assets/images/store/cap-clean.png',
+      'assets/images/store/stickers-wristbands.png'
+    ];
+
+    function normalizeUrl(url) {
+      if (!url) return '';
+      if (/^https?:\/\//i.test(url)) return url;
+      if (url.indexOf('/uploads/') === 0 || url.indexOf('/assets/') === 0) return API + url;
+      return url;
+    }
+
+    function isStoreImage(url) {
+      return /\/store\//i.test(url) || /cap|shirt|tshirt|t-shirt|hoodie|sticker|wristband|merch|product/i.test(url);
+    }
+
+    async function fetchGalleryImages() {
+      var endpoints = ['/api/gallery/public', '/api/gallery/approved', '/api/gallery/all-public'];
+      for (var i = 0; i < endpoints.length; i++) {
+        try {
+          var res = await fetch(API + endpoints[i]);
+          if (!res.ok) continue;
+          var data = await res.json().catch(function(){ return {}; });
+          var urls = (data.images || data.gallery || data.items || [])
+            .map(function(img){ return normalizeUrl(img.url || img.imageUrl || img.src); })
+            .filter(Boolean);
+          if (urls.length) return urls;
+        } catch(e) {}
       }
-    } catch(e) {}
+      return [];
+    }
+
+    var uploadedImages = await fetchGalleryImages();
+    var images;
+
+    if (isStorePage) {
+      images = storeImages.slice();
+    } else {
+      images = uploadedImages.filter(function(url){ return !isStoreImage(url); }).concat(homeImages);
+    }
+
+    images = images.filter(function(value, index, arr) {
+      return value && arr.indexOf(value) === index;
+    });
+
+    if (!images.length) return;
+
     heroSections.forEach(function(hero, heroIndex){
       var index = heroIndex % images.length;
       hero.classList.add('dynamic-hero-ready');
+
       function applyHero(){
-        hero.style.backgroundImage = "linear-gradient(rgba(4,12,35,.70),rgba(4,12,35,.78)), url('" + images[index] + "')";
-        hero.style.backgroundSize = 'cover';
-        hero.style.backgroundPosition = 'center';
-        hero.style.backgroundRepeat = 'no-repeat';
-        hero.style.transition = 'background-image 900ms ease-in-out, background 900ms ease-in-out';
+        var image = images[index % images.length];
+        var bg = "linear-gradient(rgba(4,12,35,.70),rgba(4,12,35,.78)), url('" + image + "')";
+        hero.style.setProperty('background-image', bg, 'important');
+        hero.style.setProperty('background-size', 'cover', 'important');
+        hero.style.setProperty('background-position', 'center', 'important');
+        hero.style.setProperty('background-repeat', 'no-repeat', 'important');
+        hero.style.setProperty('transition', 'background-image 900ms ease-in-out, background 900ms ease-in-out', 'important');
       }
+
       applyHero();
-      if(images.length > 1){ setInterval(function(){ index = (index + 1) % images.length; applyHero(); }, 8000 + (heroIndex * 700)); }
+
+      if(images.length > 1){
+        setInterval(function(){
+          index = (index + 1) % images.length;
+          applyHero();
+        }, 8000 + (heroIndex * 700));
+      }
     });
   }
 

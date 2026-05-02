@@ -549,33 +549,70 @@
       if (!ctx) return;
       if (collectionsTrendChart) collectionsTrendChart.destroy();
 
+      const context = ctx.getContext("2d");
+      const gradient = context.createLinearGradient(0, 0, 0, ctx.height || 320);
+      gradient.addColorStop(0, "rgba(242, 201, 76, 0.98)");
+      gradient.addColorStop(0.45, "rgba(77, 117, 255, 0.88)");
+      gradient.addColorStop(1, "rgba(47, 91, 234, 0.22)");
+
+      const glowGradient = context.createLinearGradient(0, 0, 0, ctx.height || 320);
+      glowGradient.addColorStop(0, "rgba(255, 229, 139, 0.30)");
+      glowGradient.addColorStop(1, "rgba(77, 117, 255, 0.02)");
+
       collectionsTrendChart = new Chart(ctx, {
         type: "bar",
         data: {
           labels,
-          datasets: [{
-            label: "Collections",
-            data: values,
-            borderRadius: 10,
-            backgroundColor: [
-              "rgba(240, 210, 123, 0.85)",
-              "rgba(212, 175, 55, 0.85)",
-              "rgba(83, 152, 255, 0.85)",
-              "rgba(67, 128, 255, 0.85)",
-              "rgba(49, 99, 214, 0.9)",
-              "rgba(34, 78, 185, 0.95)"
-            ]
-          }]
+          datasets: [
+            {
+              type: "bar",
+              label: "Collections",
+              data: values,
+              borderRadius: 18,
+              borderSkipped: false,
+              backgroundColor: gradient,
+              hoverBackgroundColor: "rgba(255, 229, 139, 0.95)",
+              barThickness: 34,
+              maxBarThickness: 48
+            },
+            {
+              type: "line",
+              label: "Momentum",
+              data: values,
+              tension: 0.42,
+              fill: true,
+              backgroundColor: glowGradient,
+              borderColor: "rgba(255, 229, 139, 0.95)",
+              pointBackgroundColor: "#fffdfa",
+              pointBorderColor: "#f2c94c",
+              pointRadius: 4,
+              pointHoverRadius: 7,
+              borderWidth: 3
+            }
+          ]
         },
         options: {
           responsive: true,
           maintainAspectRatio: false,
-          plugins: { legend: { display: false } },
+          interaction: { intersect: false, mode: "index" },
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              backgroundColor: "rgba(8, 17, 32, 0.94)",
+              borderColor: "rgba(255, 229, 139, 0.24)",
+              borderWidth: 1,
+              titleColor: "#ffe58b",
+              bodyColor: "#eef4ff",
+              padding: 14,
+              displayColors: false,
+              callbacks: { label: (ctx) => "UGX " + Number(ctx.parsed.y || 0).toLocaleString() }
+            }
+          },
           scales: {
-            x: { ticks: { color: "#b9c6de" }, grid: { display: false } },
+            x: { ticks: { color: "rgba(238,244,255,.78)", font: { weight: 700 } }, grid: { display: false } },
             y: {
-              ticks: { color: "#b9c6de", callback: (value) => fmtMoneyShort(value).replace("UGX ", "") },
-              grid: { color: "rgba(255,255,255,0.06)" }
+              ticks: { color: "rgba(238,244,255,.68)", callback: (value) => fmtMoneyShort(value).replace("UGX ", "") },
+              grid: { color: "rgba(255,255,255,0.075)", drawBorder: false }
             }
           }
         }
@@ -587,6 +624,25 @@
       if (!ctx) return;
       if (paymentBreakdownChart) paymentBreakdownChart.destroy();
 
+      const total = Object.values(breakdown).reduce((sum, value) => sum + Number(value || 0), 0);
+      const centerPlugin = {
+        id: "shosaCenterText",
+        afterDraw(chart) {
+          const { ctx, chartArea } = chart;
+          if (!chartArea) return;
+          ctx.save();
+          ctx.textAlign = "center";
+          ctx.textBaseline = "middle";
+          ctx.fillStyle = "#ffe58b";
+          ctx.font = "800 12px Plus Jakarta Sans, Inter, sans-serif";
+          ctx.fillText("TOTAL", (chartArea.left + chartArea.right) / 2, (chartArea.top + chartArea.bottom) / 2 - 12);
+          ctx.fillStyle = "#ffffff";
+          ctx.font = "900 20px Plus Jakarta Sans, Inter, sans-serif";
+          ctx.fillText(fmtMoneyShort(total).replace("UGX ", "UGX "), (chartArea.left + chartArea.right) / 2, (chartArea.top + chartArea.bottom) / 2 + 12);
+          ctx.restore();
+        }
+      };
+
       paymentBreakdownChart = new Chart(ctx, {
         type: "doughnut",
         data: {
@@ -594,24 +650,37 @@
           datasets: [{
             data: [breakdown.registration,breakdown.monthly,breakdown.quarterly,breakdown.yearly,breakdown.donation,breakdown.other],
             backgroundColor: [
-              "rgba(240, 210, 123, 0.95)",
-              "rgba(83, 152, 255, 0.95)",
-              "rgba(49, 99, 214, 0.95)",
-              "rgba(34, 197, 94, 0.9)",
-              "rgba(212, 175, 55, 0.65)",
-              "rgba(255,255,255,0.25)"
+              "rgba(255, 229, 139, 0.98)",
+              "rgba(77, 117, 255, 0.96)",
+              "rgba(47, 91, 234, 0.95)",
+              "rgba(34, 197, 94, 0.88)",
+              "rgba(242, 201, 76, 0.72)",
+              "rgba(255,255,255,0.22)"
             ],
-            borderWidth: 0
+            borderColor: "rgba(8,17,32,.72)",
+            borderWidth: 5,
+            hoverOffset: 14,
+            spacing: 4
           }]
         },
+        plugins: [centerPlugin],
         options: {
           responsive: true,
           maintainAspectRatio: false,
-          cutout: "65%",
+          cutout: "72%",
           plugins: {
+            tooltip: {
+              backgroundColor: "rgba(8, 17, 32, 0.94)",
+              borderColor: "rgba(255, 229, 139, 0.24)",
+              borderWidth: 1,
+              titleColor: "#ffe58b",
+              bodyColor: "#eef4ff",
+              padding: 14,
+              callbacks: { label: (ctx) => `${ctx.label}: UGX ${Number(ctx.parsed || 0).toLocaleString()}` }
+            },
             legend: {
               position: "bottom",
-              labels: { color: "#b9c6de", boxWidth: 12, padding: 14 }
+              labels: { color: "rgba(238,244,255,.82)", boxWidth: 12, padding: 16, usePointStyle: true, pointStyle: "circle" }
             }
           }
         }

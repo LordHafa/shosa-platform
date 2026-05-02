@@ -142,17 +142,80 @@ function hasMembershipFeePaid(alumniId) {
   );
 }
 
+function addMonthsToIso(isoDate, months) {
+  const d = isoDate ? new Date(isoDate) : new Date();
+  if (Number.isNaN(d.getTime())) return new Date().toISOString();
+  d.setMonth(d.getMonth() + months);
+  return d.toISOString();
+}
+
+function getMembershipActivationDate(alumniId) {
+  const payment = one(
+    `SELECT createdAt FROM mobilemoney_payments
+     WHERE alumniId = :alumniId AND paymentType = 'sacco_membership_fee'
+     ORDER BY createdAt ASC LIMIT 1`,
+    { alumniId }
+  );
+  return payment?.createdAt || null;
+}
+
+function getSaccoYearlySubscriptionPolicy(alumniId) {
+  const activationDate = getMembershipActivationDate(alumniId);
+  if (!activationDate) {
+    return {
+      activationDate: null,
+      yearlySubscriptionGraceMonths: 6,
+      yearlySubscriptionDueAt: null,
+      yearlySubscriptionInGrace: false,
+      yearlySubscriptionDue: false,
+      yearlySubscriptionPaid: false,
+      yearlySubscriptionBlocking: false,
+      yearlySubscriptionMessage: "Membership activation is pending the registration fee.",
+    };
+  }
+
+  const dueAt = addMonthsToIso(activationDate, 6);
+  const now = new Date();
+  const dueDate = new Date(dueAt);
+  const inGrace = now < dueDate;
+  const paid = !!one(
+    `SELECT id FROM mobilemoney_payments
+     WHERE alumniId = :alumniId
+       AND paymentType = 'sacco_yearly_subscription'
+       AND datetime(createdAt) >= datetime(:dueAt)
+     ORDER BY createdAt DESC LIMIT 1`,
+    { alumniId, dueAt }
+  );
+  const blocking = !inGrace && !paid;
+
+  return {
+    activationDate,
+    yearlySubscriptionGraceMonths: 6,
+    yearlySubscriptionDueAt: dueAt,
+    yearlySubscriptionInGrace: inGrace,
+    yearlySubscriptionDue: !inGrace,
+    yearlySubscriptionPaid: paid,
+    yearlySubscriptionBlocking: blocking,
+    yearlySubscriptionMessage: inGrace
+      ? "You are within the 6-month SACCO activation grace period before yearly subscription becomes compulsory."
+      : (paid ? "Yearly subscription is up to date for the current cycle." : "Yearly subscription is now compulsory before other SACCO payments."),
+  };
+}
+
 function getSaccoStatusForUser(alumniId) {
   const membership = one(`SELECT * FROM sacco_memberships WHERE alumniId = :alumniId`, { alumniId }) || null;
   const membershipFeePaid = hasMembershipFeePaid(alumniId);
-  const canProceedAsMember = !!membership && membershipFeePaid;
+  const yearlyPolicy = getSaccoYearlySubscriptionPolicy(alumniId);
+  const yearlyBlocking = !!membership && membershipFeePaid && yearlyPolicy.yearlySubscriptionBlocking;
+  const canProceedAsMember = !!membership && membershipFeePaid && !yearlyBlocking;
   return {
     membership,
     membershipFeePaid,
     canProceedAsMember,
+    ...yearlyPolicy,
     nextRequiredStep: !membership
       ? 'register_membership'
-      : (!membershipFeePaid ? 'pay_membership_fee' : null),
+      : (!membershipFeePaid ? 'pay_membership_fee' : (yearlyBlocking ? 'pay_yearly_subscription' : null)),
   };
 }
 
@@ -858,6 +921,18 @@ app.post("/api/payments/mobilemoney", authMiddleware, (req, res) => {
       requiredFirstPayment: "sacco_membership_fee",
       requiredAmount: 50000,
     });
+  }
+
+  if (membershipFeePaid && paymentType.startsWith("sacco_") && paymentType !== "sacco_yearly_subscription") {
+    const yearlyPolicy = getSaccoYearlySubscriptionPolicy(req.user.id);
+    if (yearlyPolicy.yearlySubscriptionBlocking) {
+      return res.status(400).json({
+        error: "Your 6-month SACCO grace period has ended. Please pay the yearly subscription fee of 100,000 UGX before making other SACCO payments.",
+        requiredFirstPayment: "sacco_yearly_subscription",
+        requiredAmount: 100000,
+        yearlySubscriptionDueAt: yearlyPolicy.yearlySubscriptionDueAt,
+      });
+    }
   }
 
   const pt = PAYMENT_TYPES[paymentType];
