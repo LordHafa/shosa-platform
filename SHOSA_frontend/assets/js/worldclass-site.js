@@ -137,7 +137,7 @@
   function initReveal(){ if(!('IntersectionObserver' in window)) return; var obs = new IntersectionObserver(function(entries){ entries.forEach(function(entry){ if(entry.isIntersecting){ entry.target.classList.add('visible'); obs.unobserve(entry.target); } }); }, { threshold: 0.1 }); document.querySelectorAll('.fade-up').forEach(function(el){ obs.observe(el); }); }
 
   async function initDynamicHeroes() {
-    var heroSections = $all('.hero, .hero-main, .page-hero, .dynamic-hero');
+    var heroSections = Array.prototype.slice.call(document.querySelectorAll('.hero, .hero-main, .page-hero, .dynamic-hero'));
     if (!heroSections.length) return;
     var images = ['assets/images/hero/alumni-orientation.jpg','assets/images/store/cap-clean.png','assets/images/store/stickers-wristbands.png'];
     try {
