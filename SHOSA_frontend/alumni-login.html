@@ -268,7 +268,7 @@ body.clean-login .password-toggle{color:#f8e7a1;}
 </head>
 <body class="shosa-worldclass page-alumni-login clean-login">
 
-<div class="clean-login-shell"><a href="index.html" class="clean-login-brand"><img src="assets/images/logos/shosa-logo.jpeg" alt="SHOSA logo"><span><strong>SHOSA</strong><small>Seeta High Old Students</small></span></a><a href="index.html" class="clean-login-back">← Back to SHOSA</a></div><div class="clean-login-hero"><div class="wrap"><span class="section-label">Unified secure access</span><h1>Welcome back to the SHOSA network.</h1><p>One login page for alumni members and authorized administrators.</p></div></div>
+<div class="clean-login-shell"><a href="index.html" class="clean-login-brand"><img src="assets/images/logos/shosa-logo.jpeg" alt="SHOSA logo"><span><strong>SHOSA</strong><small>Seeta High Old Students</small></span></a><a href="index.html" class="clean-login-back">← Back to SHOSA</a></div><div class="clean-login-hero"><div class="wrap"><span class="section-label">Unified secure access</span><h1>Sign In to the SHOSA network.</h1><p>One login page for alumni members and authorized administrators.</p></div></div>
 <section class="section">
   <div class="wrap form-wrap" style="max-width:500px;">
     <div class="form-card">
@@ -288,7 +288,7 @@ body.clean-login .password-toggle{color:#f8e7a1;}
             </div>
           </div>
         </div>
-        <button type="submit" class="btn btn-primary btn-block btn-lg">Log in</button>
+        <button type="submit" class="btn btn-primary btn-block btn-lg">Log in securely</button>
         <div id="loginMessage" class="alert"></div>
       </form>
       <p style="margin-top:14px;font-size:.85rem;color:var(--ink-soft);">
@@ -298,31 +298,95 @@ body.clean-login .password-toggle{color:#f8e7a1;}
   </div>
 </section>
 <script>
-document.querySelectorAll('.password-toggle').forEach(btn=>{
-  btn.addEventListener('click',()=>{
-    const inp=document.getElementById(btn.getAttribute('data-target'));
-    const isPw=inp.type==='password';inp.type=isPw?'text':'password';btn.textContent=isPw?'Hide':'Show';
+document.querySelectorAll('.password-toggle').forEach(function(btn){
+  btn.addEventListener('click',function(){
+    var inp=document.getElementById(btn.getAttribute('data-target'));
+    var isPw=inp.type==='password';
+    inp.type=isPw?'text':'password';
+    btn.textContent=isPw?'Hide':'Show';
   });
 });
-const loginForm=document.getElementById('alumniLoginForm');
-const loginMsg=document.getElementById('loginMessage');
-loginForm.addEventListener('submit',async(e)=>{
-  e.preventDefault();loginMsg.textContent='';loginMsg.className='alert';
-  const email=document.getElementById('email').value.trim();
-  const password=document.getElementById('password').value;
-  if(!email||!password){loginMsg.textContent='Please enter your email and password.';loginMsg.classList.add('alert-error');return;}
-  try{
-  const API=window.SHOSA_API||'http://localhost:4000';
-    const res=await fetch(API+'/api/auth/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email,password})});
-    const data=await res.json();
-    if(!res.ok){loginMsg.textContent=data.error||'Login failed.';loginMsg.classList.add('alert-error');return;}
-    localStorage.setItem('shosa_token',data.token);
-    localStorage.setItem('shosa_alumni',JSON.stringify(data.alumni||{}));
-    if(data.alumni&&data.alumni.fullName){localStorage.setItem('shosa_full_name',data.alumni.fullName);localStorage.setItem('shosa_user_name',data.alumni.fullName);}
-    if(data.alumni && data.alumni.fullName){ localStorage.setItem('shosa_full_name', data.alumni.fullName); }
-    loginMsg.textContent='Login successful. Redirecting…';loginMsg.classList.add('alert-success');
-    setTimeout(()=>{window.location.href='alumni-dashboard.html';},600);
-  }catch(err){loginMsg.textContent='Unable to reach SHOSA backend.';loginMsg.classList.add('alert-error');}
+
+var loginForm=document.getElementById('alumniLoginForm');
+var loginMsg=document.getElementById('loginMessage');
+
+loginForm.addEventListener('submit',async function(e){
+  e.preventDefault();
+
+  loginMsg.textContent='';
+  loginMsg.className='alert';
+
+  var email=document.getElementById('email').value.trim();
+  var password=document.getElementById('password').value;
+
+  var API='http://localhost:4000';
+
+  try {
+
+    // Try alumni login first
+    let response = await fetch(API + '/api/auth/login',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        email:email,
+        password:password
+      })
+    });
+
+    let data = await response.json().catch(()=>({}));
+
+    if(response.ok && data.token){
+
+      localStorage.setItem('shosa_token',data.token);
+      localStorage.setItem('shosa_alumni',JSON.stringify(data.alumni || {}));
+
+      loginMsg.textContent='Login successful.';
+      loginMsg.classList.add('alert-success');
+
+      setTimeout(()=>{
+        window.location.href='alumni-dashboard.html';
+      },700);
+
+      return;
+    }
+
+    // Try admin login second
+    response = await fetch(API + '/api/admin/login',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        email:email,
+        password:password
+      })
+    });
+
+    data = await response.json().catch(()=>({}));
+
+    if(response.ok && data.token){
+
+      localStorage.setItem('shosa_admin_token',data.token);
+      localStorage.setItem('shosa_admin',JSON.stringify(data.admin || {}));
+
+      loginMsg.textContent='Admin login successful.';
+      loginMsg.classList.add('alert-success');
+
+      setTimeout(()=>{
+        window.location.href='admin-dashboard.html';
+      },700);
+
+      return;
+    }
+
+    loginMsg.textContent='Invalid email or password.';
+    loginMsg.classList.add('alert-error');
+
+  } catch(err){
+
+    console.error(err);
+
+    loginMsg.textContent='Unable to connect to backend.';
+    loginMsg.classList.add('alert-error');
+  }
 });
 </script>
 
