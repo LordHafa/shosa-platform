@@ -95,7 +95,7 @@
     btn.type = 'button';
     btn.setAttribute('aria-label', 'Toggle SHOSA display style');
     btn.setAttribute('title', 'Toggle SHOSA display style');
-    btn.innerHTML = '<span class="theme-toggle-icon">◐</span><span class="theme-toggle-text">Theme</span>';
+    btn.innerHTML = '<span class="theme-toggle-icon">☀</span><span class="theme-toggle-text">Bright</span>';
     document.body.appendChild(btn);
 
     var saved = localStorage.getItem('shosa_theme');
@@ -104,8 +104,11 @@
     function sync(){
       var bright = document.body.classList.contains('theme-bright');
       btn.setAttribute('aria-pressed', bright ? 'true' : 'false');
-      var text = btn.querySelector('.theme-toggle-text');
-      if(text) text.textContent = bright ? 'Classic' : 'Bright';
+      var label = bright ? 'Switch to Classic mode (dark)' : 'Switch to Bright mode (light)';
+      btn.setAttribute('aria-label', label);
+      btn.setAttribute('title', label);
+      var icon = btn.querySelector('.theme-toggle-icon');
+      if(icon) icon.textContent = bright ? '🌙' : '☀';
     }
     sync();
     btn.addEventListener('click', function(){

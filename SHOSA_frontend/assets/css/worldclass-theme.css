@@ -394,35 +394,87 @@ body.shosa-worldclass textarea::placeholder { color:rgba(238,244,255,.62) !impor
 body.shosa-worldclass select option,
 body.shosa-worldclass select optgroup { background:#0b1730 !important; color:#eef4ff !important; }
 
-/* Theme toggle */
+/* Theme toggle - Premium floating button (icon-only) */
 #theme-toggle.theme-toggle {
   position:fixed !important;
-  right:20px !important;
-  bottom:20px !important;
+  right:24px !important;
+  bottom:24px !important;
   left:auto !important;
   z-index:99999 !important;
-  min-width:112px !important;
-  height:48px !important;
-  padding:0 16px !important;
+  width:56px !important;
+  height:56px !important;
+  padding:0 !important;
   border-radius:999px !important;
-  border:1px solid rgba(255,255,255,.26) !important;
-  background:linear-gradient(135deg,#2f5bea,#f2c94c) !important;
+  border:1.5px solid rgba(255,255,255,.18) !important;
+  background:rgba(255,255,255,.08) !important;
+  backdrop-filter:blur(12px) !important;
+  -webkit-backdrop-filter:blur(12px) !important;
   color:#fff !important;
   display:inline-flex !important;
   align-items:center !important;
   justify-content:center !important;
   gap:8px !important;
-  font-weight:900 !important;
-  font-size:12px !important;
+  font-weight:700 !important;
+  font-size:13px !important;
   letter-spacing:.04em !important;
-  box-shadow:0 16px 38px rgba(0,0,0,.35) !important;
+  box-shadow:0 12px 32px rgba(0,0,0,.25) !important;
   cursor:pointer !important;
+  transition:all .22s ease !important;
 }
-#theme-toggle .theme-toggle-icon { font-size:18px !important; line-height:1 !important; }
-#theme-toggle .theme-toggle-text { font-size:11px !important; text-transform:uppercase !important; letter-spacing:.06em !important; }
-#theme-toggle:hover,#theme-toggle:focus-visible { transform:translateY(-2px); outline:3px solid rgba(242,201,76,.28) !important; }
-@media(max-width:640px){#theme-toggle.theme-toggle{right:14px!important;bottom:14px!important;min-width:54px!important;width:54px!important;padding:0!important}.theme-toggle-text{display:none!important}}
-.clean-login #theme-toggle{display:none!important;}
+
+#theme-toggle.theme-toggle:hover {
+  background:rgba(255,255,255,.12) !important;
+  border-color:rgba(216,178,93,.32) !important;
+  color:#fff !important;
+  transform:translateY(-3px) !important;
+  box-shadow:0 18px 42px rgba(0,0,0,.32) !important;
+}
+
+#theme-toggle.theme-toggle:focus-visible {
+  outline:2px solid var(--gold-2) !important;
+  outline-offset:3px !important;
+  background:rgba(255,255,255,.12) !important;
+  border-color:var(--gold-2) !important;
+}
+
+#theme-toggle .theme-toggle-icon {
+  font-size:18px !important;
+  line-height:1 !important;
+  transition:transform .22s ease !important;
+}
+
+#theme-toggle:hover .theme-toggle-icon {
+  transform:scale(1.1) !important;
+}
+
+#theme-toggle .theme-toggle-text {
+  display:none !important;
+}
+
+/* Bright theme adaptation */
+body.theme-bright #theme-toggle.theme-toggle {
+  background:rgba(255,255,255,.1) !important;
+  border-color:rgba(255,229,139,.24) !important;
+  color:#fff !important;
+}
+
+body.theme-bright #theme-toggle.theme-toggle:hover {
+  background:rgba(255,255,255,.15) !important;
+  border-color:#f2c94c !important;
+}
+
+/* Mobile responsive */
+@media(max-width:640px){
+  #theme-toggle.theme-toggle{
+    right:18px !important;
+    bottom:18px !important;
+    width:48px !important;
+    height:48px !important;
+  }
+  #theme-toggle .theme-toggle-icon{
+    font-size:20px !important;
+  }
+}
 
 /* File picker: clean, wide, no duplicate/narrow boxes */
 body.shosa-worldclass input[type="file"].shosa-file-input {
@@ -1544,7 +1596,7 @@ body.page-alumni-dashboard .simple-list li::before{background:var(--v4-gold)!imp
 
 /* Login page: allow theme toggle again as requested. */
 body.clean-login #theme-toggle.theme-toggle{
-  display:inline-flex!important;
+  display:inline-flex !important;
 }
 
 /* Store hero must show product rotation above old generic backgrounds. */
