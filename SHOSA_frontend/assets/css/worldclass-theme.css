@@ -2043,3 +2043,396 @@ body.clean-login.theme-bright .auth-card {
   body.page-sacco-payments .payment-purpose-lanes{grid-template-columns:1fr!important;}
 }
 
+/* =====================================================================
+   SHOSA NAVBAR POLISH ROUND 1 — CSS ONLY
+   ===================================================================== */
+body.shosa-worldclass nav,
+body.shosa-worldclass #nav {
+  background:rgba(7,12,24,.84)!important;
+  border-bottom:1px solid rgba(216,178,93,.18)!important;
+  box-shadow:0 18px 42px rgba(0,0,0,.22)!important;
+  backdrop-filter:blur(16px)!important;
+}
+
+body.shosa-worldclass.theme-bright nav,
+body.shosa-worldclass.theme-bright #nav {
+  background:rgba(255,247,226,.92)!important;
+  border-bottom:1px solid rgba(242,201,76,.28)!important;
+  box-shadow:0 16px 32px rgba(32,36,56,.12)!important;
+  color:#102041!important;
+}
+
+body.shosa-worldclass .nav-links,
+body.shosa-worldclass .nav-actions,
+body.shosa-worldclass .mobile-nav-btns {
+  display:flex!important;
+  align-items:center!important;
+  gap:1rem!important;
+}
+
+body.shosa-worldclass .nav-links a {
+  color:rgba(255,255,255,.78)!important;
+  padding:.35rem .65rem!important;
+  border-radius:999px!important;
+  transition:color .18s ease,background .18s ease,border-color .18s ease,box-shadow .18s ease;
+}
+
+body.shosa-worldclass .nav-links a:hover,
+body.shosa-worldclass .nav-links a.active {
+  color:#fff!important;
+  background:rgba(255,255,255,.08)!important;
+  box-shadow:inset 0 0 0 1px rgba(242,201,76,.18)!important;
+}
+
+body.shosa-worldclass.theme-bright .nav-links a {
+  color:rgba(16,32,65,.88)!important;
+}
+
+body.shosa-worldclass.theme-bright .nav-links a:hover,
+body.shosa-worldclass.theme-bright .nav-links a.active {
+  color:#102041!important;
+  background:rgba(242,201,76,.22)!important;
+  box-shadow:inset 0 0 0 1px rgba(242,201,76,.24)!important;
+}
+
+body.shosa-worldclass .nav-actions .btn,
+body.shosa-worldclass .mobile-nav-btns .btn {
+  min-height:36px!important;
+  padding:.65rem 1rem!important;
+  font-size:.86rem!important;
+  font-weight:700!important;
+  border-radius:999px!important;
+  text-transform:none!important;
+  transition:transform .18s ease,box-shadow .18s ease,background .18s ease;
+}
+
+body.shosa-worldclass .nav-actions .btn:hover,
+body.shosa-worldclass .mobile-nav-btns .btn:hover {
+  transform:translateY(-1px)!important;
+}
+
+body.shosa-worldclass .nav-actions .btn.btn-gold,
+body.shosa-worldclass .mobile-nav-btns .btn.btn-gold {
+  background:linear-gradient(135deg,var(--gold),var(--gold-2))!important;
+  color:#102041!important;
+  box-shadow:0 10px 24px rgba(216,178,93,.24)!important;
+}
+
+body.shosa-worldclass .nav-actions .btn.btn-outline-white,
+body.shosa-worldclass .mobile-nav-btns .btn.btn-outline-white {
+  background:rgba(255,255,255,.08)!important;
+  color:#fff!important;
+  border-color:rgba(255,255,255,.24)!important;
+}
+
+body.shosa-worldclass.theme-bright .nav-actions .btn.btn-outline-white,
+body.shosa-worldclass.theme-bright .mobile-nav-btns .btn.btn-outline-white {
+  background:rgba(255,255,255,.94)!important;
+  color:#102041!important;
+  border-color:rgba(242,201,76,.25)!important;
+}
+
+body.shosa-worldclass .nav-actions .btn.btn-secondary,
+body.shosa-worldclass .mobile-nav-btns .btn.btn-secondary {
+  background:rgba(255,255,255,.10)!important;
+  color:#fff!important;
+  border-color:rgba(255,255,255,.18)!important;
+}
+
+body.shosa-worldclass.theme-bright .nav-actions .btn.btn-secondary,
+body.shosa-worldclass.theme-bright .mobile-nav-btns .btn.btn-secondary {
+  background:rgba(255,255,255,.90)!important;
+  color:#102041!important;
+  border-color:rgba(242,201,76,.18)!important;
+}
+
+body.shosa-worldclass .nav-actions .btn:focus-visible,
+body.shosa-worldclass .mobile-nav-btns .btn:focus-visible {
+  box-shadow:0 0 0 4px rgba(242,201,76,.22)!important;
+}
+
+body.shosa-worldclass .nav-links a,
+body.shosa-worldclass .nav-actions .btn,
+body.shosa-worldclass .mobile-nav-btns .btn {
+  white-space:nowrap!important;
+}
+
+@media(max-width:900px){
+  body.shosa-worldclass .nav-links,
+  body.shosa-worldclass .nav-actions,
+  body.shosa-worldclass .mobile-nav-btns {
+    gap:.75rem!important;
+  }
+}
+
+@media(max-width:720px){
+  body.shosa-worldclass nav,
+  body.shosa-worldclass #nav {
+    background:rgba(255,255,255,.96)!important;
+    border-bottom-color:rgba(216,178,93,.22)!important;
+  }
+  body.shosa-worldclass.theme-bright nav,
+  body.shosa-worldclass.theme-bright #nav {
+    background:rgba(255,247,226,.96)!important;
+  }
+}
+
+@media(max-width:640px){
+  body.shosa-worldclass .nav-actions .btn,
+  body.shosa-worldclass .mobile-nav-btns .btn {
+    padding:.55rem .9rem!important;
+    min-height:34px!important;
+  }
+}
+
+@media(max-width:520px){
+  body.shosa-worldclass .nav-links a {
+    padding:.45rem .55rem!important;
+  }
+}
+
+
+
+/* =====================================================================
+   SHOSA NAVBAR POLISH ROUND 1B — COMPACTNESS + READABILITY
+   Manual patch: CSS only. No HTML/JS changes.
+   ===================================================================== */
+
+/* Shared navbar shell: keep desktop nav compact and on one row */
+body.shosa-worldclass .site-nav,
+body.shosa-worldclass nav#nav,
+body.shosa-worldclass #nav {
+  min-height: 66px !important;
+}
+
+body.shosa-worldclass .site-nav .wrap,
+body.shosa-worldclass .nav-inner,
+body.shosa-worldclass .site-nav-inner,
+body.shosa-worldclass nav .wrap {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: 18px !important;
+  flex-wrap: nowrap !important;
+  min-width: 0 !important;
+}
+
+/* Brand: slightly smaller so it does not steal navbar space */
+body.shosa-worldclass .brand,
+body.shosa-worldclass .nav-brand {
+  display: flex !important;
+  align-items: center !important;
+  gap: 10px !important;
+  flex: 0 0 auto !important;
+  min-width: 0 !important;
+}
+
+body.shosa-worldclass .brand img,
+body.shosa-worldclass .nav-brand img,
+body.shosa-worldclass .brand-logo {
+  width: 42px !important;
+  height: 42px !important;
+  max-width: 42px !important;
+  object-fit: contain !important;
+}
+
+body.shosa-worldclass .brand strong,
+body.shosa-worldclass .nav-brand-meta {
+  font-size: clamp(1.45rem, 2.1vw, 1.75rem) !important;
+  line-height: .92 !important;
+  letter-spacing: .02em !important;
+  white-space: nowrap !important;
+}
+
+body.shosa-worldclass .brand span,
+body.shosa-worldclass .nav-brand-sub {
+  font-size: .58rem !important;
+  line-height: 1.1 !important;
+  letter-spacing: .16em !important;
+  white-space: nowrap !important;
+}
+
+/* Link rows: support both homepage .links and inner-page .nav-links */
+body.shosa-worldclass .links,
+body.shosa-worldclass .nav-links {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 14px !important;
+  flex-wrap: nowrap !important;
+  min-width: 0 !important;
+}
+
+body.shosa-worldclass .links a,
+body.shosa-worldclass .nav-links a {
+  white-space: nowrap !important;
+  font-size: .78rem !important;
+  line-height: 1 !important;
+  padding: 8px 6px !important;
+  letter-spacing: .08em !important;
+}
+
+/* Active nav state: clean gold underline, not bulky pill */
+body.shosa-worldclass .links a.active,
+body.shosa-worldclass .nav-links a.active {
+  color: var(--gold-2) !important;
+  background: transparent !important;
+  box-shadow: inset 0 -2px 0 var(--gold-2) !important;
+  border-radius: 0 !important;
+}
+
+body.shosa-worldclass .links a:hover,
+body.shosa-worldclass .nav-links a:hover {
+  color: var(--gold-2) !important;
+  background: rgba(255,255,255,.06) !important;
+  box-shadow: none !important;
+  border-radius: 999px !important;
+}
+
+/* Action buttons: compact, readable, no oversized admin buttons */
+body.shosa-worldclass .actions,
+body.shosa-worldclass .nav-actions {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: flex-end !important;
+  gap: 8px !important;
+  flex-wrap: nowrap !important;
+  flex: 0 0 auto !important;
+}
+
+body.shosa-worldclass .actions .btn,
+body.shosa-worldclass .nav-actions .btn,
+body.shosa-worldclass .actions button,
+body.shosa-worldclass .nav-actions button {
+  min-height: 38px !important;
+  padding: 8px 14px !important;
+  font-size: .82rem !important;
+  line-height: 1.05 !important;
+  font-weight: 850 !important;
+  letter-spacing: .01em !important;
+  white-space: nowrap !important;
+  border-radius: 999px !important;
+}
+
+/* Allow long admin labels to fit without becoming huge */
+body.shosa-worldclass .actions a[href="admin-dashboard.html"],
+body.shosa-worldclass .nav-actions a[href="admin-dashboard.html"],
+body.shosa-worldclass .actions a[href="admin-gallery.html"],
+body.shosa-worldclass .nav-actions a[href="admin-gallery.html"] {
+  max-width: 132px !important;
+  text-align: center !important;
+}
+
+/* Gold/logout buttons should stay compact and readable */
+body.shosa-worldclass .actions .btn-gold,
+body.shosa-worldclass .nav-actions .btn-gold,
+body.shosa-worldclass .actions button.btn-gold,
+body.shosa-worldclass .nav-actions button.btn-gold {
+  color: #102041 !important;
+  background: linear-gradient(135deg, var(--gold), var(--gold-2)) !important;
+  border-color: rgba(216,178,93,.48) !important;
+  box-shadow: 0 10px 22px rgba(216,178,93,.18) !important;
+}
+
+/* Bright theme navbar: preserve cream system, keep text readable */
+body.shosa-worldclass.theme-bright .site-nav,
+body.shosa-worldclass.theme-bright nav#nav,
+body.shosa-worldclass.theme-bright #nav {
+  background: rgba(255,247,226,.94) !important;
+  color: #102041 !important;
+  border-bottom-color: rgba(202,138,4,.18) !important;
+}
+
+body.shosa-worldclass.theme-bright .brand strong,
+body.shosa-worldclass.theme-bright .nav-brand-meta,
+body.shosa-worldclass.theme-bright .links a,
+body.shosa-worldclass.theme-bright .nav-links a {
+  color: #102041 !important;
+}
+
+body.shosa-worldclass.theme-bright .brand span,
+body.shosa-worldclass.theme-bright .nav-brand-sub {
+  color: #9a6a0a !important;
+}
+
+body.shosa-worldclass.theme-bright .links a.active,
+body.shosa-worldclass.theme-bright .nav-links a.active,
+body.shosa-worldclass.theme-bright .links a:hover,
+body.shosa-worldclass.theme-bright .nav-links a:hover {
+  color: #9a6a0a !important;
+}
+
+/* Admin dashboard tabs below charts: inactive tabs must not disappear on cream */
+body.page-admin-dashboard .tab-row {
+  display: flex !important;
+  align-items: center !important;
+  gap: 10px !important;
+  flex-wrap: wrap !important;
+}
+
+body.page-admin-dashboard .tab-btn {
+  color: #102041 !important;
+  background: rgba(255,253,248,.78) !important;
+  border: 1px solid rgba(16,32,65,.14) !important;
+  box-shadow: 0 12px 28px rgba(16,32,65,.08) !important;
+  font-weight: 900 !important;
+}
+
+body.page-admin-dashboard .tab-btn:hover,
+body.page-admin-dashboard .tab-btn:focus {
+  color: #102041 !important;
+  background: #fff8e8 !important;
+  border-color: rgba(202,138,4,.32) !important;
+}
+
+body.page-admin-dashboard .tab-btn.active {
+  color: #102041 !important;
+  background: linear-gradient(135deg, var(--gold), var(--gold-2)) !important;
+  border-color: rgba(202,138,4,.35) !important;
+  box-shadow: 0 14px 32px rgba(216,178,93,.20) !important;
+}
+
+/* Keep dashboard dark panels readable after tab fix */
+body.page-admin-dashboard .table-panel,
+body.page-admin-dashboard .analytics-panel {
+  color: #eef4ff !important;
+}
+
+/* Mobile: do not force desktop one-row behavior on small screens */
+@media (max-width: 980px) {
+  body.shosa-worldclass .site-nav .wrap,
+  body.shosa-worldclass .nav-inner,
+  body.shosa-worldclass .site-nav-inner,
+  body.shosa-worldclass nav .wrap {
+    flex-wrap: wrap !important;
+  }
+
+  body.shosa-worldclass .links,
+  body.shosa-worldclass .nav-links,
+  body.shosa-worldclass .actions,
+  body.shosa-worldclass .nav-actions {
+    gap: 10px !important;
+  }
+}
+
+@media (max-width: 720px) {
+  body.shosa-worldclass .brand img,
+  body.shosa-worldclass .nav-brand img,
+  body.shosa-worldclass .brand-logo {
+    width: 38px !important;
+    height: 38px !important;
+    max-width: 38px !important;
+  }
+
+  body.shosa-worldclass .brand strong,
+  body.shosa-worldclass .nav-brand-meta {
+    font-size: 1.32rem !important;
+  }
+
+  body.shosa-worldclass .actions .btn,
+  body.shosa-worldclass .nav-actions .btn {
+    min-height: 36px !important;
+    padding: 8px 12px !important;
+    font-size: .8rem !important;
+  }
+}
