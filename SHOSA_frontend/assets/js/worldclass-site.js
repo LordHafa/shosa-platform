@@ -49,8 +49,8 @@
     if(!desktop && !mobile) return;
 
     if(hasAdmin()){
-      if(desktop) desktop.innerHTML = '<a href="admin-dashboard.html" class="' + desktopBtnClass + '">Admin Dashboard</a><button type="button" class="' + desktopGoldClass + '" id="adminNavLogoutDesktop">Logout</button>';
-      if(mobile) mobile.innerHTML = '<a href="admin-dashboard.html" class="btn btn-secondary btn-block">Admin Dashboard</a><button type="button" class="btn btn-gold btn-block" id="adminNavLogoutMobile">Logout</button>';
+      if(desktop) desktop.innerHTML = '<a href="admin-dashboard.html" class="' + desktopBtnClass + '">Admin Dashboard</a><a href="admin-gallery.html" class="' + desktopBtnClass + '">Gallery uploads</a><button type="button" class="' + desktopGoldClass + '" id="adminNavLogoutDesktop">Logout</button>';
+      if(mobile) mobile.innerHTML = '<a href="admin-dashboard.html" class="btn btn-secondary btn-block">Admin Dashboard</a><a href="admin-gallery.html" class="btn btn-secondary btn-block">Gallery uploads</a><button type="button" class="btn btn-gold btn-block" id="adminNavLogoutMobile">Logout</button>';
       bindLogout('adminNavLogoutDesktop', logoutAdmin); bindLogout('adminNavLogoutMobile', logoutAdmin);
       return;
     }

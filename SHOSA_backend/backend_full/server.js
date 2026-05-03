@@ -51,7 +51,7 @@ const uploadStorage = multer.diskStorage({
     cb(null, UPLOADS_DIR);
   },
   filename: function (req, file, cb) {
-    const safeName = file.originalname.replace(/\s+/g, "_");
+    const safeName = file.originalname.replace(/[/\\]+/g, "_").replace(/\s+/g, "_");
     cb(null, Date.now() + "-" + safeName);
   },
 });
@@ -66,6 +66,11 @@ const upload = multer({
     cb(null, true);
   },
 });
+
+const galleryUpload = upload.fields([
+  { name: "photo", maxCount: 1 },
+  { name: "photos", maxCount: 50 },
+]);
 
 // =========================
 // Middleware
@@ -352,11 +357,13 @@ function initSchema() {
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       category TEXT,
       label TEXT,
+      description TEXT,
       year INTEGER,
       url TEXT NOT NULL,
       createdAt TEXT NOT NULL
     )
   `);
+  addColumnIfMissing("gallery_images", "description TEXT", "description");
 
   run(`
     CREATE TABLE IF NOT EXISTS admins (
@@ -1167,27 +1174,39 @@ app.get("/api/gallery/all", adminAuthMiddleware, (req, res) => {
     ...img,
     _id: img.id,
     title: img.label || null,
+    description: img.description || null,
   }));
   res.json({ images: normalised });
 });
 
 // Gallery upload (admin) — matches /api/gallery/upload used by admin-gallery.html
-app.post("/api/gallery/upload", adminAuthMiddleware, upload.single("photo"), (req, res) => {
-  if (!req.file) return res.status(400).json({ error: "image file is required." });
-  const { category, label, year } = req.body || {};
-  const url = "/uploads/" + req.file.filename;
-  const info = run(
-    `INSERT INTO gallery_images (category, label, year, url, createdAt)
-     VALUES (:category, :label, :year, :url, :createdAt)`,
-    {
-      category: category || null,
-      label: label || null,
-      year: year ? parseInt(year, 10) : null,
-      url,
-      createdAt: nowIso(),
-    }
-  );
-  res.json({ id: info.lastInsertRowid, _id: info.lastInsertRowid, url });
+app.post("/api/gallery/upload", adminAuthMiddleware, galleryUpload, (req, res) => {
+  const files = [];
+  if (req.files?.photo?.length) files.push(...req.files.photo);
+  if (req.files?.photos?.length) files.push(...req.files.photos);
+  if (!files.length) return res.status(400).json({ error: "image file is required." });
+
+  const { category, title, description } = req.body || {};
+  const sharedTitle = title ? String(title).trim() : null;
+  const createdAt = nowIso();
+  const saved = files.map((file, index) => {
+    const label = sharedTitle && files.length > 1 ? `${sharedTitle} ${index + 1}` : sharedTitle;
+    const url = "/uploads/" + file.filename;
+    const info = run(
+      `INSERT INTO gallery_images (category, label, description, year, url, createdAt)
+       VALUES (:category, :label, :description, :year, :url, :createdAt)`,
+      {
+        category: category || null,
+        label: label || null,
+        description: description || null,
+        year: null,
+        url,
+        createdAt,
+      }
+    );
+    return { id: info.lastInsertRowid, _id: info.lastInsertRowid, url };
+  });
+  res.json({ images: saved });
 });
 
 // Gallery delete (admin) — matches /api/gallery/:id used by admin-gallery.html

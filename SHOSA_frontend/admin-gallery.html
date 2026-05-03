@@ -326,7 +326,8 @@ footer{background:var(--blue-deep);padding:56px 0 0;}
                 <option value="general">General</option>
               </select>
             </div>
-            <div class="form-group"><label for="photo">Image file *</label><input id="photo" name="photo" type="file" accept="image/*" required></div>
+            <div class="form-group"><label for="photo">Image file *</label><input id="photo" name="photo" type="file" accept="image/*" multiple webkitdirectory directory required></div>
+            <small style="color:var(--ink-soft);">Choose one or more images. You can also select an entire folder where supported.</small>
           </div>
           <button type="submit" class="btn btn-primary btn-lg">Upload image</button>
           <div id="uploadMsg" class="alert"></div>
@@ -346,6 +347,7 @@ const API=window.SHOSA_API||'http://localhost:4000';
 const token=localStorage.getItem('shosa_admin_token');
 function authH(){return{Authorization:'Bearer '+token};}
 const form=document.getElementById('galleryForm');
+const fileInput=document.getElementById('photo');
 const uploadMsg=document.getElementById('uploadMsg');
 const tableBody=document.getElementById('galleryTableBody');
 const galleryHint=document.getElementById('galleryHint');
@@ -390,11 +392,17 @@ async function deleteImage(id){
 form.addEventListener('submit',async(e)=>{
   e.preventDefault();uploadMsg.textContent='';uploadMsg.className='alert';
   const fd=new FormData(form);
+  if (fileInput?.files?.length > 1) {
+    fd.delete('photo');
+    for (const file of fileInput.files) {
+      fd.append('photos', file);
+    }
+  }
   try{
     const r=await fetch(API+'/api/gallery/upload',{method:'POST',headers:{...authH()},body:fd});
     const d=await r.json().catch(()=>({}));
     if(!r.ok){uploadMsg.textContent=d.error||'Upload failed.';uploadMsg.classList.add('alert-error');return;}
-    uploadMsg.textContent='Image uploaded successfully.';uploadMsg.classList.add('alert-success');
+    uploadMsg.textContent='Image(s) uploaded successfully.';uploadMsg.classList.add('alert-success');
     form.reset();await loadImages();
   }catch(err){uploadMsg.textContent='Unable to reach SHOSA backend.';uploadMsg.classList.add('alert-error');}
 });
