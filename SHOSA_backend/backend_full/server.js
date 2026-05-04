@@ -1274,6 +1274,68 @@ app.get("/api/gallery/images", (req, res) => {
   }
 });
 
+function getFilesystemGalleryImages() {
+  return [
+    ...readEventFolder("2025-shosa-league-launch", "SHOSA League", 2025),
+    ...readEventFolder("2012-first-dinner", "First SHOSA Dinner", 2012),
+    ...readEventFolder("2016-alumni-dinner", "Alumni Dinner", 2016),
+    ...readEventFolder("career-guidance", "Career guidance", null),
+    ...readEventFolder("medical-camps", "Medical camps", null),
+  ];
+}
+
+function getUploadedGalleryImages(limit = 100) {
+  return all(
+    `SELECT id, category, label, description, year, url, createdAt
+     FROM gallery_images
+     ORDER BY datetime(createdAt) DESC, id DESC
+     LIMIT :limit`,
+    { limit }
+  ).map((img) => ({
+    ...img,
+    _id: img.id,
+    title: img.label || null,
+    imageUrl: img.url,
+    src: img.url,
+  }));
+}
+
+function getPublicGalleryImages(limit = 100) {
+  const uploaded = getUploadedGalleryImages(limit);
+  const filesystem = getFilesystemGalleryImages().map((img, index) => ({
+    ...img,
+    id: `event-${index + 1}`,
+    _id: `event-${index + 1}`,
+    title: img.label || null,
+    imageUrl: img.url,
+    src: img.url,
+    source: "events_folder",
+  }));
+
+  return uploaded
+    .concat(filesystem)
+    .filter((img) => img && img.url)
+    .sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0))
+    .slice(0, limit);
+}
+
+function sendPublicGallery(req, res) {
+  try {
+    const rawLimit = parseInt(req.query.limit, 10);
+    const limit = Number.isFinite(rawLimit) ? Math.max(1, Math.min(200, rawLimit)) : 100;
+    res.json({ images: getPublicGalleryImages(limit) });
+  } catch (err) {
+    console.error("Error in public gallery endpoint:", err);
+    res.status(500).json({ error: "Failed to load public gallery images." });
+  }
+}
+
+// Public compatibility endpoints used by the frontend dynamic hero/gallery code.
+// These intentionally do not require admin auth; they expose only gallery image metadata/URLs.
+app.get("/api/gallery/public", sendPublicGallery);
+app.get("/api/gallery/approved", sendPublicGallery);
+app.get("/api/gallery/all-public", sendPublicGallery);
+
 // All SACCO memberships (admin)
 app.get("/api/admin/sacco", adminAuthMiddleware, (req, res) => {
   const page = Math.max(1, parseInt(req.query.page, 10) || 1);
