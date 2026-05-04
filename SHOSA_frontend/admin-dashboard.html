@@ -224,6 +224,11 @@
     .status-chip.active{background:rgba(34,197,94,.14);color:#c4ffd8;border-color:rgba(34,197,94,.22)}
     .status-chip.pending{background:rgba(212,175,55,.16);color:#ffe9aa;border-color:rgba(212,175,55,.24)}
     .status-chip.inactive,.status-chip.rejected{background:rgba(239,68,68,.14);color:#ffd0d0;border-color:rgba(239,68,68,.22)}
+    .status-chip.success{background:rgba(34,197,94,.14);color:#c4ffd8;border-color:rgba(34,197,94,.22)}
+    .status-chip.failure{background:rgba(239,68,68,.14);color:#ffd0d0;border-color:rgba(239,68,68,.22)}
+    .audit-action{font-weight:800;color:#fff}
+    .audit-resource{color:var(--muted);font-size:.88rem;margin-top:4px}
+    .audit-meta{max-width:300px;color:var(--muted);font-size:.82rem;line-height:1.5;white-space:normal;word-break:break-word}
 
     footer{
       margin-top:54px;border-top:1px solid rgba(255,255,255,.08);background:rgba(7,18,36,.82);
@@ -248,7 +253,7 @@
     }
   </style>
 </head>
-<body class="shosa-worldclass page-admin-dashboard">
+<body>
   <nav class="site-nav">
     <div class="wrap">
       <div class="site-nav-inner">
@@ -270,8 +275,7 @@
         </div>
 
         <div class="nav-actions">
-          <a href="#verificationCenter" class="btn btn-outline">Verification Center</a>
-          <a href="#broadcastCenter" class="btn btn-outline">Broadcasts</a>
+          <a href="admin-login.html" class="btn btn-outline">Admin Login</a>
           <button id="adminLogoutBtn" class="btn btn-gold" type="button">Logout</button>
         </div>
       </div>
@@ -290,37 +294,6 @@
             <a href="admin-gallery.html" class="btn btn-outline">Gallery Uploads</a>
           </div>
         </div>
-      </section>
-
-      <section class="admin-command-grid" aria-label="Admin operations center">
-        <article class="admin-command-card admin-command-primary">
-          <div class="command-eyebrow">Live operations</div>
-          <h3>SHOSA Command Center</h3>
-          <p>Track membership, SACCO verification, communications, and launch-readiness from one energetic control room.</p>
-          <div class="command-pills">
-            <span>Secure session</span>
-            <span>Audit-first SACCO</span>
-            <span>Gateway-ready</span>
-          </div>
-        </article>
-        <article class="admin-command-card" id="verificationCenter">
-          <div class="command-icon">⚡</div>
-          <h3>Verification queue</h3>
-          <p>Review pending Mobile Money proofs, crypto/manual proofs, and SACCO activations before funds affect member status.</p>
-          <a href="#" class="command-link" onclick="showTab('payments');return false;">Open payments →</a>
-        </article>
-        <article class="admin-command-card" id="broadcastCenter">
-          <div class="command-icon">📣</div>
-          <h3>Broadcast center</h3>
-          <p>Prepare alumni-wide and SACCO-only updates for SMS, email, and in-system announcements once providers are connected.</p>
-          <a href="#" class="command-link">Prepare message →</a>
-        </article>
-        <article class="admin-command-card">
-          <div class="command-icon">🛡️</div>
-          <h3>Audit posture</h3>
-          <p>User-entered financial meaning is restricted. Admin verification and gateway callbacks become the source of truth.</p>
-          <a href="../docs/SACCO_AUTOMATION_AND_AUDIT_DESIGN.md" class="command-link">View audit design →</a>
-        </article>
       </section>
 
       <section class="kpi-grid">
@@ -432,6 +405,7 @@
         <button class="tab-btn active" id="tabAlumni" type="button" onclick="showTab('alumni')">Alumni</button>
         <button class="tab-btn" id="tabSacco" type="button" onclick="showTab('sacco')">SACCO Members</button>
         <button class="tab-btn" id="tabPayments" type="button" onclick="showTab('payments')">Payments</button>
+        <button class="tab-btn" id="tabAudit" type="button" onclick="showTab('audit')">Audit Logs</button>
       </section>
 
       <section class="table-panel">
@@ -487,6 +461,35 @@
     function fmtDate(v) {
       if (!v) return "—";
       return String(v).split("T")[0];
+    }
+
+    function fmtDateTime(v) {
+      if (!v) return "—";
+      const d = new Date(v);
+      if (Number.isNaN(d.getTime())) return String(v);
+      return d.toLocaleString("en-UG", {
+        year: "numeric",
+        month: "short",
+        day: "2-digit",
+        hour: "2-digit",
+        minute: "2-digit"
+      });
+    }
+
+    function escapeHtml(value) {
+      return String(value ?? "—")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+    }
+
+    function compactMeta(meta) {
+      if (!meta || typeof meta !== "object") return "—";
+      const entries = Object.entries(meta).filter(([, value]) => value !== null && typeof value !== "undefined" && value !== "");
+      if (!entries.length) return "—";
+      return entries.map(([key, value]) => `${key}: ${value}`).join(" · ");
     }
 
     function statusChip(status) {
@@ -549,70 +552,33 @@
       if (!ctx) return;
       if (collectionsTrendChart) collectionsTrendChart.destroy();
 
-      const context = ctx.getContext("2d");
-      const gradient = context.createLinearGradient(0, 0, 0, ctx.height || 320);
-      gradient.addColorStop(0, "rgba(242, 201, 76, 0.98)");
-      gradient.addColorStop(0.45, "rgba(77, 117, 255, 0.88)");
-      gradient.addColorStop(1, "rgba(47, 91, 234, 0.22)");
-
-      const glowGradient = context.createLinearGradient(0, 0, 0, ctx.height || 320);
-      glowGradient.addColorStop(0, "rgba(255, 229, 139, 0.30)");
-      glowGradient.addColorStop(1, "rgba(77, 117, 255, 0.02)");
-
       collectionsTrendChart = new Chart(ctx, {
         type: "bar",
         data: {
           labels,
-          datasets: [
-            {
-              type: "bar",
-              label: "Collections",
-              data: values,
-              borderRadius: 18,
-              borderSkipped: false,
-              backgroundColor: gradient,
-              hoverBackgroundColor: "rgba(255, 229, 139, 0.95)",
-              barThickness: 34,
-              maxBarThickness: 48
-            },
-            {
-              type: "line",
-              label: "Momentum",
-              data: values,
-              tension: 0.42,
-              fill: true,
-              backgroundColor: glowGradient,
-              borderColor: "rgba(255, 229, 139, 0.95)",
-              pointBackgroundColor: "#fffdfa",
-              pointBorderColor: "#f2c94c",
-              pointRadius: 4,
-              pointHoverRadius: 7,
-              borderWidth: 3
-            }
-          ]
+          datasets: [{
+            label: "Collections",
+            data: values,
+            borderRadius: 10,
+            backgroundColor: [
+              "rgba(240, 210, 123, 0.85)",
+              "rgba(212, 175, 55, 0.85)",
+              "rgba(83, 152, 255, 0.85)",
+              "rgba(67, 128, 255, 0.85)",
+              "rgba(49, 99, 214, 0.9)",
+              "rgba(34, 78, 185, 0.95)"
+            ]
+          }]
         },
         options: {
           responsive: true,
           maintainAspectRatio: false,
-          interaction: { intersect: false, mode: "index" },
-          plugins: {
-            legend: { display: false },
-            tooltip: {
-              backgroundColor: "rgba(8, 17, 32, 0.94)",
-              borderColor: "rgba(255, 229, 139, 0.24)",
-              borderWidth: 1,
-              titleColor: "#ffe58b",
-              bodyColor: "#eef4ff",
-              padding: 14,
-              displayColors: false,
-              callbacks: { label: (ctx) => "UGX " + Number(ctx.parsed.y || 0).toLocaleString() }
-            }
-          },
+          plugins: { legend: { display: false } },
           scales: {
-            x: { ticks: { color: "rgba(238,244,255,.78)", font: { weight: 700 } }, grid: { display: false } },
+            x: { ticks: { color: "#b9c6de" }, grid: { display: false } },
             y: {
-              ticks: { color: "rgba(238,244,255,.68)", callback: (value) => fmtMoneyShort(value).replace("UGX ", "") },
-              grid: { color: "rgba(255,255,255,0.075)", drawBorder: false }
+              ticks: { color: "#b9c6de", callback: (value) => fmtMoneyShort(value).replace("UGX ", "") },
+              grid: { color: "rgba(255,255,255,0.06)" }
             }
           }
         }
@@ -624,25 +590,6 @@
       if (!ctx) return;
       if (paymentBreakdownChart) paymentBreakdownChart.destroy();
 
-      const total = Object.values(breakdown).reduce((sum, value) => sum + Number(value || 0), 0);
-      const centerPlugin = {
-        id: "shosaCenterText",
-        afterDraw(chart) {
-          const { ctx, chartArea } = chart;
-          if (!chartArea) return;
-          ctx.save();
-          ctx.textAlign = "center";
-          ctx.textBaseline = "middle";
-          ctx.fillStyle = "#ffe58b";
-          ctx.font = "800 12px Plus Jakarta Sans, Inter, sans-serif";
-          ctx.fillText("TOTAL", (chartArea.left + chartArea.right) / 2, (chartArea.top + chartArea.bottom) / 2 - 12);
-          ctx.fillStyle = "#ffffff";
-          ctx.font = "900 20px Plus Jakarta Sans, Inter, sans-serif";
-          ctx.fillText(fmtMoneyShort(total).replace("UGX ", "UGX "), (chartArea.left + chartArea.right) / 2, (chartArea.top + chartArea.bottom) / 2 + 12);
-          ctx.restore();
-        }
-      };
-
       paymentBreakdownChart = new Chart(ctx, {
         type: "doughnut",
         data: {
@@ -650,37 +597,24 @@
           datasets: [{
             data: [breakdown.registration,breakdown.monthly,breakdown.quarterly,breakdown.yearly,breakdown.donation,breakdown.other],
             backgroundColor: [
-              "rgba(255, 229, 139, 0.98)",
-              "rgba(77, 117, 255, 0.96)",
-              "rgba(47, 91, 234, 0.95)",
-              "rgba(34, 197, 94, 0.88)",
-              "rgba(242, 201, 76, 0.72)",
-              "rgba(255,255,255,0.22)"
+              "rgba(240, 210, 123, 0.95)",
+              "rgba(83, 152, 255, 0.95)",
+              "rgba(49, 99, 214, 0.95)",
+              "rgba(34, 197, 94, 0.9)",
+              "rgba(212, 175, 55, 0.65)",
+              "rgba(255,255,255,0.25)"
             ],
-            borderColor: "rgba(8,17,32,.72)",
-            borderWidth: 5,
-            hoverOffset: 14,
-            spacing: 4
+            borderWidth: 0
           }]
         },
-        plugins: [centerPlugin],
         options: {
           responsive: true,
           maintainAspectRatio: false,
-          cutout: "72%",
+          cutout: "65%",
           plugins: {
-            tooltip: {
-              backgroundColor: "rgba(8, 17, 32, 0.94)",
-              borderColor: "rgba(255, 229, 139, 0.24)",
-              borderWidth: 1,
-              titleColor: "#ffe58b",
-              bodyColor: "#eef4ff",
-              padding: 14,
-              callbacks: { label: (ctx) => `${ctx.label}: UGX ${Number(ctx.parsed || 0).toLocaleString()}` }
-            },
             legend: {
               position: "bottom",
-              labels: { color: "rgba(238,244,255,.82)", boxWidth: 12, padding: 16, usePointStyle: true, pointStyle: "circle" }
+              labels: { color: "#b9c6de", boxWidth: 12, padding: 14 }
             }
           }
         }
@@ -695,7 +629,7 @@
         ]);
 
         if (saccoRes.status === 401 || paymentsRes.status === 401) {
-          window.location.href = "alumni-login.html";
+          window.location.href = "admin-login.html";
           return;
         }
 
@@ -749,11 +683,11 @@
 
     document.getElementById("adminLogoutBtn")?.addEventListener("click", () => {
       localStorage.removeItem("shosa_admin_token");
-      window.location.href = "alumni-login.html";
+      window.location.href = "admin-login.html";
     });
 
     function setActiveTab(tab) {
-      ["alumni", "sacco", "payments"].forEach((name) => {
+      ["alumni", "sacco", "payments", "audit"].forEach((name) => {
         const el = document.getElementById("tab" + name.charAt(0).toUpperCase() + name.slice(1));
         if (!el) return;
         el.classList.toggle("active", name === tab);
@@ -764,7 +698,7 @@
       try {
         const res = await fetch(API + "/api/admin/stats", { headers: authHeaders() });
         if (res.status === 401) {
-          window.location.href = "alumni-login.html";
+          window.location.href = "admin-login.html";
           return;
         }
         const data = await res.json();
@@ -817,7 +751,7 @@
             <th>Start Date</th>
           </tr>
         `;
-      } else {
+      } else if (tab === "payments") {
         tableTitle.textContent = "Payments";
         endpoint = API + "/api/admin/payments";
         headRow = `
@@ -830,6 +764,20 @@
             <th>Amount</th>
           </tr>
         `;
+      } else {
+        tableTitle.textContent = "Audit Logs";
+        endpoint = API + "/api/admin/audit-logs?limit=50";
+        headRow = `
+          <tr>
+            <th>Date / Time</th>
+            <th>Admin</th>
+            <th>Action</th>
+            <th>Status</th>
+            <th>Resource</th>
+            <th>Reason</th>
+            <th>Metadata</th>
+          </tr>
+        `;
       }
 
       tableHead.innerHTML = headRow;
@@ -838,12 +786,12 @@
         const res = await fetch(endpoint, { headers: authHeaders() });
 
         if (res.status === 401) {
-          window.location.href = "alumni-login.html";
+          window.location.href = "admin-login.html";
           return;
         }
 
         const data = await res.json();
-        const items = data.alumni || data.memberships || data.payments || data.data || [];
+        const items = data.alumni || data.memberships || data.payments || data.logs || data.data || [];
 
         if (!items.length) {
           tableHint.textContent = "No records found.";
@@ -876,7 +824,7 @@
               <td>${fmtDate(item.startDate)}</td>
             </tr>
           `).join("");
-        } else {
+        } else if (tab === "payments") {
           tableBody.innerHTML = items.map((item) => `
             <tr>
               <td>${fmtDate(item.createdAt)}</td>
@@ -887,6 +835,21 @@
               <td class="money">${fmtMoney(item.amount || 0)}</td>
             </tr>
           `).join("");
+        } else {
+          tableBody.innerHTML = items.map((item) => {
+            const resource = [item.resourceType, item.resourceId].filter(Boolean).join(" #") || "—";
+            return `
+              <tr>
+                <td>${escapeHtml(fmtDateTime(item.createdAt))}</td>
+                <td>${escapeHtml(item.adminEmail || "—")}<div class="audit-resource">${escapeHtml(item.adminRole || "—")}</div></td>
+                <td><div class="audit-action">${escapeHtml(item.action || "—")}</div></td>
+                <td>${statusChip(item.status || "—")}</td>
+                <td>${escapeHtml(resource)}</td>
+                <td>${escapeHtml(item.reason || "—")}</td>
+                <td><div class="audit-meta">${escapeHtml(compactMeta(item.metadata))}</div></td>
+              </tr>
+            `;
+          }).join("");
         }
       } catch (err) {
         console.error("Table load error:", err);

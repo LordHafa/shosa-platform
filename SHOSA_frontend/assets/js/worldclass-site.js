@@ -87,21 +87,72 @@
 
 
 
+  function ensureBodyIdentityClasses(){
+    if(!document.body) return;
+    document.body.classList.add('shosa-worldclass');
+
+    var pageMap = {
+      'index.html': 'page-home',
+      '': 'page-home',
+      'admin-dashboard.html': 'page-admin-dashboard',
+      'admin-gallery.html': 'page-admin-gallery',
+      'alumni-dashboard.html': 'page-alumni-dashboard',
+      'alumni-login.html': 'page-alumni-login',
+      'alumni-register.html': 'page-alumni-register',
+      'profile.html': 'page-profile',
+      'sacco-dashboard.html': 'page-sacco-dashboard',
+      'sacco-payments.html': 'page-sacco-payments',
+      'sacco-register.html': 'page-sacco-register',
+      'store.html': 'page-store',
+      'events.html': 'page-events',
+      'gallery.html': 'page-gallery',
+      'about.html': 'page-about',
+      'contact.html': 'page-contact',
+      'donate.html': 'page-donate'
+    };
+
+    var file = (location.pathname.split('/').pop() || 'index.html').toLowerCase();
+    var expected = pageMap[file];
+    var hasPageClass = Array.prototype.some.call(document.body.classList, function(cls){
+      return cls.indexOf('page-') === 0 || cls === 'clean-login';
+    });
+
+    if(expected && !hasPageClass) {
+      document.body.classList.add(expected);
+      if(file === 'alumni-login.html') document.body.classList.add('clean-login');
+    }
+  }
+
   function initThemeToggle(){
-    if(document.getElementById('theme-toggle')) return;
-    var btn = document.createElement('button');
-    btn.id = 'theme-toggle';
+    var existing = document.getElementById('theme-toggle');
+    var btn;
+
+    if(existing){
+      btn = existing.cloneNode(true);
+      existing.parentNode.replaceChild(btn, existing);
+    } else {
+      btn = document.createElement('button');
+      btn.id = 'theme-toggle';
+      document.body.appendChild(btn);
+    }
+
     btn.className = 'theme-toggle';
     btn.type = 'button';
     btn.setAttribute('aria-label', 'Toggle SHOSA display style');
     btn.setAttribute('title', 'Toggle SHOSA display style');
     btn.innerHTML = '<span class="theme-toggle-icon">☀</span><span class="theme-toggle-text">Bright</span>';
-    document.body.appendChild(btn);
+
+    ensureBodyIdentityClasses();
 
     var saved = localStorage.getItem('shosa_theme');
-    if(saved === 'bright') document.body.classList.add('theme-bright');
+    if(saved === 'bright') {
+      document.body.classList.add('theme-bright');
+    } else if(saved === 'default') {
+      document.body.classList.remove('theme-bright');
+    }
 
     function sync(){
+      ensureBodyIdentityClasses();
       var bright = document.body.classList.contains('theme-bright');
       btn.setAttribute('aria-pressed', bright ? 'true' : 'false');
       var label = bright ? 'Switch to Classic mode (dark)' : 'Switch to Bright mode (light)';
@@ -110,10 +161,14 @@
       var icon = btn.querySelector('.theme-toggle-icon');
       if(icon) icon.textContent = bright ? '🌙' : '☀';
     }
+
     sync();
+
     btn.addEventListener('click', function(){
-      document.body.classList.toggle('theme-bright');
-      localStorage.setItem('shosa_theme', document.body.classList.contains('theme-bright') ? 'bright' : 'default');
+      ensureBodyIdentityClasses();
+      var shouldBeBright = !document.body.classList.contains('theme-bright');
+      document.body.classList.toggle('theme-bright', shouldBeBright);
+      localStorage.setItem('shosa_theme', shouldBeBright ? 'bright' : 'default');
       sync();
     });
   }
