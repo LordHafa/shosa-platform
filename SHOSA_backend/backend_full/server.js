@@ -366,6 +366,27 @@ function initSchema() {
   addColumnIfMissing("gallery_images", "description TEXT", "description");
 
   run(`
+    CREATE TABLE IF NOT EXISTS audit_logs (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      adminEmail TEXT,
+      adminRole TEXT,
+      action TEXT NOT NULL,
+      resourceType TEXT,
+      resourceId TEXT,
+      status TEXT NOT NULL,
+      reason TEXT,
+      ip TEXT,
+      userAgent TEXT,
+      metadataJson TEXT,
+      createdAt TEXT NOT NULL
+    )
+  `);
+  run(`CREATE INDEX IF NOT EXISTS idx_audit_logs_createdAt ON audit_logs(createdAt DESC)`);
+  run(`CREATE INDEX IF NOT EXISTS idx_audit_logs_action ON audit_logs(action)`);
+  run(`CREATE INDEX IF NOT EXISTS idx_audit_logs_status ON audit_logs(status)`);
+  run(`CREATE INDEX IF NOT EXISTS idx_audit_logs_adminEmail ON audit_logs(adminEmail)`);
+
+  run(`
     CREATE TABLE IF NOT EXISTS admins (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       email TEXT UNIQUE,
@@ -405,6 +426,62 @@ function initSchema() {
 }
 
 initSchema();
+
+// =========================
+// Audit helpers
+// =========================
+function safeMeta(input) {
+  if (!input || typeof input !== "object") return null;
+  const blockedFragments = ["password", "token", "authorization", "auth", "jwt", "secret", "cookie"];
+  const out = {};
+
+  Object.keys(input).forEach((key) => {
+    const lower = String(key).toLowerCase();
+    if (blockedFragments.some((fragment) => lower.includes(fragment))) return;
+
+    const value = input[key];
+    if (typeof value === "string" && value.length > 800) {
+      out[key] = value.slice(0, 800) + "...";
+    } else {
+      out[key] = value;
+    }
+  });
+
+  return out;
+}
+
+function writeAuditLog(req, details = {}) {
+  try {
+    const actorEmail = details.adminEmail || req?.admin?.email || req?.user?.email || null;
+    const actorRole = details.adminRole || req?.admin?.role || req?.user?.role || null;
+    const forwardedFor = req?.headers?.["x-forwarded-for"];
+    const ip = forwardedFor ? String(forwardedFor).split(",")[0].trim() : (req?.ip || null);
+    const userAgent = req?.headers?.["user-agent"] || null;
+    const metadataJson = details.metadata ? JSON.stringify(safeMeta(details.metadata)) : null;
+
+    run(
+      `INSERT INTO audit_logs
+        (adminEmail, adminRole, action, resourceType, resourceId, status, reason, ip, userAgent, metadataJson, createdAt)
+       VALUES
+        (:adminEmail, :adminRole, :action, :resourceType, :resourceId, :status, :reason, :ip, :userAgent, :metadataJson, :createdAt)`,
+      {
+        adminEmail: actorEmail,
+        adminRole: actorRole,
+        action: details.action || "unknown_action",
+        resourceType: details.resourceType || null,
+        resourceId: typeof details.resourceId !== "undefined" && details.resourceId !== null ? String(details.resourceId) : null,
+        status: details.status || "unknown",
+        reason: details.reason || null,
+        ip,
+        userAgent,
+        metadataJson,
+        createdAt: nowIso(),
+      }
+    );
+  } catch (err) {
+    console.error("Audit log write failed:", err?.message || err);
+  }
+}
 
 // =========================
 // Auth helpers
@@ -488,15 +565,32 @@ app.get("/api/meta/governance", (req, res) => {
 // =========================
 app.post("/api/admin/login", authLimiter, (req, res) => {
   const { email, password } = req.body || {};
+  const normalizedEmail = email ? String(email).toLowerCase().trim() : null;
+
   if (!email || !password) {
     return res.status(400).json({ error: "email and password are required." });
   }
-  if (
-    email.toLowerCase().trim() !== ADMIN_EMAIL.toLowerCase() ||
-    password !== ADMIN_PASSWORD
-  ) {
+
+  if (normalizedEmail !== ADMIN_EMAIL.toLowerCase() || password !== ADMIN_PASSWORD) {
+    writeAuditLog(req, {
+      action: "admin_login",
+      status: "failure",
+      reason: "invalid_credentials",
+      adminEmail: normalizedEmail,
+      adminRole: "unknown",
+      metadata: { attemptedEmail: normalizedEmail },
+    });
     return res.status(401).json({ error: "Invalid admin credentials." });
   }
+
+  writeAuditLog(req, {
+    action: "admin_login",
+    status: "success",
+    adminEmail: ADMIN_EMAIL,
+    adminRole: "super_admin",
+    metadata: { loginMethod: "env_admin" },
+  });
+
   res.json({ token: generateAdminToken("super_admin"), admin: { email: ADMIN_EMAIL, role: "super_admin" } });
 });
 
@@ -508,6 +602,43 @@ app.get("/api/admin/governance", adminAuthMiddleware, (req, res) => {
   const roles = all(`SELECT code, name, module, scopeType, functionKey, description FROM governance_roles ORDER BY module, scopeType, name`);
   const assignments = all(`SELECT fullName, email, roleCode, scopeType, scopeValue, isActive FROM governance_assignments WHERE isActive = 1 ORDER BY scopeType, scopeValue, roleCode`);
   res.json({ campuses, roles, assignments });
+});
+
+app.get("/api/admin/audit-logs", adminAuthMiddleware, (req, res) => {
+  const limitRaw = parseInt(req.query.limit, 10);
+  const limit = Number.isFinite(limitRaw) ? Math.max(1, Math.min(500, limitRaw)) : 100;
+  const params = { limit };
+  const where = [];
+
+  if (req.query.action) {
+    where.push("action = :action");
+    params.action = String(req.query.action);
+  }
+
+  if (req.query.status) {
+    where.push("status = :status");
+    params.status = String(req.query.status);
+  }
+
+  if (req.query.adminEmail) {
+    where.push("adminEmail = :adminEmail");
+    params.adminEmail = String(req.query.adminEmail).toLowerCase().trim();
+  }
+
+  const sql = `SELECT id, adminEmail, adminRole, action, resourceType, resourceId, status, reason, ip, userAgent, metadataJson, createdAt
+               FROM audit_logs ${where.length ? "WHERE " + where.join(" AND ") : ""}
+               ORDER BY id DESC LIMIT :limit`;
+
+  const logs = all(sql, params).map((row) => {
+    let metadata = null;
+    if (row.metadataJson) {
+      try { metadata = JSON.parse(row.metadataJson); } catch { metadata = null; }
+    }
+    const { metadataJson, ...rest } = row;
+    return { ...rest, metadata };
+  });
+
+  res.json({ logs, limit });
 });
 
 // =========================
@@ -596,6 +727,13 @@ app.post("/api/admin/gallery/upload", adminAuthMiddleware, upload.single("photo"
       createdAt: nowIso(),
     }
   );
+  writeAuditLog(req, {
+    action: "gallery_upload",
+    resourceType: "gallery_image",
+    resourceId: info.lastInsertRowid,
+    status: "success",
+    metadata: { filesUploaded: 1, category: category || null, label: label || null, year: year || null, endpoint: "/api/admin/gallery/upload" },
+  });
   res.json({ id: info.lastInsertRowid, url });
 });
 
@@ -603,7 +741,17 @@ app.post("/api/admin/gallery/upload", adminAuthMiddleware, upload.single("photo"
 app.delete("/api/admin/gallery/:id", adminAuthMiddleware, (req, res) => {
   const id = parseInt(req.params.id, 10);
   const img = one(`SELECT * FROM gallery_images WHERE id = :id`, { id });
-  if (!img) return res.status(404).json({ error: "Image not found." });
+  if (!img) {
+    writeAuditLog(req, {
+      action: "gallery_delete",
+      resourceType: "gallery_image",
+      resourceId: req.params.id,
+      status: "failure",
+      reason: "not_found",
+      metadata: { endpoint: "/api/admin/gallery/:id" },
+    });
+    return res.status(404).json({ error: "Image not found." });
+  }
 
   // Delete the physical file if it's in uploads
   if (img.url && img.url.startsWith("/uploads/")) {
@@ -612,6 +760,13 @@ app.delete("/api/admin/gallery/:id", adminAuthMiddleware, (req, res) => {
   }
 
   run(`DELETE FROM gallery_images WHERE id = :id`, { id });
+  writeAuditLog(req, {
+    action: "gallery_delete",
+    resourceType: "gallery_image",
+    resourceId: id,
+    status: "success",
+    metadata: { endpoint: "/api/admin/gallery/:id", url: img.url || null, label: img.label || null },
+  });
   res.json({ ok: true });
 });
 
@@ -1206,6 +1361,13 @@ app.post("/api/gallery/upload", adminAuthMiddleware, galleryUpload, (req, res) =
     );
     return { id: info.lastInsertRowid, _id: info.lastInsertRowid, url };
   });
+  writeAuditLog(req, {
+    action: "gallery_upload",
+    resourceType: "gallery_image",
+    resourceId: saved.map((item) => item.id).join(","),
+    status: "success",
+    metadata: { filesUploaded: saved.length, category: category || null, title: sharedTitle, description: description || null, endpoint: "/api/gallery/upload" },
+  });
   res.json({ images: saved });
 });
 
@@ -1213,11 +1375,28 @@ app.post("/api/gallery/upload", adminAuthMiddleware, galleryUpload, (req, res) =
 app.delete("/api/gallery/:id", adminAuthMiddleware, (req, res) => {
   const id = parseInt(req.params.id, 10);
   const img = one(`SELECT * FROM gallery_images WHERE id = :id`, { id });
-  if (!img) return res.status(404).json({ error: "Image not found." });
+  if (!img) {
+    writeAuditLog(req, {
+      action: "gallery_delete",
+      resourceType: "gallery_image",
+      resourceId: req.params.id,
+      status: "failure",
+      reason: "not_found",
+      metadata: { endpoint: "/api/gallery/:id" },
+    });
+    return res.status(404).json({ error: "Image not found." });
+  }
   if (img.url && img.url.startsWith("/uploads/")) {
     try { fs.unlinkSync(path.join(UPLOADS_DIR, path.basename(img.url))); } catch { /* already gone */ }
   }
   run(`DELETE FROM gallery_images WHERE id = :id`, { id });
+  writeAuditLog(req, {
+    action: "gallery_delete",
+    resourceType: "gallery_image",
+    resourceId: id,
+    status: "success",
+    metadata: { endpoint: "/api/gallery/:id", url: img.url || null, label: img.label || null },
+  });
   res.json({ ok: true });
 });
 
