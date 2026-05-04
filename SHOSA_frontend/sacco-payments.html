@@ -137,6 +137,7 @@
         <a href="events.html">Events</a>
         <a href="gallery.html">Gallery</a>
         <a href="store.html">Store</a>
+        <a href="sacco-register.html">Join / Update SACCO</a>
         <a href="sacco-payments.html" class="active">Make Payment</a>
       </div>
       <div class="nav-actions" id="navActionsDesktop">
@@ -158,6 +159,7 @@
       <p>This page shows your SACCO status, what payment is required next, and your recent SACCO payment records. For a new SACCO member, the first payment is always the <strong>UGX 50,000 membership registration fee</strong>.</p>
       <div class="hero-actions">
         <a href="#payment-form" class="btn btn-gold">Go to payment form</a>
+        <a href="sacco-register.html" class="btn btn-outline">Join / Update SACCO</a>
       </div>
     </div>
   </header>
@@ -189,36 +191,19 @@
 
           <div id="statusNotice" class="notice info">Loading your SACCO status…</div>
 
-          <div class="notice info sacco-policy-note">
-            <strong>SACCO yearly subscription grace period:</strong>
-            after activation, a member gets 6 months before the yearly subscription becomes compulsory. Once that grace period ends, the system requires the UGX 100,000 yearly subscription before other SACCO payments.
-          </div>
-
           <div class="pill-row" id="statusPills"></div>
-
-          <div class="payment-purpose-lanes" aria-label="SACCO payment categories">
-            <div class="payment-lane"><strong>Membership & subscription</strong><span>Registration fee and yearly subscription obligations.</span></div>
-            <div class="payment-lane"><strong>Savings</strong><span>Monthly, quarterly, and extra member deposits.</span></div>
-            <div class="payment-lane"><strong>Donations</strong><span>Support contributions kept separate from SACCO savings.</span></div>
-          </div>
 
           <form id="payment-form" class="stack" style="margin-top:24px;">
             <div class="form-grid">
               <div class="field">
                 <label for="paymentType">Payment type</label>
                 <select id="paymentType" name="paymentType" required>
-                  <optgroup label="Membership & subscription">
-                    <option value="sacco_membership_fee">SACCO membership registration — UGX 50,000</option>
-                    <option value="sacco_yearly_subscription">SACCO yearly subscription — UGX 100,000</option>
-                  </optgroup>
-                  <optgroup label="Savings deposits">
-                    <option value="sacco_savings_monthly">Monthly savings deposit — UGX 50,000</option>
-                    <option value="sacco_savings_quarterly">Quarterly savings deposit — UGX 200,000</option>
-                    <option value="sacco_extra_savings">Extra savings / top-up</option>
-                  </optgroup>
-                  <optgroup label="Support outside SACCO savings">
-                    <option value="donation">Donation</option>
-                  </optgroup>
+                  <option value="sacco_membership_fee">SACCO membership registration — UGX 50,000</option>
+                  <option value="sacco_yearly_subscription">SACCO yearly subscription — UGX 100,000</option>
+                  <option value="sacco_savings_monthly">SACCO monthly savings deposit — UGX 50,000</option>
+                  <option value="sacco_savings_quarterly">SACCO quarterly savings deposit — UGX 200,000</option>
+                  <option value="sacco_extra_savings">SACCO extra savings / top-up</option>
+                  <option value="donation">Donation</option>
                 </select>
                 <small class="muted" id="paymentTypeHelp">Your first SACCO payment is locked to the membership registration fee until it is paid.</small>
                 <small class="muted" id="systemPurposeHelp">System purpose: Compulsory SACCO membership registration fee — UGX 50,000.</small>
@@ -264,6 +249,7 @@
 
             <div class="actions">
               <button type="submit" class="btn btn-gold" id="submitBtn">Pay with Mobile Money</button>
+              <a href="sacco-register.html" class="btn btn-outline">Join / Update SACCO</a>
             </div>
           </form>
         </div>
@@ -296,6 +282,7 @@
       </div>
       <div>
         <h4>SACCO</h4>
+        <p><a href="sacco-register.html">Join / Update</a></p>
         <p><a href="sacco-payments.html">Make Payment</a></p>
         <p><a href="sacco-dashboard.html">SACCO Dashboard</a></p>
       </div>
@@ -394,14 +381,16 @@
 
       function renderStatus(status){
         saccoStatus = status;
+        const feePending = !!status.membershipFeePending || status.nextRequiredStep === 'await_membership_fee_verification';
         membershipState.textContent = status.membership ? (status.membership.status || 'saved') : 'Not registered yet';
-        feeState.textContent = status.membershipFeePaid ? 'Paid' : 'Pending';
-        nextStep.textContent = !status.membership ? 'Join SACCO first' : (!status.membershipFeePaid ? 'Pay UGX 50,000 membership fee' : 'You can proceed normally');
+        feeState.textContent = status.membershipFeePaid ? 'Paid' : (feePending ? 'Awaiting verification' : 'Pending');
+        nextStep.textContent = !status.membership ? 'Join SACCO first' : (status.membershipFeePaid ? 'You can proceed normally' : (feePending ? 'Wait for admin verification' : 'Pay UGX 50,000 membership fee'));
 
         statusPills.innerHTML = '';
         const pills = [];
         if(status.membership){ pills.push('<span class="pill">Membership saved</span>'); }
         if(status.membershipFeePaid){ pills.push('<span class="pill">First fee paid</span>'); }
+        else if(feePending){ pills.push('<span class="pill locked">Fee submitted · awaiting verification</span>'); }
         else if(status.membership){ pills.push('<span class="pill locked">Activation fee required</span>'); }
         if(status.membership && status.membership.membershipType){ pills.push('<span class="pill">' + escapeHtml(status.membership.membershipType) + '</span>'); }
         statusPills.innerHTML = pills.join('');
@@ -409,6 +398,15 @@
         if(!status.membership){
           statusNotice.className = 'notice info';
           statusNotice.innerHTML = 'You have not joined the SACCO yet. Complete your SACCO registration first, then return here to make your first payment.';
+          submitBtn.disabled = true;
+          paymentType.disabled = true;
+          amount.disabled = true;
+          phone.disabled = true;
+          network.disabled = true;
+          description.disabled = true; if(transactionRef)transactionRef.disabled=true; if(paymentProof)paymentProof.disabled=true;
+        } else if(!status.membershipFeePaid && feePending){
+          statusNotice.className = 'notice info';
+          statusNotice.innerHTML = 'Your SACCO membership fee has been submitted and is awaiting admin verification. You will be able to make other SACCO payments after approval.';
           submitBtn.disabled = true;
           paymentType.disabled = true;
           amount.disabled = true;
@@ -457,6 +455,8 @@
               <h4>${escapeHtml(row.label || row.paymentType)}</h4>
               <p>${escapeHtml(row.network || '')}${row.phone ? ' · ' + escapeHtml(row.phone) : ''}</p>
               <p>${new Date(row.createdAt).toLocaleString()}</p>
+              <p>Status: ${escapeHtml(row.status || 'pending')}</p>
+              ${row.rejectionReason ? '<p>Reason: ' + escapeHtml(row.rejectionReason) + '</p>' : ''}
             </div>
             <div class="history-amt">${formatMoney(row.amount)}</div>
           </div>

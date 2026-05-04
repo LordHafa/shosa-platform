@@ -224,11 +224,6 @@
     .status-chip.active{background:rgba(34,197,94,.14);color:#c4ffd8;border-color:rgba(34,197,94,.22)}
     .status-chip.pending{background:rgba(212,175,55,.16);color:#ffe9aa;border-color:rgba(212,175,55,.24)}
     .status-chip.inactive,.status-chip.rejected{background:rgba(239,68,68,.14);color:#ffd0d0;border-color:rgba(239,68,68,.22)}
-    .status-chip.success{background:rgba(34,197,94,.14);color:#c4ffd8;border-color:rgba(34,197,94,.22)}
-    .status-chip.failure{background:rgba(239,68,68,.14);color:#ffd0d0;border-color:rgba(239,68,68,.22)}
-    .audit-action{font-weight:800;color:#fff}
-    .audit-resource{color:var(--muted);font-size:.88rem;margin-top:4px}
-    .audit-meta{max-width:300px;color:var(--muted);font-size:.82rem;line-height:1.5;white-space:normal;word-break:break-word}
 
     footer{
       margin-top:54px;border-top:1px solid rgba(255,255,255,.08);background:rgba(7,18,36,.82);
@@ -251,9 +246,21 @@
       .tab-btn,.btn{width:100%}
       .chart-box{height:220px}
     }
+
+    .status-chip.approved,.status-chip.confirmed,.status-chip.success{background:rgba(34,197,94,.14);color:#c4ffd8;border-color:rgba(34,197,94,.22)}
+    .status-chip.pending_gateway_confirmation,.status-chip.pending_verification{background:rgba(212,175,55,.16);color:#ffe9aa;border-color:rgba(212,175,55,.24)}
+    .payment-actions{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+    .action-btn{border:none;border-radius:999px;padding:8px 10px;font-size:.76rem;font-weight:800;cursor:pointer;white-space:nowrap}
+    .action-approve{background:rgba(34,197,94,.16);color:#c4ffd8;border:1px solid rgba(34,197,94,.32)}
+    .action-reject{background:rgba(239,68,68,.14);color:#ffd0d0;border:1px solid rgba(239,68,68,.28)}
+    .action-btn:disabled{opacity:.55;cursor:not-allowed}
+    .muted-small{display:block;color:var(--muted);font-size:.78rem;margin-top:4px;line-height:1.4}
+    .audit-action{font-weight:800;color:#fff}
+    .audit-resource,.audit-meta{color:var(--muted);font-size:.82rem;line-height:1.45;word-break:break-word}
+
   </style>
 </head>
-<body>
+<body class="shosa-worldclass page-admin-dashboard">
   <nav class="site-nav">
     <div class="wrap">
       <div class="site-nav-inner">
@@ -275,7 +282,8 @@
         </div>
 
         <div class="nav-actions">
-          <a href="admin-login.html" class="btn btn-outline">Admin Login</a>
+          <a href="#verificationCenter" class="btn btn-outline">Verification Center</a>
+          <a href="#broadcastCenter" class="btn btn-outline">Broadcasts</a>
           <button id="adminLogoutBtn" class="btn btn-gold" type="button">Logout</button>
         </div>
       </div>
@@ -294,6 +302,37 @@
             <a href="admin-gallery.html" class="btn btn-outline">Gallery Uploads</a>
           </div>
         </div>
+      </section>
+
+      <section class="admin-command-grid" aria-label="Admin operations center">
+        <article class="admin-command-card admin-command-primary">
+          <div class="command-eyebrow">Live operations</div>
+          <h3>SHOSA Command Center</h3>
+          <p>Track membership, SACCO verification, communications, and launch-readiness from one energetic control room.</p>
+          <div class="command-pills">
+            <span>Secure session</span>
+            <span>Audit-first SACCO</span>
+            <span>Gateway-ready</span>
+          </div>
+        </article>
+        <article class="admin-command-card" id="verificationCenter">
+          <div class="command-icon">⚡</div>
+          <h3>Verification queue</h3>
+          <p>Review pending Mobile Money proofs, crypto/manual proofs, and SACCO activations before funds affect member status.</p>
+          <a href="#" class="command-link" onclick="showTab('payments');return false;">Open payments →</a>
+        </article>
+        <article class="admin-command-card" id="broadcastCenter">
+          <div class="command-icon">📣</div>
+          <h3>Broadcast center</h3>
+          <p>Prepare alumni-wide and SACCO-only updates for SMS, email, and in-system announcements once providers are connected.</p>
+          <a href="#" class="command-link">Prepare message →</a>
+        </article>
+        <article class="admin-command-card">
+          <div class="command-icon">🛡️</div>
+          <h3>Audit posture</h3>
+          <p>User-entered financial meaning is restricted. Admin verification and gateway callbacks become the source of truth.</p>
+          <a href="../docs/SACCO_AUTOMATION_AND_AUDIT_DESIGN.md" class="command-link">View audit design →</a>
+        </article>
       </section>
 
       <section class="kpi-grid">
@@ -442,9 +481,14 @@
     const token = localStorage.getItem("shosa_admin_token");
     let collectionsTrendChart = null;
     let paymentBreakdownChart = null;
+    let adminContext = { permissions: [] };
 
-    function authHeaders() {
-      return { Authorization: "Bearer " + token };
+    function authHeaders(extra = {}) {
+      return { Authorization: "Bearer " + token, ...extra };
+    }
+
+    function hasPermission(permission) {
+      return (adminContext.permissions || []).includes("*") || (adminContext.permissions || []).includes(permission);
     }
 
     function fmtMoney(v) {
@@ -467,13 +511,7 @@
       if (!v) return "—";
       const d = new Date(v);
       if (Number.isNaN(d.getTime())) return String(v);
-      return d.toLocaleString("en-UG", {
-        year: "numeric",
-        month: "short",
-        day: "2-digit",
-        hour: "2-digit",
-        minute: "2-digit"
-      });
+      return d.toLocaleString("en-UG", { year:"numeric", month:"short", day:"2-digit", hour:"2-digit", minute:"2-digit" });
     }
 
     function escapeHtml(value) {
@@ -485,6 +523,21 @@
         .replace(/'/g, "&#039;");
     }
 
+    function statusChip(status) {
+      const s = String(status || "—").toLowerCase();
+      return `<span class="status-chip ${escapeHtml(s)}">${escapeHtml(status || "—")}</span>`;
+    }
+
+    function isApprovedPayment(payment) {
+      const status = String(payment.status || "").toLowerCase();
+      return status === "approved" || status === "confirmed" || status === "success" || !!payment.confirmedAt;
+    }
+
+    function isPendingPayment(payment) {
+      const status = String(payment.status || "").toLowerCase();
+      return status === "pending_gateway_confirmation" || status === "pending_verification";
+    }
+
     function compactMeta(meta) {
       if (!meta || typeof meta !== "object") return "—";
       const entries = Object.entries(meta).filter(([, value]) => value !== null && typeof value !== "undefined" && value !== "");
@@ -492,17 +545,11 @@
       return entries.map(([key, value]) => `${key}: ${value}`).join(" · ");
     }
 
-    function statusChip(status) {
-      const s = String(status || "—").toLowerCase();
-      return `<span class="status-chip ${s}">${status || "—"}</span>`;
-    }
-
     function groupPaymentsByMonth(payments, monthsBack = 6) {
       const now = new Date();
       const labels = [];
       const values = [];
       const monthKeys = [];
-
       for (let i = monthsBack - 1; i >= 0; i--) {
         const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
         const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
@@ -510,7 +557,6 @@
         labels.push(d.toLocaleString("en-US", { month: "short" }));
         values.push(0);
       }
-
       payments.forEach((payment) => {
         const createdAt = payment.createdAt ? new Date(payment.createdAt) : null;
         if (!createdAt || isNaN(createdAt)) return;
@@ -518,24 +564,14 @@
         const idx = monthKeys.indexOf(key);
         if (idx !== -1) values[idx] += Number(payment.amount || 0);
       });
-
       return { labels, values };
     }
 
     function buildPaymentBreakdown(payments) {
-      const breakdown = {
-        registration: 0,
-        monthly: 0,
-        quarterly: 0,
-        yearly: 0,
-        donation: 0,
-        other: 0
-      };
-
+      const breakdown = { registration:0, monthly:0, quarterly:0, yearly:0, donation:0, other:0 };
       payments.forEach((payment) => {
         const type = String(payment.paymentType || "");
         const amount = Number(payment.amount || 0);
-
         if (type === "sacco_membership_fee") breakdown.registration += amount;
         else if (type === "sacco_savings_monthly") breakdown.monthly += amount;
         else if (type === "sacco_savings_quarterly") breakdown.quarterly += amount;
@@ -543,7 +579,6 @@
         else if (type === "donation") breakdown.donation += amount;
         else breakdown.other += amount;
       });
-
       return breakdown;
     }
 
@@ -551,37 +586,10 @@
       const ctx = document.getElementById("collectionsTrendChart");
       if (!ctx) return;
       if (collectionsTrendChart) collectionsTrendChart.destroy();
-
       collectionsTrendChart = new Chart(ctx, {
         type: "bar",
-        data: {
-          labels,
-          datasets: [{
-            label: "Collections",
-            data: values,
-            borderRadius: 10,
-            backgroundColor: [
-              "rgba(240, 210, 123, 0.85)",
-              "rgba(212, 175, 55, 0.85)",
-              "rgba(83, 152, 255, 0.85)",
-              "rgba(67, 128, 255, 0.85)",
-              "rgba(49, 99, 214, 0.9)",
-              "rgba(34, 78, 185, 0.95)"
-            ]
-          }]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          plugins: { legend: { display: false } },
-          scales: {
-            x: { ticks: { color: "#b9c6de" }, grid: { display: false } },
-            y: {
-              ticks: { color: "#b9c6de", callback: (value) => fmtMoneyShort(value).replace("UGX ", "") },
-              grid: { color: "rgba(255,255,255,0.06)" }
-            }
-          }
-        }
+        data: { labels, datasets: [{ label: "Verified collections", data: values, borderRadius: 10 }] },
+        options: { responsive:true, maintainAspectRatio:false, plugins:{ legend:{ display:false } }, scales:{ x:{ ticks:{ color:"#b9c6de" }, grid:{ display:false } }, y:{ ticks:{ color:"#b9c6de", callback:(value)=>fmtMoneyShort(value).replace("UGX ","") }, grid:{ color:"rgba(255,255,255,0.06)" } } } }
       });
     }
 
@@ -589,36 +597,31 @@
       const ctx = document.getElementById("paymentBreakdownChart");
       if (!ctx) return;
       if (paymentBreakdownChart) paymentBreakdownChart.destroy();
-
       paymentBreakdownChart = new Chart(ctx, {
         type: "doughnut",
-        data: {
-          labels: ["Registration Fees","Monthly Savings","Quarterly Savings","Yearly Subscription","Donations","Other"],
-          datasets: [{
-            data: [breakdown.registration,breakdown.monthly,breakdown.quarterly,breakdown.yearly,breakdown.donation,breakdown.other],
-            backgroundColor: [
-              "rgba(240, 210, 123, 0.95)",
-              "rgba(83, 152, 255, 0.95)",
-              "rgba(49, 99, 214, 0.95)",
-              "rgba(34, 197, 94, 0.9)",
-              "rgba(212, 175, 55, 0.65)",
-              "rgba(255,255,255,0.25)"
-            ],
-            borderWidth: 0
-          }]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          cutout: "65%",
-          plugins: {
-            legend: {
-              position: "bottom",
-              labels: { color: "#b9c6de", boxWidth: 12, padding: 14 }
-            }
-          }
-        }
+        data: { labels:["Registration Fees","Monthly Savings","Quarterly Savings","Yearly Subscription","Donations","Other"], datasets:[{ data:[breakdown.registration,breakdown.monthly,breakdown.quarterly,breakdown.yearly,breakdown.donation,breakdown.other], borderWidth:0 }] },
+        options: { responsive:true, maintainAspectRatio:false, cutout:"65%", plugins:{ legend:{ position:"bottom", labels:{ color:"#b9c6de", boxWidth:12, padding:14 } } } }
       });
+    }
+
+    async function loadAdminContext() {
+      if (!token) { window.location.href = "alumni-login.html"; return; }
+      try {
+        const res = await fetch(API + "/api/admin/me", { headers: authHeaders() });
+        if (res.status === 401) { window.location.href = "alumni-login.html"; return; }
+        if (res.ok) {
+          const data = await res.json();
+          adminContext = data.admin || adminContext;
+        } else {
+          adminContext = { permissions: ["*"] };
+        }
+      } catch (err) {
+        console.warn("Admin context unavailable; falling back to current admin session.", err);
+        adminContext = { permissions: ["*"] };
+      }
+      document.getElementById("tabPayments")?.classList.toggle("hidden", !hasPermission("view_payments"));
+      document.getElementById("tabSacco")?.classList.toggle("hidden", !hasPermission("view_sacco"));
+      document.getElementById("tabAudit")?.classList.toggle("hidden", !hasPermission("view_audit_logs"));
     }
 
     async function loadSaccoAnalytics() {
@@ -627,63 +630,40 @@
           fetch(API + "/api/admin/sacco", { headers: authHeaders() }),
           fetch(API + "/api/admin/payments", { headers: authHeaders() })
         ]);
-
-        if (saccoRes.status === 401 || paymentsRes.status === 401) {
-          window.location.href = "admin-login.html";
-          return;
-        }
-
+        if (saccoRes.status === 401 || paymentsRes.status === 401) { window.location.href = "alumni-login.html"; return; }
         const saccoData = await saccoRes.json();
         const paymentsData = await paymentsRes.json();
-
         const memberships = saccoData.memberships || [];
-        const payments = paymentsData.payments || [];
-
-        const grandTotalPaid = Number(saccoData.grandTotalPaid || 0);
+        const payments = (paymentsData.payments || []).filter(isApprovedPayment);
+        const grandTotalPaid = Number(saccoData.grandTotalPaid || payments.reduce((sum,p)=>sum+Number(p.amount||0),0));
         const membershipFeePaidCount = Number(saccoData.membershipFeePaidCount || 0);
         const activatedMembers = memberships.filter(m => String(m.status || "").toLowerCase() === "active").length;
-
         const now = new Date();
-        const thisMonthCollections = payments
-          .filter((p) => {
-            if (!p.createdAt) return false;
-            const d = new Date(p.createdAt);
-            return d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth();
-          })
-          .reduce((sum, p) => sum + Number(p.amount || 0), 0);
-
+        const thisMonthCollections = payments.filter((p) => { const d = p.createdAt ? new Date(p.createdAt) : null; return d && d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth(); }).reduce((sum,p)=>sum+Number(p.amount||0),0);
         const averagePerMember = memberships.length ? grandTotalPaid / memberships.length : 0;
-
         document.getElementById("saccoGrandTotal").textContent = fmtMoney(grandTotalPaid);
         document.getElementById("saccoMembershipFeePaidCount").textContent = membershipFeePaidCount.toLocaleString("en-UG");
         document.getElementById("kpiActivatedMembers").textContent = activatedMembers.toLocaleString("en-UG");
         document.getElementById("kpiThisMonthCollections").textContent = fmtMoney(thisMonthCollections);
         document.getElementById("kpiAveragePerMember").textContent = fmtMoney(Math.round(averagePerMember));
-
         const trend = groupPaymentsByMonth(payments, 6);
         renderTrendChart(trend.labels, trend.values);
-
         const maxValue = Math.max(...trend.values, 0);
         const maxIndex = trend.values.findIndex(v => v === maxValue);
-        document.getElementById("trendHighestMonth").textContent =
-          maxValue > 0 && maxIndex >= 0 ? `${trend.labels[maxIndex]} · ${fmtMoneyShort(maxValue)}` : "—";
-        document.getElementById("trendAverageMonth").textContent =
-          fmtMoney(Math.round(trend.values.reduce((a,b) => a+b, 0) / (trend.values.length || 1)));
+        document.getElementById("trendHighestMonth").textContent = maxValue > 0 && maxIndex >= 0 ? `${trend.labels[maxIndex]} · ${fmtMoneyShort(maxValue)}` : "—";
+        document.getElementById("trendAverageMonth").textContent = fmtMoney(Math.round(trend.values.reduce((a,b)=>a+b,0)/(trend.values.length||1)));
         document.getElementById("trendLatestMonth").textContent = fmtMoney(trend.values[trend.values.length - 1] || 0);
-
         const breakdown = buildPaymentBreakdown(payments);
         renderBreakdownChart(breakdown);
         document.getElementById("breakdownRegFees").textContent = fmtMoney(breakdown.registration);
         document.getElementById("breakdownMonthlySavings").textContent = fmtMoney(breakdown.monthly);
         document.getElementById("breakdownQuarterlySavings").textContent = fmtMoney(breakdown.quarterly);
-      } catch (err) {
-        console.error("SACCO analytics load error:", err);
-      }
+      } catch (err) { console.error("SACCO analytics load error:", err); }
     }
 
     document.getElementById("adminLogoutBtn")?.addEventListener("click", () => {
       localStorage.removeItem("shosa_admin_token");
-      window.location.href = "admin-login.html";
+      window.location.href = "alumni-login.html";
     });
 
     function setActiveTab(tab) {
@@ -697,17 +677,42 @@
     async function loadKPIs() {
       try {
         const res = await fetch(API + "/api/admin/stats", { headers: authHeaders() });
-        if (res.status === 401) {
-          window.location.href = "admin-login.html";
-          return;
-        }
+        if (res.status === 401) { window.location.href = "alumni-login.html"; return; }
         const data = await res.json();
         document.getElementById("kpiAlumni").textContent = Number(data.totalAlumni || 0).toLocaleString("en-UG");
         document.getElementById("kpiSacco").textContent = Number(data.totalSaccoMembers || 0).toLocaleString("en-UG");
         document.getElementById("kpiPayments").textContent = Number(data.totalPayments || 0).toLocaleString("en-UG");
-      } catch (err) {
-        console.error("KPI load error:", err);
+      } catch (err) { console.error("KPI load error:", err); }
+    }
+
+    async function reviewPayment(id, decision) {
+      if (!hasPermission("verify_sacco_payments")) return alert("You do not have permission to verify SACCO payments.");
+      let reason = "";
+      if (decision === "reject") {
+        reason = prompt("Enter the reason for rejecting this payment:");
+        if (!reason || !reason.trim()) return;
       }
+      const btns = document.querySelectorAll(`[data-payment-id="${id}"]`);
+      btns.forEach(btn => btn.disabled = true);
+      try {
+        const res = await fetch(`${API}/api/admin/payments/${id}/${decision}`, {
+          method: "POST",
+          headers: authHeaders({ "Content-Type": "application/json" }),
+          body: decision === "reject" ? JSON.stringify({ reason }) : "{}"
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) throw new Error(data.error || "Payment review failed.");
+        await Promise.all([loadKPIs(), loadSaccoAnalytics(), loadTable("payments")]);
+      } catch (err) {
+        alert(err.message || "Payment review failed.");
+        btns.forEach(btn => btn.disabled = false);
+      }
+    }
+
+    function paymentActions(item) {
+      if (!hasPermission("verify_sacco_payments")) return '<span class="muted-small">No permission</span>';
+      if (!isPendingPayment(item)) return `<span class="muted-small">${escapeHtml(item.reviewedBy || item.confirmedBy || "Reviewed")}</span>`;
+      return `<div class="payment-actions"><button class="action-btn action-approve" data-payment-id="${item.id}" onclick="reviewPayment(${item.id}, 'approve')">Approve</button><button class="action-btn action-reject" data-payment-id="${item.id}" onclick="reviewPayment(${item.id}, 'reject')">Reject</button></div>`;
     }
 
     async function loadTable(tab) {
@@ -715,141 +720,45 @@
       const tableHint = document.getElementById("tableHint");
       const tableHead = document.getElementById("tableHead");
       const tableBody = document.getElementById("tableBody");
-
       setActiveTab(tab);
       tableBody.innerHTML = "";
       tableHint.textContent = "Loading data…";
-
       let endpoint = "";
       let headRow = "";
-
       if (tab === "alumni") {
         tableTitle.textContent = "Alumni";
         endpoint = API + "/api/admin/alumni";
-        headRow = `
-          <tr>
-            <th>Full Name</th>
-            <th>Email</th>
-            <th>Phone</th>
-            <th>Campus</th>
-            <th>Grad Year</th>
-            <th>Registered</th>
-          </tr>
-        `;
+        headRow = `<tr><th>Full Name</th><th>Email</th><th>Phone</th><th>Campus</th><th>Grad Year</th><th>Registered</th></tr>`;
       } else if (tab === "sacco") {
         tableTitle.textContent = "SACCO Members";
         endpoint = API + "/api/admin/sacco";
-        headRow = `
-          <tr>
-            <th>Member</th>
-            <th>Email</th>
-            <th>Phone</th>
-            <th>Membership Type</th>
-            <th>Monthly Contribution</th>
-            <th>Total Paid</th>
-            <th>Status</th>
-            <th>Start Date</th>
-          </tr>
-        `;
+        headRow = `<tr><th>Member</th><th>Email</th><th>Phone</th><th>Membership Type</th><th>Monthly Contribution</th><th>Verified Paid</th><th>Status</th><th>Start Date</th></tr>`;
       } else if (tab === "payments") {
         tableTitle.textContent = "Payments";
         endpoint = API + "/api/admin/payments";
-        headRow = `
-          <tr>
-            <th>Date</th>
-            <th>Alumni</th>
-            <th>Payment Type</th>
-            <th>Network</th>
-            <th>Phone</th>
-            <th>Amount</th>
-          </tr>
-        `;
+        headRow = `<tr><th>Date</th><th>Alumni</th><th>Payment Type</th><th>Network</th><th>Phone</th><th>Amount</th><th>Status</th><th>Reviewed</th><th>Actions</th></tr>`;
       } else {
         tableTitle.textContent = "Audit Logs";
         endpoint = API + "/api/admin/audit-logs?limit=50";
-        headRow = `
-          <tr>
-            <th>Date / Time</th>
-            <th>Admin</th>
-            <th>Action</th>
-            <th>Status</th>
-            <th>Resource</th>
-            <th>Reason</th>
-            <th>Metadata</th>
-          </tr>
-        `;
+        headRow = `<tr><th>Date / Time</th><th>Admin</th><th>Action</th><th>Status</th><th>Resource</th><th>Reason</th><th>Metadata</th></tr>`;
       }
-
       tableHead.innerHTML = headRow;
-
       try {
         const res = await fetch(endpoint, { headers: authHeaders() });
-
-        if (res.status === 401) {
-          window.location.href = "admin-login.html";
-          return;
-        }
-
+        if (res.status === 401) { window.location.href = "alumni-login.html"; return; }
+        if (res.status === 403) { tableHint.textContent = "You do not have permission to view this section."; return; }
         const data = await res.json();
         const items = data.alumni || data.memberships || data.payments || data.logs || data.data || [];
-
-        if (!items.length) {
-          tableHint.textContent = "No records found.";
-          return;
-        }
-
+        if (!items.length) { tableHint.textContent = "No records found."; return; }
         tableHint.textContent = `${items.length} record${items.length === 1 ? "" : "s"} loaded.`;
-
         if (tab === "alumni") {
-          tableBody.innerHTML = items.map((item) => `
-            <tr>
-              <td>${item.fullName || "—"}</td>
-              <td>${item.email || "—"}</td>
-              <td>${item.phone || "—"}</td>
-              <td>${item.campus || "—"}</td>
-              <td>${item.gradYear || "—"}</td>
-              <td>${fmtDate(item.createdAt)}</td>
-            </tr>
-          `).join("");
+          tableBody.innerHTML = items.map((item) => `<tr><td>${escapeHtml(item.fullName)}</td><td>${escapeHtml(item.email)}</td><td>${escapeHtml(item.phone)}</td><td>${escapeHtml(item.campus)}</td><td>${escapeHtml(item.gradYear)}</td><td>${fmtDate(item.createdAt)}</td></tr>`).join("");
         } else if (tab === "sacco") {
-          tableBody.innerHTML = items.map((item) => `
-            <tr>
-              <td>${item.alumniName || "—"}</td>
-              <td>${item.alumniEmail || "—"}</td>
-              <td>${item.alumniPhone || "—"}</td>
-              <td>${item.membershipType || "—"}</td>
-              <td class="money">${fmtMoney(item.monthlyContribution || 0)}</td>
-              <td class="money">${fmtMoney(item.totalPaid || 0)}</td>
-              <td>${statusChip(item.status || "—")}</td>
-              <td>${fmtDate(item.startDate)}</td>
-            </tr>
-          `).join("");
+          tableBody.innerHTML = items.map((item) => `<tr><td>${escapeHtml(item.alumniName)}</td><td>${escapeHtml(item.alumniEmail)}</td><td>${escapeHtml(item.alumniPhone)}</td><td>${escapeHtml(item.membershipType)}</td><td class="money">${fmtMoney(item.monthlyContribution || 0)}</td><td class="money">${fmtMoney(item.totalPaid || 0)}</td><td>${statusChip(item.status || "—")}</td><td>${fmtDate(item.startDate)}</td></tr>`).join("");
         } else if (tab === "payments") {
-          tableBody.innerHTML = items.map((item) => `
-            <tr>
-              <td>${fmtDate(item.createdAt)}</td>
-              <td>${item.alumniName || item.alumniEmail || "—"}</td>
-              <td>${item.paymentType || "—"}</td>
-              <td>${item.network || "—"}</td>
-              <td>${item.phone || "—"}</td>
-              <td class="money">${fmtMoney(item.amount || 0)}</td>
-            </tr>
-          `).join("");
+          tableBody.innerHTML = items.map((item) => `<tr><td>${fmtDate(item.createdAt)}</td><td>${escapeHtml(item.alumniName || item.alumniEmail)}</td><td>${escapeHtml(item.paymentType)}</td><td>${escapeHtml(item.network)}</td><td>${escapeHtml(item.phone)}</td><td class="money">${fmtMoney(item.amount || 0)}</td><td>${statusChip(item.status || "—")}${item.rejectionReason ? `<span class="muted-small">${escapeHtml(item.rejectionReason)}</span>` : ""}</td><td>${escapeHtml(item.reviewedBy || item.confirmedBy || "—")}<span class="muted-small">${escapeHtml(fmtDateTime(item.reviewedAt || item.confirmedAt))}</span></td><td>${paymentActions(item)}</td></tr>`).join("");
         } else {
-          tableBody.innerHTML = items.map((item) => {
-            const resource = [item.resourceType, item.resourceId].filter(Boolean).join(" #") || "—";
-            return `
-              <tr>
-                <td>${escapeHtml(fmtDateTime(item.createdAt))}</td>
-                <td>${escapeHtml(item.adminEmail || "—")}<div class="audit-resource">${escapeHtml(item.adminRole || "—")}</div></td>
-                <td><div class="audit-action">${escapeHtml(item.action || "—")}</div></td>
-                <td>${statusChip(item.status || "—")}</td>
-                <td>${escapeHtml(resource)}</td>
-                <td>${escapeHtml(item.reason || "—")}</td>
-                <td><div class="audit-meta">${escapeHtml(compactMeta(item.metadata))}</div></td>
-              </tr>
-            `;
-          }).join("");
+          tableBody.innerHTML = items.map((item) => { const resource = [item.resourceType, item.resourceId].filter(Boolean).join(" #") || "—"; return `<tr><td>${escapeHtml(fmtDateTime(item.createdAt))}</td><td>${escapeHtml(item.adminEmail || "—")}<div class="audit-resource">${escapeHtml(item.adminRole || "—")}</div></td><td><div class="audit-action">${escapeHtml(item.action || "—")}</div></td><td>${statusChip(item.status || "—")}</td><td>${escapeHtml(resource)}</td><td>${escapeHtml(item.reason || "—")}</td><td><div class="audit-meta">${escapeHtml(compactMeta(item.metadata))}</div></td></tr>`; }).join("");
         }
       } catch (err) {
         console.error("Table load error:", err);
@@ -859,9 +768,14 @@
 
     function showTab(tab) { loadTable(tab); }
 
-    loadKPIs();
-    loadSaccoAnalytics();
-    loadTable("alumni");
+    async function initAdminDashboard() {
+      await loadAdminContext();
+      loadKPIs();
+      loadSaccoAnalytics();
+      loadTable("alumni");
+    }
+
+    initAdminDashboard();
   </script>
 
   <script src="assets/js/worldclass-site.js"></script>

@@ -51,7 +51,7 @@ const uploadStorage = multer.diskStorage({
     cb(null, UPLOADS_DIR);
   },
   filename: function (req, file, cb) {
-    const safeName = file.originalname.replace(/[/\\]+/g, "_").replace(/\s+/g, "_");
+    const safeName = file.originalname.replace(/\s+/g, "_");
     cb(null, Date.now() + "-" + safeName);
   },
 });
@@ -140,87 +140,49 @@ function run(stmt, params = {}) {
   return db.prepare(stmt).run(params);
 }
 
+const APPROVED_PAYMENT_STATUSES = ["approved", "confirmed", "success"];
+const PENDING_PAYMENT_STATUSES = ["pending_gateway_confirmation", "pending_verification"];
+
+function approvedPaymentWhere(alias = "") {
+  const prefix = alias ? alias + "." : "";
+  return `(${prefix}status IN ('approved','confirmed','success') OR ${prefix}confirmedAt IS NOT NULL)`;
+}
+
 function hasMembershipFeePaid(alumniId) {
   return !!one(
-    `SELECT id FROM mobilemoney_payments WHERE alumniId = :alumniId AND paymentType = 'sacco_membership_fee' LIMIT 1`,
-    { alumniId }
-  );
-}
-
-function addMonthsToIso(isoDate, months) {
-  const d = isoDate ? new Date(isoDate) : new Date();
-  if (Number.isNaN(d.getTime())) return new Date().toISOString();
-  d.setMonth(d.getMonth() + months);
-  return d.toISOString();
-}
-
-function getMembershipActivationDate(alumniId) {
-  const payment = one(
-    `SELECT createdAt FROM mobilemoney_payments
-     WHERE alumniId = :alumniId AND paymentType = 'sacco_membership_fee'
-     ORDER BY createdAt ASC LIMIT 1`,
-    { alumniId }
-  );
-  return payment?.createdAt || null;
-}
-
-function getSaccoYearlySubscriptionPolicy(alumniId) {
-  const activationDate = getMembershipActivationDate(alumniId);
-  if (!activationDate) {
-    return {
-      activationDate: null,
-      yearlySubscriptionGraceMonths: 6,
-      yearlySubscriptionDueAt: null,
-      yearlySubscriptionInGrace: false,
-      yearlySubscriptionDue: false,
-      yearlySubscriptionPaid: false,
-      yearlySubscriptionBlocking: false,
-      yearlySubscriptionMessage: "Membership activation is pending the registration fee.",
-    };
-  }
-
-  const dueAt = addMonthsToIso(activationDate, 6);
-  const now = new Date();
-  const dueDate = new Date(dueAt);
-  const inGrace = now < dueDate;
-  const paid = !!one(
     `SELECT id FROM mobilemoney_payments
      WHERE alumniId = :alumniId
-       AND paymentType = 'sacco_yearly_subscription'
-       AND datetime(createdAt) >= datetime(:dueAt)
-     ORDER BY createdAt DESC LIMIT 1`,
-    { alumniId, dueAt }
+       AND paymentType = 'sacco_membership_fee'
+       AND ${approvedPaymentWhere()}
+     LIMIT 1`,
+    { alumniId }
   );
-  const blocking = !inGrace && !paid;
+}
 
-  return {
-    activationDate,
-    yearlySubscriptionGraceMonths: 6,
-    yearlySubscriptionDueAt: dueAt,
-    yearlySubscriptionInGrace: inGrace,
-    yearlySubscriptionDue: !inGrace,
-    yearlySubscriptionPaid: paid,
-    yearlySubscriptionBlocking: blocking,
-    yearlySubscriptionMessage: inGrace
-      ? "You are within the 6-month SACCO activation grace period before yearly subscription becomes compulsory."
-      : (paid ? "Yearly subscription is up to date for the current cycle." : "Yearly subscription is now compulsory before other SACCO payments."),
-  };
+function hasPendingMembershipFee(alumniId) {
+  return !!one(
+    `SELECT id FROM mobilemoney_payments
+     WHERE alumniId = :alumniId
+       AND paymentType = 'sacco_membership_fee'
+       AND status IN ('pending_gateway_confirmation','pending_verification')
+     LIMIT 1`,
+    { alumniId }
+  );
 }
 
 function getSaccoStatusForUser(alumniId) {
   const membership = one(`SELECT * FROM sacco_memberships WHERE alumniId = :alumniId`, { alumniId }) || null;
   const membershipFeePaid = hasMembershipFeePaid(alumniId);
-  const yearlyPolicy = getSaccoYearlySubscriptionPolicy(alumniId);
-  const yearlyBlocking = !!membership && membershipFeePaid && yearlyPolicy.yearlySubscriptionBlocking;
-  const canProceedAsMember = !!membership && membershipFeePaid && !yearlyBlocking;
+  const membershipFeePending = hasPendingMembershipFee(alumniId);
+  const canProceedAsMember = !!membership && membershipFeePaid;
   return {
     membership,
     membershipFeePaid,
+    membershipFeePending,
     canProceedAsMember,
-    ...yearlyPolicy,
     nextRequiredStep: !membership
       ? 'register_membership'
-      : (!membershipFeePaid ? 'pay_membership_fee' : (yearlyBlocking ? 'pay_yearly_subscription' : null)),
+      : (!membershipFeePaid ? (membershipFeePending ? 'await_membership_fee_verification' : 'pay_membership_fee') : null),
   };
 }
 
@@ -338,6 +300,9 @@ function initSchema() {
   addColumnIfMissing("mobilemoney_payments", "proofFileName TEXT", "proofFileName");
   addColumnIfMissing("mobilemoney_payments", "confirmedAt TEXT", "confirmedAt");
   addColumnIfMissing("mobilemoney_payments", "confirmedBy TEXT", "confirmedBy");
+  addColumnIfMissing("mobilemoney_payments", "reviewedAt TEXT", "reviewedAt");
+  addColumnIfMissing("mobilemoney_payments", "reviewedBy TEXT", "reviewedBy");
+  addColumnIfMissing("mobilemoney_payments", "rejectionReason TEXT", "rejectionReason");
 
   run(`
     CREATE TABLE IF NOT EXISTS events (
@@ -357,34 +322,12 @@ function initSchema() {
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       category TEXT,
       label TEXT,
-      description TEXT,
       year INTEGER,
       url TEXT NOT NULL,
       createdAt TEXT NOT NULL
     )
   `);
   addColumnIfMissing("gallery_images", "description TEXT", "description");
-
-  run(`
-    CREATE TABLE IF NOT EXISTS audit_logs (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      adminEmail TEXT,
-      adminRole TEXT,
-      action TEXT NOT NULL,
-      resourceType TEXT,
-      resourceId TEXT,
-      status TEXT NOT NULL,
-      reason TEXT,
-      ip TEXT,
-      userAgent TEXT,
-      metadataJson TEXT,
-      createdAt TEXT NOT NULL
-    )
-  `);
-  run(`CREATE INDEX IF NOT EXISTS idx_audit_logs_createdAt ON audit_logs(createdAt DESC)`);
-  run(`CREATE INDEX IF NOT EXISTS idx_audit_logs_action ON audit_logs(action)`);
-  run(`CREATE INDEX IF NOT EXISTS idx_audit_logs_status ON audit_logs(status)`);
-  run(`CREATE INDEX IF NOT EXISTS idx_audit_logs_adminEmail ON audit_logs(adminEmail)`);
 
   run(`
     CREATE TABLE IF NOT EXISTS admins (
@@ -419,6 +362,13 @@ function initSchema() {
     ["credit_committee", "Credit Committee", "sacco", "global", "credit_review", "Reviews and recommends loan decisions."],
     ["supervisory_committee", "Supervisory Committee", "sacco", "global", "sacco_audit", "Independent SACCO oversight."],
     ["sacco_staff", "SACCO Staff", "sacco", "global", "sacco_operations", "Runs SACCO day-to-day operations."],
+    ["sacco_treasurer", "SACCO Treasurer", "sacco", "global", "sacco_finance", "Handles SACCO financial review and reporting."],
+    ["sacco_verifier", "SACCO Payment Verifier", "sacco", "global", "sacco_payment_verification", "Approves or rejects pending SACCO payments."],
+    ["content_admin", "Content Admin", "content", "global", "content_admin", "Coordinates public website content across modules."],
+    ["gallery_manager", "Gallery Manager", "content", "global", "gallery_management", "Uploads and manages gallery records."],
+    ["events_manager", "Events Manager", "content", "global", "events_management", "Creates and updates event records."],
+    ["store_manager", "Store Manager", "content", "global", "store_management", "Manages merchandise records and order workflow."],
+    ["viewer", "Viewer", "system", "global", "read_only", "Limited read-only operational visibility."],
   ];
   roles.forEach(([code, name, module, scopeType, functionKey, description]) => {
     run(`INSERT OR IGNORE INTO governance_roles (code, name, module, scopeType, functionKey, description, createdAt) VALUES (:code, :name, :module, :scopeType, :functionKey, :description, :createdAt)`, { code, name, module, scopeType, functionKey, description, createdAt: seededAt });
@@ -430,9 +380,45 @@ initSchema();
 // =========================
 // Audit helpers
 // =========================
+function ensureAuditSchema() {
+  run(`
+    CREATE TABLE IF NOT EXISTS audit_logs (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      adminEmail TEXT,
+      adminRole TEXT,
+      action TEXT NOT NULL,
+      resourceType TEXT,
+      resourceId TEXT,
+      status TEXT NOT NULL,
+      reason TEXT,
+      ip TEXT,
+      userAgent TEXT,
+      metadataJson TEXT,
+      createdAt TEXT NOT NULL
+    )
+  `);
+  run(`CREATE INDEX IF NOT EXISTS idx_audit_logs_createdAt ON audit_logs(createdAt DESC)`);
+  run(`CREATE INDEX IF NOT EXISTS idx_audit_logs_action ON audit_logs(action)`);
+  run(`CREATE INDEX IF NOT EXISTS idx_audit_logs_status ON audit_logs(status)`);
+  run(`CREATE INDEX IF NOT EXISTS idx_audit_logs_adminEmail ON audit_logs(adminEmail)`);
+}
+
+ensureAuditSchema();
+
 function safeMeta(input) {
   if (!input || typeof input !== "object") return null;
-  const blockedFragments = ["password", "token", "authorization", "auth", "jwt", "secret", "cookie"];
+
+  const blockedFragments = [
+    "password",
+    "passwordHash",
+    "token",
+    "authorization",
+    "auth",
+    "jwt",
+    "secret",
+    "cookie",
+  ];
+
   const out = {};
 
   Object.keys(input).forEach((key) => {
@@ -483,6 +469,7 @@ function writeAuditLog(req, details = {}) {
   }
 }
 
+
 // =========================
 // Auth helpers
 // =========================
@@ -501,8 +488,8 @@ function generateToken(alumni) {
   );
 }
 
-function generateAdminToken(role = "super_admin") {
-  return jwt.sign({ role }, JWT_SECRET_FINAL, { expiresIn: "7d" });
+function generateAdminToken(role = "super_admin", email = null) {
+  return jwt.sign({ role, email }, JWT_SECRET_FINAL, { expiresIn: "7d" });
 }
 
 function authMiddleware(req, res, next) {
@@ -523,12 +510,65 @@ function adminAuthMiddleware(req, res, next) {
   if (!token) return res.status(401).json({ error: "Missing token" });
   try {
     const decoded = jwt.verify(token, JWT_SECRET_FINAL);
-    if (!["admin", "super_admin", "system_auditor", "central_president", "central_secretary", "central_treasurer", "campus_chair", "campus_secretary", "campus_treasurer", "sacco_board", "credit_committee", "supervisory_committee", "sacco_staff"].includes(decoded.role)) return res.status(403).json({ error: "Admin access required" });
+    if (!["admin", "super_admin", "system_auditor", "central_president", "central_secretary", "central_treasurer", "campus_chair", "campus_secretary", "campus_treasurer", "sacco_board", "credit_committee", "supervisory_committee", "sacco_staff", "sacco_treasurer", "sacco_verifier", "content_admin", "gallery_manager", "events_manager", "store_manager", "viewer"].includes(decoded.role)) return res.status(403).json({ error: "Admin access required" });
     req.user = decoded;
     next();
   } catch {
     return res.status(401).json({ error: "Invalid or expired token" });
   }
+}
+
+const ROLE_PERMISSIONS = {
+  super_admin: ["*"],
+  admin: ["view_dashboard", "view_alumni", "view_sacco", "view_payments", "verify_sacco_payments", "manage_gallery", "view_audit_logs"],
+  system_auditor: ["view_dashboard", "view_alumni", "view_sacco", "view_payments", "view_audit_logs"],
+  central_president: ["view_dashboard", "view_alumni", "view_sacco"],
+  central_secretary: ["view_dashboard", "view_alumni", "manage_events", "send_broadcasts"],
+  central_treasurer: ["view_dashboard", "view_alumni", "view_payments"],
+  campus_chair: ["view_dashboard", "view_alumni"],
+  campus_secretary: ["view_dashboard", "view_alumni", "manage_events"],
+  campus_treasurer: ["view_dashboard", "view_alumni"],
+  sacco_staff: ["view_dashboard", "view_sacco", "view_payments", "verify_sacco_payments"],
+  sacco_treasurer: ["view_dashboard", "view_sacco", "view_payments", "verify_sacco_payments", "view_audit_logs"],
+  sacco_verifier: ["view_dashboard", "view_sacco", "view_payments", "verify_sacco_payments"],
+  sacco_board: ["view_dashboard", "view_sacco", "view_payments", "view_audit_logs"],
+  credit_committee: ["view_dashboard", "view_sacco"],
+  supervisory_committee: ["view_dashboard", "view_sacco", "view_payments", "view_audit_logs"],
+  content_admin: ["view_dashboard", "manage_gallery", "manage_events", "manage_store", "send_broadcasts"],
+  gallery_manager: ["view_dashboard", "manage_gallery"],
+  events_manager: ["view_dashboard", "manage_events"],
+  store_manager: ["view_dashboard", "manage_store"],
+  viewer: ["view_dashboard"],
+};
+
+function getRolePermissions(role) {
+  return ROLE_PERMISSIONS[role] || [];
+}
+
+function hasPermission(role, permission) {
+  const permissions = getRolePermissions(role);
+  return permissions.includes("*") || permissions.includes(permission);
+}
+
+function requirePermission(permission) {
+  return function (req, res, next) {
+    const role = req.user?.role || "viewer";
+    if (hasPermission(role, permission)) return next();
+
+    writeAuditLog(req, {
+      action: "permission_denied",
+      status: "failure",
+      reason: "missing_permission",
+      resourceType: "permission",
+      resourceId: permission,
+      metadata: { requiredPermission: permission, role },
+    });
+    return res.status(403).json({ error: "Permission denied.", requiredPermission: permission });
+  };
+}
+
+function paymentReviewer(req) {
+  return req.user?.email || req.user?.role || "admin";
 }
 
 // =========================
@@ -565,38 +605,40 @@ app.get("/api/meta/governance", (req, res) => {
 // =========================
 app.post("/api/admin/login", authLimiter, (req, res) => {
   const { email, password } = req.body || {};
-  const normalizedEmail = email ? String(email).toLowerCase().trim() : null;
-
   if (!email || !password) {
     return res.status(400).json({ error: "email and password are required." });
   }
-
-  if (normalizedEmail !== ADMIN_EMAIL.toLowerCase() || password !== ADMIN_PASSWORD) {
-    writeAuditLog(req, {
-      action: "admin_login",
-      status: "failure",
-      reason: "invalid_credentials",
-      adminEmail: normalizedEmail,
-      adminRole: "unknown",
-      metadata: { attemptedEmail: normalizedEmail },
-    });
+  if (
+    email.toLowerCase().trim() !== ADMIN_EMAIL.toLowerCase() ||
+    password !== ADMIN_PASSWORD
+  ) {
     return res.status(401).json({ error: "Invalid admin credentials." });
   }
-
-  writeAuditLog(req, {
-    action: "admin_login",
-    status: "success",
-    adminEmail: ADMIN_EMAIL,
-    adminRole: "super_admin",
-    metadata: { loginMethod: "env_admin" },
-  });
-
-  res.json({ token: generateAdminToken("super_admin"), admin: { email: ADMIN_EMAIL, role: "super_admin" } });
+  res.json({ token: generateAdminToken("super_admin", ADMIN_EMAIL), admin: { email: ADMIN_EMAIL, role: "super_admin" } });
 });
 
 // =========================
 // Admin — governance
 // =========================
+app.get("/api/admin/me", adminAuthMiddleware, (req, res) => {
+  const role = req.user?.role || "viewer";
+  const permissions = getRolePermissions(role);
+  res.json({
+    admin: {
+      email: req.user?.email || ADMIN_EMAIL,
+      role,
+      permissions,
+      scope: { type: role.startsWith("campus_") ? "campus" : (role.includes("sacco") || role.includes("committee") ? "sacco_global" : "global"), value: "all" },
+    },
+    governance: {
+      association: "SHOSA Executive",
+      central: ["Central President", "Central Secretary", "Central Treasurer"],
+      campuses: ["Main Campus", "Mbalala Campus", "Green Campus", "A Level Campus"],
+      sacco: "Unified SACCO across all campuses",
+    },
+  });
+});
+
 app.get("/api/admin/governance", adminAuthMiddleware, (req, res) => {
   const campuses = all(`SELECT code, name, committeeLabel, sortOrder FROM campuses WHERE isActive = 1 ORDER BY sortOrder ASC`);
   const roles = all(`SELECT code, name, module, scopeType, functionKey, description FROM governance_roles ORDER BY module, scopeType, name`);
@@ -604,40 +646,25 @@ app.get("/api/admin/governance", adminAuthMiddleware, (req, res) => {
   res.json({ campuses, roles, assignments });
 });
 
-app.get("/api/admin/audit-logs", adminAuthMiddleware, (req, res) => {
+app.get("/api/admin/audit-logs", adminAuthMiddleware, requirePermission("view_audit_logs"), (req, res) => {
   const limitRaw = parseInt(req.query.limit, 10);
   const limit = Number.isFinite(limitRaw) ? Math.max(1, Math.min(500, limitRaw)) : 100;
   const params = { limit };
   const where = [];
-
-  if (req.query.action) {
-    where.push("action = :action");
-    params.action = String(req.query.action);
-  }
-
-  if (req.query.status) {
-    where.push("status = :status");
-    params.status = String(req.query.status);
-  }
-
-  if (req.query.adminEmail) {
-    where.push("adminEmail = :adminEmail");
-    params.adminEmail = String(req.query.adminEmail).toLowerCase().trim();
-  }
-
-  const sql = `SELECT id, adminEmail, adminRole, action, resourceType, resourceId, status, reason, ip, userAgent, metadataJson, createdAt
-               FROM audit_logs ${where.length ? "WHERE " + where.join(" AND ") : ""}
-               ORDER BY id DESC LIMIT :limit`;
-
-  const logs = all(sql, params).map((row) => {
+  if (req.query.action) { where.push("action = :action"); params.action = String(req.query.action); }
+  if (req.query.status) { where.push("status = :status"); params.status = String(req.query.status); }
+  if (req.query.adminEmail) { where.push("adminEmail = :adminEmail"); params.adminEmail = String(req.query.adminEmail).toLowerCase().trim(); }
+  const logs = all(
+    `SELECT id, adminEmail, adminRole, action, resourceType, resourceId, status, reason, ip, userAgent, metadataJson, createdAt
+     FROM audit_logs ${where.length ? "WHERE " + where.join(" AND ") : ""}
+     ORDER BY id DESC LIMIT :limit`,
+    params
+  ).map((row) => {
     let metadata = null;
-    if (row.metadataJson) {
-      try { metadata = JSON.parse(row.metadataJson); } catch { metadata = null; }
-    }
+    if (row.metadataJson) { try { metadata = JSON.parse(row.metadataJson); } catch { metadata = null; } }
     const { metadataJson, ...rest } = row;
     return { ...rest, metadata };
   });
-
   res.json({ logs, limit });
 });
 
@@ -646,7 +673,7 @@ app.get("/api/admin/audit-logs", adminAuthMiddleware, (req, res) => {
 // =========================
 
 // All alumni (paginated)
-app.get("/api/admin/alumni", adminAuthMiddleware, (req, res) => {
+app.get("/api/admin/alumni", adminAuthMiddleware, requirePermission("view_alumni"), (req, res) => {
   const page = Math.max(1, parseInt(req.query.page, 10) || 1);
   const limit = Math.min(100, parseInt(req.query.limit, 10) || 50);
   const offset = (page - 1) * limit;
@@ -672,7 +699,7 @@ app.get("/api/admin/alumni", adminAuthMiddleware, (req, res) => {
 });
 
 // Delete an alumni account
-app.delete("/api/admin/alumni/:id", adminAuthMiddleware, (req, res) => {
+app.delete("/api/admin/alumni/:id", adminAuthMiddleware, requirePermission("delete_alumni"), (req, res) => {
   const id = parseInt(req.params.id, 10);
   if (!id) return res.status(400).json({ error: "Invalid id." });
   const alumni = one(`SELECT id FROM alumni WHERE id = :id`, { id });
@@ -683,7 +710,7 @@ app.delete("/api/admin/alumni/:id", adminAuthMiddleware, (req, res) => {
 });
 
 // All payments
-app.get("/api/admin/payments", adminAuthMiddleware, (req, res) => {
+app.get("/api/admin/payments", adminAuthMiddleware, requirePermission("view_payments"), (req, res) => {
   const page = Math.max(1, parseInt(req.query.page, 10) || 1);
   const limit = Math.min(100, parseInt(req.query.limit, 10) || 50);
   const offset = (page - 1) * limit;
@@ -696,23 +723,89 @@ app.get("/api/admin/payments", adminAuthMiddleware, (req, res) => {
     { limit, offset }
   );
   const total = one(`SELECT COUNT(*) as n FROM mobilemoney_payments`)?.n || 0;
-  res.json({ payments: rows, total, page, limit });
+  const pending = one(`SELECT COUNT(*) as n FROM mobilemoney_payments WHERE status IN ('pending_gateway_confirmation','pending_verification')`)?.n || 0;
+  const approved = one(`SELECT COUNT(*) as n FROM mobilemoney_payments WHERE ${approvedPaymentWhere()}`)?.n || 0;
+  res.json({ payments: rows, total, pending, approved, page, limit });
+});
+
+function normalizePaymentStatus(status) {
+  return String(status || "").toLowerCase();
+}
+
+function isPaymentPending(payment) {
+  return PENDING_PAYMENT_STATUSES.includes(normalizePaymentStatus(payment?.status));
+}
+
+function syncMembershipAfterPaymentReview(payment) {
+  if (!payment || payment.paymentType !== "sacco_membership_fee") return;
+  const approvedFee = hasMembershipFeePaid(payment.alumniId);
+  const membership = one(`SELECT * FROM sacco_memberships WHERE alumniId = :alumniId`, { alumniId: payment.alumniId });
+  if (!membership) return;
+  run(
+    `UPDATE sacco_memberships SET status = :status, updatedAt = :updatedAt WHERE alumniId = :alumniId`,
+    { status: approvedFee ? "active" : "pending_membership_fee", updatedAt: nowIso(), alumniId: payment.alumniId }
+  );
+}
+
+app.post("/api/admin/payments/:id/approve", adminAuthMiddleware, requirePermission("verify_sacco_payments"), (req, res) => {
+  const id = parseInt(req.params.id, 10);
+  if (!id) return res.status(400).json({ error: "Invalid payment id." });
+  const payment = one(`SELECT * FROM mobilemoney_payments WHERE id = :id`, { id });
+  if (!payment) return res.status(404).json({ error: "Payment not found." });
+  if (normalizePaymentStatus(payment.status) === "approved") return res.json({ payment, message: "Payment was already approved." });
+  if (normalizePaymentStatus(payment.status) === "rejected") return res.status(400).json({ error: "Rejected payments cannot be approved without a correction workflow." });
+
+  const reviewedAt = nowIso();
+  const reviewedBy = paymentReviewer(req);
+  run(
+    `UPDATE mobilemoney_payments SET status = 'approved', confirmedAt = :confirmedAt, confirmedBy = :confirmedBy, reviewedAt = :reviewedAt, reviewedBy = :reviewedBy, rejectionReason = NULL WHERE id = :id`,
+    { id, confirmedAt: reviewedAt, confirmedBy: reviewedBy, reviewedAt, reviewedBy }
+  );
+  const saved = one(`SELECT * FROM mobilemoney_payments WHERE id = :id`, { id });
+  syncMembershipAfterPaymentReview(saved);
+  writeAuditLog(req, { action: "sacco_payment_approved", resourceType: "mobilemoney_payment", resourceId: id, status: "success", metadata: { alumniId: payment.alumniId, paymentType: payment.paymentType, amount: payment.amount, previousStatus: payment.status } });
+  res.json({ payment: saved, message: "Payment approved successfully." });
+});
+
+app.post("/api/admin/payments/:id/reject", adminAuthMiddleware, requirePermission("verify_sacco_payments"), (req, res) => {
+  const id = parseInt(req.params.id, 10);
+  if (!id) return res.status(400).json({ error: "Invalid payment id." });
+  const payment = one(`SELECT * FROM mobilemoney_payments WHERE id = :id`, { id });
+  if (!payment) return res.status(404).json({ error: "Payment not found." });
+  if (normalizePaymentStatus(payment.status) === "approved") return res.status(400).json({ error: "Approved payments require a correction/reversal workflow, not direct rejection." });
+  const reason = String(req.body?.reason || "").trim();
+  if (!reason) return res.status(400).json({ error: "Rejection reason is required." });
+
+  const reviewedAt = nowIso();
+  const reviewedBy = paymentReviewer(req);
+  run(
+    `UPDATE mobilemoney_payments SET status = 'rejected', reviewedAt = :reviewedAt, reviewedBy = :reviewedBy, rejectionReason = :rejectionReason WHERE id = :id`,
+    { id, reviewedAt, reviewedBy, rejectionReason: reason }
+  );
+  const saved = one(`SELECT * FROM mobilemoney_payments WHERE id = :id`, { id });
+  syncMembershipAfterPaymentReview(saved);
+  writeAuditLog(req, { action: "sacco_payment_rejected", resourceType: "mobilemoney_payment", resourceId: id, status: "success", reason, metadata: { alumniId: payment.alumniId, paymentType: payment.paymentType, amount: payment.amount, previousStatus: payment.status } });
+  res.json({ payment: saved, message: "Payment rejected successfully." });
 });
 
 // Dashboard stats
-app.get("/api/admin/stats", adminAuthMiddleware, (req, res) => {
+app.get("/api/admin/stats", adminAuthMiddleware, requirePermission("view_dashboard"), (req, res) => {
   const totalAlumni = one(`SELECT COUNT(*) as n FROM alumni`)?.n || 0;
   const totalSacco = one(`SELECT COUNT(*) as n FROM sacco_memberships WHERE status = 'active'`)?.n || 0;
   const totalPayments = one(`SELECT COUNT(*) as n FROM mobilemoney_payments`)?.n || 0;
+  const approvedPayments = one(`SELECT COUNT(*) as n FROM mobilemoney_payments WHERE ${approvedPaymentWhere()}`)?.n || 0;
+  const pendingPayments = one(`SELECT COUNT(*) as n FROM mobilemoney_payments WHERE status IN ('pending_gateway_confirmation','pending_verification')`)?.n || 0;
   const totalRevenue = one(`SELECT COALESCE(SUM(amount), 0) as s FROM mobilemoney_payments`)?.s || 0;
+  const approvedRevenue = one(`SELECT COALESCE(SUM(amount), 0) as s FROM mobilemoney_payments WHERE ${approvedPaymentWhere()}`)?.s || 0;
+  const pendingRevenue = one(`SELECT COALESCE(SUM(amount), 0) as s FROM mobilemoney_payments WHERE status IN ('pending_gateway_confirmation','pending_verification')`)?.s || 0;
   const recentAlumni = all(
     `SELECT id, fullName, email, gradYear, createdAt FROM alumni ORDER BY createdAt DESC LIMIT 5`
   );
-  res.json({ totalAlumni, totalSaccoMembers: totalSacco, totalPayments, totalRevenue, recentAlumni });
+  res.json({ totalAlumni, totalSaccoMembers: totalSacco, totalPayments, approvedPayments, pendingPayments, totalRevenue, approvedRevenue, pendingRevenue, recentAlumni });
 });
 
 // Admin gallery upload
-app.post("/api/admin/gallery/upload", adminAuthMiddleware, upload.single("photo"), (req, res) => {
+app.post("/api/admin/gallery/upload", adminAuthMiddleware, requirePermission("manage_gallery"), upload.single("photo"), (req, res) => {
   if (!req.file) return res.status(400).json({ error: "image file is required." });
   const { category, label, year } = req.body || {};
   const url = "/uploads/" + req.file.filename;
@@ -727,31 +820,14 @@ app.post("/api/admin/gallery/upload", adminAuthMiddleware, upload.single("photo"
       createdAt: nowIso(),
     }
   );
-  writeAuditLog(req, {
-    action: "gallery_upload",
-    resourceType: "gallery_image",
-    resourceId: info.lastInsertRowid,
-    status: "success",
-    metadata: { filesUploaded: 1, category: category || null, label: label || null, year: year || null, endpoint: "/api/admin/gallery/upload" },
-  });
   res.json({ id: info.lastInsertRowid, url });
 });
 
 // Admin gallery delete
-app.delete("/api/admin/gallery/:id", adminAuthMiddleware, (req, res) => {
+app.delete("/api/admin/gallery/:id", adminAuthMiddleware, requirePermission("manage_gallery"), (req, res) => {
   const id = parseInt(req.params.id, 10);
   const img = one(`SELECT * FROM gallery_images WHERE id = :id`, { id });
-  if (!img) {
-    writeAuditLog(req, {
-      action: "gallery_delete",
-      resourceType: "gallery_image",
-      resourceId: req.params.id,
-      status: "failure",
-      reason: "not_found",
-      metadata: { endpoint: "/api/admin/gallery/:id" },
-    });
-    return res.status(404).json({ error: "Image not found." });
-  }
+  if (!img) return res.status(404).json({ error: "Image not found." });
 
   // Delete the physical file if it's in uploads
   if (img.url && img.url.startsWith("/uploads/")) {
@@ -760,13 +836,6 @@ app.delete("/api/admin/gallery/:id", adminAuthMiddleware, (req, res) => {
   }
 
   run(`DELETE FROM gallery_images WHERE id = :id`, { id });
-  writeAuditLog(req, {
-    action: "gallery_delete",
-    resourceType: "gallery_image",
-    resourceId: id,
-    status: "success",
-    metadata: { endpoint: "/api/admin/gallery/:id", url: img.url || null, label: img.label || null },
-  });
   res.json({ ok: true });
 });
 
@@ -1077,24 +1146,20 @@ app.post("/api/payments/mobilemoney", authMiddleware, (req, res) => {
     });
   }
 
+  if (!membershipFeePaid && hasPendingMembershipFee(req.user.id)) {
+    return res.status(400).json({
+      error: "Your SACCO membership fee has been submitted and is awaiting admin verification.",
+      requiredFirstPayment: "sacco_membership_fee",
+      pendingVerification: true,
+    });
+  }
+
   if (!membershipFeePaid && paymentType !== "sacco_membership_fee") {
     return res.status(400).json({
       error: "Your first SACCO payment must be the membership registration fee of 50,000 UGX.",
       requiredFirstPayment: "sacco_membership_fee",
       requiredAmount: 50000,
     });
-  }
-
-  if (membershipFeePaid && paymentType.startsWith("sacco_") && paymentType !== "sacco_yearly_subscription") {
-    const yearlyPolicy = getSaccoYearlySubscriptionPolicy(req.user.id);
-    if (yearlyPolicy.yearlySubscriptionBlocking) {
-      return res.status(400).json({
-        error: "Your 6-month SACCO grace period has ended. Please pay the yearly subscription fee of 100,000 UGX before making other SACCO payments.",
-        requiredFirstPayment: "sacco_yearly_subscription",
-        requiredAmount: 100000,
-        yearlySubscriptionDueAt: yearlyPolicy.yearlySubscriptionDueAt,
-      });
-    }
   }
 
   const pt = PAYMENT_TYPES[paymentType];
@@ -1122,27 +1187,22 @@ app.post("/api/payments/mobilemoney", authMiddleware, (req, res) => {
     }
   );
 
-  if (paymentType === "sacco_membership_fee" && membership) {
-    run(
-      `UPDATE sacco_memberships SET status = :status, updatedAt = :updatedAt WHERE alumniId = :alumniId`,
-      { status: "active", updatedAt: nowIso(), alumniId: req.user.id }
-    );
-  }
-
   res.json({
     id: info.lastInsertRowid,
     status: network === "Crypto" ? "pending_verification" : "pending_gateway_confirmation",
     label: pt.label,
     amount: numericAmount,
     currency: "UGX",
-    message: network === "Crypto" ? "Crypto proof submitted for admin verification." : "Payment request submitted. Final confirmation will be recorded after the mobile money gateway confirms success.",
+    message: paymentType === "sacco_membership_fee"
+      ? "Membership fee submitted. Your SACCO membership will activate after admin verification."
+      : (network === "Crypto" ? "Crypto proof submitted for admin verification." : "Payment request submitted for admin/gateway verification."),
   });
 });
 
 // Payment history for logged-in alumni
 app.get("/api/payments/my", authMiddleware, (req, res) => {
   const rows = all(
-    `SELECT id, paymentType, label, amount, currency, phone, network, description, status, paymentChannel, transactionRef, proofFileName, createdAt
+    `SELECT id, paymentType, label, amount, currency, phone, network, description, status, paymentChannel, transactionRef, proofFileName, confirmedAt, confirmedBy, reviewedAt, reviewedBy, rejectionReason, createdAt
      FROM mobilemoney_payments WHERE alumniId = :alumniId ORDER BY createdAt DESC`,
     { alumniId: req.user.id }
   );
@@ -1274,6 +1334,7 @@ app.get("/api/gallery/images", (req, res) => {
   }
 });
 
+
 function getFilesystemGalleryImages() {
   return [
     ...readEventFolder("2025-shosa-league-launch", "SHOSA League", 2025),
@@ -1337,7 +1398,7 @@ app.get("/api/gallery/approved", sendPublicGallery);
 app.get("/api/gallery/all-public", sendPublicGallery);
 
 // All SACCO memberships (admin)
-app.get("/api/admin/sacco", adminAuthMiddleware, (req, res) => {
+app.get("/api/admin/sacco", adminAuthMiddleware, requirePermission("view_sacco"), (req, res) => {
   const page = Math.max(1, parseInt(req.query.page, 10) || 1);
   const limit = Math.min(100, parseInt(req.query.limit, 10) || 50);
   const offset = (page - 1) * limit;
@@ -1352,6 +1413,7 @@ app.get("/api/admin/sacco", adminAuthMiddleware, (req, res) => {
           SELECT SUM(p.amount)
           FROM mobilemoney_payments p
           WHERE p.alumniId = s.alumniId
+            AND (p.status IN ('approved','confirmed','success') OR p.confirmedAt IS NOT NULL)
         ), 0) AS totalPaid
      FROM sacco_memberships s
      LEFT JOIN alumni a ON a.id = s.alumniId
@@ -1363,13 +1425,14 @@ app.get("/api/admin/sacco", adminAuthMiddleware, (req, res) => {
   const memberships = rawRows;
   const total = one(`SELECT COUNT(*) as n FROM sacco_memberships`)?.n || 0;
   const grandTotalPaid =
-    one(`SELECT COALESCE(SUM(amount), 0) as total FROM mobilemoney_payments`)?.total || 0;
+    one(`SELECT COALESCE(SUM(amount), 0) as total FROM mobilemoney_payments WHERE ${approvedPaymentWhere()}`)?.total || 0;
 
   const membershipFeePaidCount =
     one(
       `SELECT COUNT(DISTINCT alumniId) as total
        FROM mobilemoney_payments
-       WHERE paymentType = 'sacco_membership_fee'`
+       WHERE paymentType = 'sacco_membership_fee'
+         AND (status IN ('approved','confirmed','success') OR confirmedAt IS NOT NULL)`
     )?.total || 0;
 
   res.json({
@@ -1384,37 +1447,38 @@ app.get("/api/admin/sacco", adminAuthMiddleware, (req, res) => {
 
 // Gallery — all uploaded images (admin)
 // Returns DB-stored uploads. Filesystem event images are public via /api/gallery/events.
-app.get("/api/gallery/all", adminAuthMiddleware, (req, res) => {
+app.get("/api/gallery/all", adminAuthMiddleware, requirePermission("manage_gallery"), (req, res) => {
   const images = all(`SELECT * FROM gallery_images ORDER BY createdAt DESC`);
   // Normalise shape: frontend expects img._id, img.title, img.category, img.createdAt
   const normalised = images.map((img) => ({
     ...img,
     _id: img.id,
     title: img.label || null,
-    description: img.description || null,
   }));
   res.json({ images: normalised });
 });
 
 // Gallery upload (admin) — matches /api/gallery/upload used by admin-gallery.html
-app.post("/api/gallery/upload", adminAuthMiddleware, galleryUpload, (req, res) => {
+app.post("/api/gallery/upload", adminAuthMiddleware, requirePermission("manage_gallery"), galleryUpload, (req, res) => {
   const files = [];
   if (req.files?.photo?.length) files.push(...req.files.photo);
   if (req.files?.photos?.length) files.push(...req.files.photos);
+
   if (!files.length) return res.status(400).json({ error: "image file is required." });
 
-  const { category, title, description } = req.body || {};
-  const sharedTitle = title ? String(title).trim() : null;
+  const { category, title, label, description } = req.body || {};
+  const sharedTitle = title ? String(title).trim() : (label ? String(label).trim() : null);
   const createdAt = nowIso();
+
   const saved = files.map((file, index) => {
-    const label = sharedTitle && files.length > 1 ? `${sharedTitle} ${index + 1}` : sharedTitle;
+    const itemLabel = sharedTitle && files.length > 1 ? `${sharedTitle} ${index + 1}` : sharedTitle;
     const url = "/uploads/" + file.filename;
     const info = run(
       `INSERT INTO gallery_images (category, label, description, year, url, createdAt)
        VALUES (:category, :label, :description, :year, :url, :createdAt)`,
       {
         category: category || null,
-        label: label || null,
+        label: itemLabel || null,
         description: description || null,
         year: null,
         url,
@@ -1423,20 +1487,29 @@ app.post("/api/gallery/upload", adminAuthMiddleware, galleryUpload, (req, res) =
     );
     return { id: info.lastInsertRowid, _id: info.lastInsertRowid, url };
   });
+
   writeAuditLog(req, {
     action: "gallery_upload",
     resourceType: "gallery_image",
     resourceId: saved.map((item) => item.id).join(","),
     status: "success",
-    metadata: { filesUploaded: saved.length, category: category || null, title: sharedTitle, description: description || null, endpoint: "/api/gallery/upload" },
+    metadata: {
+      filesUploaded: saved.length,
+      category: category || null,
+      title: sharedTitle,
+      description: description || null,
+      endpoint: "/api/gallery/upload",
+    },
   });
-  res.json({ images: saved });
+
+  res.json({ images: saved, id: saved[0]?.id || null, url: saved[0]?.url || null });
 });
 
 // Gallery delete (admin) — matches /api/gallery/:id used by admin-gallery.html
-app.delete("/api/gallery/:id", adminAuthMiddleware, (req, res) => {
+app.delete("/api/gallery/:id", adminAuthMiddleware, requirePermission("manage_gallery"), (req, res) => {
   const id = parseInt(req.params.id, 10);
   const img = one(`SELECT * FROM gallery_images WHERE id = :id`, { id });
+
   if (!img) {
     writeAuditLog(req, {
       action: "gallery_delete",
@@ -1448,9 +1521,11 @@ app.delete("/api/gallery/:id", adminAuthMiddleware, (req, res) => {
     });
     return res.status(404).json({ error: "Image not found." });
   }
+
   if (img.url && img.url.startsWith("/uploads/")) {
     try { fs.unlinkSync(path.join(UPLOADS_DIR, path.basename(img.url))); } catch { /* already gone */ }
   }
+
   run(`DELETE FROM gallery_images WHERE id = :id`, { id });
   writeAuditLog(req, {
     action: "gallery_delete",
