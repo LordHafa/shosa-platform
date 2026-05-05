@@ -611,13 +611,13 @@ body.shosa-worldclass.theme-bright #nav{
 body.page-home .hero::before{
   background:
     linear-gradient(120deg,rgba(5,12,28,.84) 0%,rgba(28,67,174,.72) 48%,rgba(8,17,37,.80) 100%),
-    url('assets/images/hero/alumni-orientation.jpg') center/cover no-repeat!important;
+    url('../images/hero/alumni-orientation.jpg') center/cover no-repeat!important;
 }
 body.page-home.theme-bright .hero::before,
 body.shosa-worldclass.theme-bright.page-home .hero::before{
   background:
     linear-gradient(120deg,rgba(47,91,234,.76) 0%,rgba(36,83,189,.72) 48%,rgba(18,54,129,.74) 100%),
-    url('assets/images/hero/alumni-orientation.jpg') center/cover no-repeat!important;
+    url('../images/hero/alumni-orientation.jpg') center/cover no-repeat!important;
 }
 body.page-home .hero > .wrap{padding-top:96px!important;}
 body.page-home h1,

@@ -258,6 +258,82 @@
     .audit-action{font-weight:800;color:#fff}
     .audit-resource,.audit-meta{color:var(--muted);font-size:.82rem;line-height:1.45;word-break:break-word}
 
+
+    /* Phase 2B bright-theme readability fix for main admin tabs */
+    body.shosa-worldclass.theme-bright.page-admin-dashboard .tab-row .tab-btn,
+    body.theme-bright.page-admin-dashboard .tab-row .tab-btn,
+    body.page-admin-dashboard.theme-bright .tab-row .tab-btn{
+      background:rgba(255,255,255,.96) !important;
+      color:#10284a !important;
+      border-color:rgba(16,40,74,.22) !important;
+      text-shadow:none !important;
+      box-shadow:0 8px 22px rgba(16,40,74,.10) !important;
+    }
+
+    body.shosa-worldclass.theme-bright.page-admin-dashboard .tab-row .tab-btn:hover,
+    body.theme-bright.page-admin-dashboard .tab-row .tab-btn:hover,
+    body.page-admin-dashboard.theme-bright .tab-row .tab-btn:hover{
+      background:#fff7df !important;
+      color:#0b1e3c !important;
+      border-color:rgba(212,175,55,.46) !important;
+    }
+
+    body.shosa-worldclass.theme-bright.page-admin-dashboard .tab-row .tab-btn.active,
+    body.theme-bright.page-admin-dashboard .tab-row .tab-btn.active,
+    body.page-admin-dashboard.theme-bright .tab-row .tab-btn.active{
+      background:linear-gradient(135deg,var(--gold),#f4d983) !important;
+      color:#10284a !important;
+      border-color:rgba(212,175,55,.65) !important;
+      text-shadow:none !important;
+      box-shadow:0 10px 24px rgba(212,175,55,.24) !important;
+    }
+
+    /* Phase 2B bright-theme-only readability fix for admin dashboard main tabs */
+    body.shosa-worldclass.theme-bright.page-admin-dashboard .tab-row .tab-btn{
+      background:rgba(255,255,255,.96) !important;
+      color:#10284a !important;
+      border:1px solid rgba(16,40,74,.22) !important;
+      text-shadow:none !important;
+      box-shadow:0 8px 22px rgba(16,40,74,.10) !important;
+    }
+
+    body.shosa-worldclass.theme-bright.page-admin-dashboard .tab-row .tab-btn:hover{
+      background:#fff7df !important;
+      color:#0b1e3c !important;
+      border-color:rgba(212,175,55,.46) !important;
+    }
+
+    body.shosa-worldclass.theme-bright.page-admin-dashboard .tab-row .tab-btn.active{
+      background:linear-gradient(135deg,var(--gold),#f4d983) !important;
+      color:#10284a !important;
+      border-color:rgba(212,175,55,.65) !important;
+      text-shadow:none !important;
+      box-shadow:0 10px 24px rgba(212,175,55,.24) !important;
+    }
+
+    /* Phase 2B star-theme readability fix for main admin dashboard tabs */
+    body.admin-readable-tabs-theme.page-admin-dashboard .tab-row .tab-btn{
+      background:rgba(255,255,255,.96) !important;
+      color:#10284a !important;
+      border:1px solid rgba(16,40,74,.24) !important;
+      text-shadow:none !important;
+      box-shadow:0 8px 22px rgba(16,40,74,.10) !important;
+      opacity:1 !important;
+    }
+
+    body.admin-readable-tabs-theme.page-admin-dashboard .tab-row .tab-btn:hover{
+      background:#fff7df !important;
+      color:#0b1e3c !important;
+      border-color:rgba(212,175,55,.50) !important;
+    }
+
+    body.admin-readable-tabs-theme.page-admin-dashboard .tab-row .tab-btn.active{
+      background:linear-gradient(135deg,var(--gold),#f4d983) !important;
+      color:#10284a !important;
+      border-color:rgba(212,175,55,.70) !important;
+      text-shadow:none !important;
+      box-shadow:0 10px 24px rgba(212,175,55,.24) !important;
+    }
   </style>
 </head>
 <body class="shosa-worldclass page-admin-dashboard">
@@ -445,12 +521,72 @@
         <button class="tab-btn" id="tabSacco" type="button" onclick="showTab('sacco')">SACCO Members</button>
         <button class="tab-btn" id="tabPayments" type="button" onclick="showTab('payments')">Payments</button>
         <button class="tab-btn" id="tabAudit" type="button" onclick="showTab('audit')">Audit Logs</button>
+        <button class="tab-btn hidden" id="tabAdminUsers" type="button" onclick="showTab('adminUsers')">Admin Users</button>
       </section>
 
       <section class="table-panel">
         <div class="table-head-wrap">
           <h3 id="tableTitle">Alumni</h3>
           <p id="tableHint">Loading data…</p>
+        </div>
+        <div id="adminUsersFormWrap" class="hidden" style="padding:18px 24px;border-bottom:1px solid var(--line);background:rgba(255,255,255,.025);">
+          <form id="adminUserCreateForm" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;align-items:end;">
+            <label style="display:flex;flex-direction:column;gap:6px;color:var(--muted);font-size:.78rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;">
+              Full Name
+              <input name="fullName" required placeholder="Full name" style="width:100%;border-radius:12px;border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.06);color:#fff;padding:11px 12px;">
+            </label>
+            <label style="display:flex;flex-direction:column;gap:6px;color:var(--muted);font-size:.78rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;">
+              Email
+              <input name="email" type="email" required placeholder="admin@shosa.local" style="width:100%;border-radius:12px;border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.06);color:#fff;padding:11px 12px;">
+            </label>
+            <label style="display:flex;flex-direction:column;gap:6px;color:var(--muted);font-size:.78rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;">
+              Password
+              <input name="password" type="password" required minlength="8" placeholder="Temporary password" style="width:100%;border-radius:12px;border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.06);color:#fff;padding:11px 12px;">
+            </label>
+            <label style="display:flex;flex-direction:column;gap:6px;color:var(--muted);font-size:.78rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;">
+              Role
+              <select name="role" id="adminUserRole" required style="width:100%;border-radius:12px;border:1px solid rgba(255,255,255,.14);background:#10284a;color:#fff;padding:11px 12px;">
+                <option value="campus_chair">Campus Chair</option>
+                <option value="campus_secretary">Campus Secretary</option>
+                <option value="campus_treasurer">Campus Treasurer</option>
+                <option value="central_president">Central President</option>
+                <option value="central_secretary">Central Secretary</option>
+                <option value="central_treasurer">Central Treasurer</option>
+                <option value="sacco_staff">SACCO Staff</option>
+                <option value="sacco_verifier">SACCO Verifier</option>
+                <option value="sacco_treasurer">SACCO Treasurer</option>
+                <option value="sacco_board">SACCO Board</option>
+                <option value="credit_committee">Credit Committee</option>
+                <option value="supervisory_committee">Supervisory Committee</option>
+                <option value="content_admin">Content Admin</option>
+                <option value="gallery_manager">Gallery Manager</option>
+                <option value="events_manager">Events Manager</option>
+                <option value="store_manager">Store Manager</option>
+                <option value="system_auditor">System Auditor</option>
+                <option value="viewer">Viewer</option>
+              </select>
+            </label>
+            <label style="display:flex;flex-direction:column;gap:6px;color:var(--muted);font-size:.78rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;">
+              Scope Type
+              <select name="scopeType" id="adminUserScopeType" required style="width:100%;border-radius:12px;border:1px solid rgba(255,255,255,.14);background:#10284a;color:#fff;padding:11px 12px;">
+                <option value="campus">campus</option>
+                <option value="global">global</option>
+                <option value="sacco_global">sacco_global</option>
+              </select>
+            </label>
+            <label style="display:flex;flex-direction:column;gap:6px;color:var(--muted);font-size:.78rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;">
+              Scope Value
+              <select name="scopeValue" id="adminUserScopeValue" required style="width:100%;border-radius:12px;border:1px solid rgba(255,255,255,.14);background:#10284a;color:#fff;padding:11px 12px;">
+                <option value="main">main</option>
+                <option value="mbalala">mbalala</option>
+                <option value="green">green</option>
+                <option value="alevel">alevel</option>
+                <option value="all">all</option>
+              </select>
+            </label>
+            <button class="btn btn-gold" type="submit">Create Admin</button>
+          </form>
+          <div id="adminUsersMessage" class="muted-small" style="margin-top:10px;"></div>
         </div>
         <div class="table-scroll">
           <table>
@@ -622,6 +758,7 @@
       document.getElementById("tabPayments")?.classList.toggle("hidden", !hasPermission("view_payments"));
       document.getElementById("tabSacco")?.classList.toggle("hidden", !hasPermission("view_sacco"));
       document.getElementById("tabAudit")?.classList.toggle("hidden", !hasPermission("view_audit_logs"));
+      document.getElementById("tabAdminUsers")?.classList.toggle("hidden", !hasPermission("manage_admins"));
     }
 
     async function loadSaccoAnalytics() {
@@ -667,7 +804,7 @@
     });
 
     function setActiveTab(tab) {
-      ["alumni", "sacco", "payments", "audit"].forEach((name) => {
+      ["alumni", "sacco", "payments", "audit", "adminUsers"].forEach((name) => {
         const el = document.getElementById("tab" + name.charAt(0).toUpperCase() + name.slice(1));
         if (!el) return;
         el.classList.toggle("active", name === tab);
@@ -715,6 +852,67 @@
       return `<div class="payment-actions"><button class="action-btn action-approve" data-payment-id="${item.id}" onclick="reviewPayment(${item.id}, 'approve')">Approve</button><button class="action-btn action-reject" data-payment-id="${item.id}" onclick="reviewPayment(${item.id}, 'reject')">Reject</button></div>`;
     }
 
+
+    function suggestedScopeForRole(role) {
+      if (String(role || "").startsWith("campus_")) return { scopeType: "campus", scopeValue: "main" };
+      if (["sacco_staff","sacco_verifier","sacco_treasurer","sacco_board","credit_committee","supervisory_committee"].includes(role)) {
+        return { scopeType: "sacco_global", scopeValue: "all" };
+      }
+      return { scopeType: "global", scopeValue: "all" };
+    }
+
+    function syncAdminUserScopeFields() {
+      const roleEl = document.getElementById("adminUserRole");
+      const scopeTypeEl = document.getElementById("adminUserScopeType");
+      const scopeValueEl = document.getElementById("adminUserScopeValue");
+      if (!roleEl || !scopeTypeEl || !scopeValueEl) return;
+      const next = suggestedScopeForRole(roleEl.value);
+      scopeTypeEl.value = next.scopeType;
+      scopeValueEl.value = next.scopeValue;
+    }
+
+    async function createAdminUser(event) {
+      event.preventDefault();
+      if (!hasPermission("manage_admins")) return alert("You do not have permission to manage admin users.");
+      const form = event.currentTarget;
+      const msg = document.getElementById("adminUsersMessage");
+      if (msg) msg.textContent = "Creating admin user…";
+      const payload = Object.fromEntries(new FormData(form).entries());
+      try {
+        const res = await fetch(API + "/api/admin/users", {
+          method: "POST",
+          headers: authHeaders({ "Content-Type": "application/json" }),
+          body: JSON.stringify(payload),
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) throw new Error(data.error || "Failed to create admin user.");
+        form.reset();
+        syncAdminUserScopeFields();
+        if (msg) msg.textContent = "Admin user created successfully.";
+        await loadTable("adminUsers");
+      } catch (err) {
+        if (msg) msg.textContent = err.message || "Failed to create admin user.";
+      }
+    }
+
+    async function setAdminUserActive(id, isActive) {
+      if (!hasPermission("manage_admins")) return alert("You do not have permission to manage admin users.");
+      const action = isActive ? "reactivate" : "deactivate";
+      if (!confirm(`Are you sure you want to ${action} this admin user?`)) return;
+      try {
+        const res = await fetch(`${API}/api/admin/users/${id}`, {
+          method: "PATCH",
+          headers: authHeaders({ "Content-Type": "application/json" }),
+          body: JSON.stringify({ isActive }),
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) throw new Error(data.error || "Failed to update admin user.");
+        await loadTable("adminUsers");
+      } catch (err) {
+        alert(err.message || "Failed to update admin user.");
+      }
+    }
+
     async function loadTable(tab) {
       const tableTitle = document.getElementById("tableTitle");
       const tableHint = document.getElementById("tableHint");
@@ -723,6 +921,8 @@
       setActiveTab(tab);
       tableBody.innerHTML = "";
       tableHint.textContent = "Loading data…";
+      const adminUsersFormWrap = document.getElementById("adminUsersFormWrap");
+      if (adminUsersFormWrap) adminUsersFormWrap.classList.toggle("hidden", tab !== "adminUsers" || !hasPermission("manage_admins"));
       let endpoint = "";
       let headRow = "";
       if (tab === "alumni") {
@@ -737,6 +937,10 @@
         tableTitle.textContent = "Payments";
         endpoint = API + "/api/admin/payments";
         headRow = `<tr><th>Date</th><th>Alumni</th><th>Payment Type</th><th>Network</th><th>Phone</th><th>Amount</th><th>Status</th><th>Reviewed</th><th>Actions</th></tr>`;
+      } else if (tab === "adminUsers") {
+        tableTitle.textContent = "Admin Users";
+        endpoint = API + "/api/admin/users";
+        headRow = `<tr><th>Name</th><th>Email</th><th>Role</th><th>Scope</th><th>Status</th><th>Created</th><th>Actions</th></tr>`;
       } else {
         tableTitle.textContent = "Audit Logs";
         endpoint = API + "/api/admin/audit-logs?limit=50";
@@ -748,7 +952,7 @@
         if (res.status === 401) { window.location.href = "alumni-login.html"; return; }
         if (res.status === 403) { tableHint.textContent = "You do not have permission to view this section."; return; }
         const data = await res.json();
-        const items = data.alumni || data.memberships || data.payments || data.logs || data.data || [];
+        const items = data.alumni || data.memberships || data.payments || data.logs || data.users || data.admins || data.data || [];
         if (!items.length) { tableHint.textContent = "No records found."; return; }
         tableHint.textContent = `${items.length} record${items.length === 1 ? "" : "s"} loaded.`;
         if (tab === "alumni") {
@@ -757,6 +961,14 @@
           tableBody.innerHTML = items.map((item) => `<tr><td>${escapeHtml(item.alumniName)}</td><td>${escapeHtml(item.alumniEmail)}</td><td>${escapeHtml(item.alumniPhone)}</td><td>${escapeHtml(item.membershipType)}</td><td class="money">${fmtMoney(item.monthlyContribution || 0)}</td><td class="money">${fmtMoney(item.totalPaid || 0)}</td><td>${statusChip(item.status || "—")}</td><td>${fmtDate(item.startDate)}</td></tr>`).join("");
         } else if (tab === "payments") {
           tableBody.innerHTML = items.map((item) => `<tr><td>${fmtDate(item.createdAt)}</td><td>${escapeHtml(item.alumniName || item.alumniEmail)}</td><td>${escapeHtml(item.paymentType)}</td><td>${escapeHtml(item.network)}</td><td>${escapeHtml(item.phone)}</td><td class="money">${fmtMoney(item.amount || 0)}</td><td>${statusChip(item.status || "—")}${item.rejectionReason ? `<span class="muted-small">${escapeHtml(item.rejectionReason)}</span>` : ""}</td><td>${escapeHtml(item.reviewedBy || item.confirmedBy || "—")}<span class="muted-small">${escapeHtml(fmtDateTime(item.reviewedAt || item.confirmedAt))}</span></td><td>${paymentActions(item)}</td></tr>`).join("");
+        } else if (tab === "adminUsers") {
+          tableBody.innerHTML = items.map((item) => {
+            const active = item.isActive === true || item.isActive === 1 || item.isActive === "1";
+            const actionButton = active
+              ? `<button class="action-btn action-reject" onclick="setAdminUserActive(${Number(item.id)}, false)">Deactivate</button>`
+              : `<button class="action-btn action-approve" onclick="setAdminUserActive(${Number(item.id)}, true)">Reactivate</button>`;
+            return `<tr><td>${escapeHtml(item.fullName)}</td><td>${escapeHtml(item.email)}</td><td>${escapeHtml(item.role)}</td><td>${escapeHtml(item.scopeType)}<span class="muted-small">${escapeHtml(item.scopeValue)}</span></td><td>${statusChip(active ? "active" : "inactive")}</td><td>${fmtDate(item.createdAt)}</td><td><div class="payment-actions">${actionButton}</div></td></tr>`;
+          }).join("");
         } else {
           tableBody.innerHTML = items.map((item) => { const resource = [item.resourceType, item.resourceId].filter(Boolean).join(" #") || "—"; return `<tr><td>${escapeHtml(fmtDateTime(item.createdAt))}</td><td>${escapeHtml(item.adminEmail || "—")}<div class="audit-resource">${escapeHtml(item.adminRole || "—")}</div></td><td><div class="audit-action">${escapeHtml(item.action || "—")}</div></td><td>${statusChip(item.status || "—")}</td><td>${escapeHtml(resource)}</td><td>${escapeHtml(item.reason || "—")}</td><td><div class="audit-meta">${escapeHtml(compactMeta(item.metadata))}</div></td></tr>`; }).join("");
         }
@@ -769,6 +981,9 @@
     function showTab(tab) { loadTable(tab); }
 
     async function initAdminDashboard() {
+      document.getElementById("adminUserRole")?.addEventListener("change", syncAdminUserScopeFields);
+      document.getElementById("adminUserCreateForm")?.addEventListener("submit", createAdminUser);
+      syncAdminUserScopeFields();
       await loadAdminContext();
       loadKPIs();
       loadSaccoAnalytics();
@@ -779,5 +994,39 @@
   </script>
 
   <script src="assets/js/worldclass-site.js"></script>
+
+  <script>
+    (function(){
+      function syncAdminReadableTabsTheme(){
+        var body = document.body;
+        if (!body || !body.classList.contains("page-admin-dashboard")) return;
+
+        var themeButton = document.querySelector(".theme-toggle, #themeToggle, [data-theme-toggle], button[aria-label*='theme' i]");
+        var themeText = themeButton ? (themeButton.textContent || "").trim() : "";
+
+        var isBrightClass = body.classList.contains("theme-bright") || body.classList.contains("bright-theme");
+        var isStarTheme = /?|?|?|?|?|?|?|?|?|?|�|\*/.test(themeText);
+
+        body.classList.toggle("admin-readable-tabs-theme", isBrightClass || isStarTheme);
+      }
+
+      syncAdminReadableTabsTheme();
+      setTimeout(syncAdminReadableTabsTheme, 100);
+      setTimeout(syncAdminReadableTabsTheme, 500);
+      setTimeout(syncAdminReadableTabsTheme, 1200);
+
+      document.addEventListener("click", function(){
+        setTimeout(syncAdminReadableTabsTheme, 80);
+      });
+
+      if (window.MutationObserver) {
+        new MutationObserver(syncAdminReadableTabsTheme).observe(document.body, {
+          attributes: true,
+          childList: true,
+          subtree: true
+        });
+      }
+    })();
+  </script>
 </body>
 </html>
