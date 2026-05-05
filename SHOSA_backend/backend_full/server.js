@@ -339,6 +339,13 @@ function initSchema() {
       createdAt TEXT NOT NULL
     )
   `);
+  addColumnIfMissing("admins", "fullName TEXT", "fullName");
+  addColumnIfMissing("admins", "scopeType TEXT DEFAULT 'global'", "scopeType");
+  addColumnIfMissing("admins", "scopeValue TEXT DEFAULT 'all'", "scopeValue");
+  addColumnIfMissing("admins", "isActive INTEGER NOT NULL DEFAULT 1", "isActive");
+  addColumnIfMissing("admins", "updatedAt TEXT", "updatedAt");
+  run(`CREATE INDEX IF NOT EXISTS idx_admins_email ON admins(email)`);
+  run(`CREATE INDEX IF NOT EXISTS idx_admins_role ON admins(role)`);
   const seededAt = nowIso();
   const campuses = [
     { code: "main", name: "Main Campus", committeeLabel: "Main Campus Committee", sortOrder: 1 },
@@ -490,8 +497,8 @@ function generateToken(alumni) {
   );
 }
 
-function generateAdminToken(role = "super_admin", email = null) {
-  return jwt.sign({ role, email }, JWT_SECRET_FINAL, { expiresIn: "7d" });
+function generateAdminToken(role = "super_admin", email = null, extras = {}) {
+  return jwt.sign({ role, email, ...extras }, JWT_SECRET_FINAL, { expiresIn: "7d" });
 }
 
 function authMiddleware(req, res, next) {
@@ -506,13 +513,24 @@ function authMiddleware(req, res, next) {
   }
 }
 
+const ADMIN_ROLE_CODES = [
+  "admin", "super_admin", "system_auditor", "central_president", "central_secretary", "central_treasurer",
+  "campus_chair", "campus_secretary", "campus_treasurer", "sacco_board", "credit_committee",
+  "supervisory_committee", "sacco_staff", "sacco_treasurer", "sacco_verifier", "content_admin",
+  "gallery_manager", "events_manager", "store_manager", "viewer",
+];
+
 function adminAuthMiddleware(req, res, next) {
   const auth = req.headers["authorization"] || "";
   const token = auth.startsWith("Bearer ") ? auth.slice(7) : null;
   if (!token) return res.status(401).json({ error: "Missing token" });
   try {
     const decoded = jwt.verify(token, JWT_SECRET_FINAL);
-    if (!["admin", "super_admin", "system_auditor", "central_president", "central_secretary", "central_treasurer", "campus_chair", "campus_secretary", "campus_treasurer", "sacco_board", "credit_committee", "supervisory_committee", "sacco_staff", "sacco_treasurer", "sacco_verifier", "content_admin", "gallery_manager", "events_manager", "store_manager", "viewer"].includes(decoded.role)) return res.status(403).json({ error: "Admin access required" });
+    if (!ADMIN_ROLE_CODES.includes(decoded.role)) return res.status(403).json({ error: "Admin access required" });
+    if (decoded.adminId) {
+      const admin = one(`SELECT id, isActive FROM admins WHERE id = :id`, { id: decoded.adminId });
+      if (!admin || Number(admin.isActive) !== 1) return res.status(403).json({ error: "Admin account is inactive." });
+    }
     req.user = decoded;
     next();
   } catch {
@@ -587,6 +605,63 @@ function validateGender(gender, required = true) {
   return { value };
 }
 
+const CAMPUS_SCOPE_VALUES = ["main", "mbalala", "green", "alevel"];
+const CAMPUS_ROLE_CODES = ["campus_chair", "campus_secretary", "campus_treasurer"];
+const SACCO_ROLE_CODES = ["sacco_staff", "sacco_verifier", "sacco_treasurer", "sacco_board", "credit_committee", "supervisory_committee"];
+
+function inferRoleScope(role) {
+  if (CAMPUS_ROLE_CODES.includes(role)) return { scopeType: "campus", scopeValue: null };
+  if (SACCO_ROLE_CODES.includes(role)) return { scopeType: "sacco_global", scopeValue: "all" };
+  return { scopeType: "global", scopeValue: "all" };
+}
+
+function validateAdminRoleScope(role, scopeType, scopeValue) {
+  const cleanRole = String(role || "").trim();
+  if (!ADMIN_ROLE_CODES.includes(cleanRole)) return { error: "Invalid admin role." };
+  if (cleanRole === "super_admin") return { role: cleanRole, scopeType: "global", scopeValue: "all" };
+
+  if (CAMPUS_ROLE_CODES.includes(cleanRole)) {
+    const cleanScopeType = String(scopeType || "").trim();
+    const cleanScopeValue = String(scopeValue || "").trim().toLowerCase();
+    if (cleanScopeType !== "campus") return { error: "Campus roles must use scopeType campus." };
+    if (!CAMPUS_SCOPE_VALUES.includes(cleanScopeValue)) {
+      return { error: "Campus scopeValue must be one of main, mbalala, green, alevel." };
+    }
+    return { role: cleanRole, scopeType: "campus", scopeValue: cleanScopeValue };
+  }
+
+  if (SACCO_ROLE_CODES.includes(cleanRole)) {
+    const cleanScopeType = String(scopeType || "sacco_global").trim();
+    const cleanScopeValue = String(scopeValue || "all").trim().toLowerCase();
+    if (cleanScopeType !== "sacco_global" || cleanScopeValue !== "all") {
+      return { error: "SACCO roles must use scopeType sacco_global and scopeValue all." };
+    }
+    return { role: cleanRole, scopeType: "sacco_global", scopeValue: "all" };
+  }
+
+  const cleanScopeType = String(scopeType || "global").trim();
+  const cleanScopeValue = String(scopeValue || "all").trim().toLowerCase();
+  if (cleanScopeType !== "global" || cleanScopeValue !== "all") {
+    return { error: "This role must use scopeType global and scopeValue all." };
+  }
+  return { role: cleanRole, scopeType: "global", scopeValue: "all" };
+}
+
+function safeAdmin(row) {
+  if (!row) return null;
+  return {
+    id: row.id,
+    fullName: row.fullName || null,
+    email: row.email,
+    role: row.role || "viewer",
+    scopeType: row.scopeType || inferRoleScope(row.role).scopeType,
+    scopeValue: row.scopeValue || inferRoleScope(row.role).scopeValue || "all",
+    isActive: Number(row.isActive) === 1,
+    createdAt: row.createdAt || null,
+    updatedAt: row.updatedAt || null,
+  };
+}
+
 // =========================
 // Health check
 // =========================
@@ -624,13 +699,40 @@ app.post("/api/admin/login", authLimiter, (req, res) => {
   if (!email || !password) {
     return res.status(400).json({ error: "email and password are required." });
   }
-  if (
-    email.toLowerCase().trim() !== ADMIN_EMAIL.toLowerCase() ||
-    password !== ADMIN_PASSWORD
-  ) {
+
+  const normalEmail = String(email).toLowerCase().trim();
+
+  if (normalEmail === ADMIN_EMAIL.toLowerCase().trim() && password === ADMIN_PASSWORD) {
+    writeAuditLog(req, { adminEmail: ADMIN_EMAIL, adminRole: "super_admin", action: "admin_login", status: "success", metadata: { source: "env_super_admin" } });
+    return res.json({
+      token: generateAdminToken("super_admin", ADMIN_EMAIL, { scopeType: "global", scopeValue: "all" }),
+      admin: { email: ADMIN_EMAIL, role: "super_admin", scopeType: "global", scopeValue: "all" },
+    });
+  }
+
+  const admin = one(`SELECT * FROM admins WHERE lower(email) = :email LIMIT 1`, { email: normalEmail });
+  if (!admin || !admin.passwordHash || !bcrypt.compareSync(password, admin.passwordHash)) {
+    writeAuditLog(req, { adminEmail: normalEmail, adminRole: null, action: "admin_login", status: "failure", reason: "invalid_credentials" });
     return res.status(401).json({ error: "Invalid admin credentials." });
   }
-  res.json({ token: generateAdminToken("super_admin", ADMIN_EMAIL), admin: { email: ADMIN_EMAIL, role: "super_admin" } });
+
+  if (Number(admin.isActive) !== 1) {
+    writeAuditLog(req, { adminEmail: normalEmail, adminRole: admin.role || null, action: "admin_login", status: "failure", reason: "inactive_admin" });
+    return res.status(403).json({ error: "Admin account is inactive." });
+  }
+
+  const role = admin.role || "viewer";
+  const scope = validateAdminRoleScope(role, admin.scopeType || inferRoleScope(role).scopeType, admin.scopeValue || inferRoleScope(role).scopeValue || "all");
+  if (scope.error) {
+    writeAuditLog(req, { adminEmail: normalEmail, adminRole: role, action: "admin_login", status: "failure", reason: "invalid_scope" });
+    return res.status(403).json({ error: "Admin account scope is invalid." });
+  }
+
+  writeAuditLog(req, { adminEmail: normalEmail, adminRole: role, action: "admin_login", status: "success", metadata: { source: "database_admin", adminId: admin.id } });
+  res.json({
+    token: generateAdminToken(role, admin.email, { adminId: admin.id, scopeType: scope.scopeType, scopeValue: scope.scopeValue }),
+    admin: { ...safeAdmin(admin), role, scopeType: scope.scopeType, scopeValue: scope.scopeValue },
+  });
 });
 
 // =========================
@@ -644,7 +746,10 @@ app.get("/api/admin/me", adminAuthMiddleware, (req, res) => {
       email: req.user?.email || ADMIN_EMAIL,
       role,
       permissions,
-      scope: { type: role.startsWith("campus_") ? "campus" : (role.includes("sacco") || role.includes("committee") ? "sacco_global" : "global"), value: "all" },
+      scope: {
+        type: req.user?.scopeType || inferRoleScope(role).scopeType,
+        value: req.user?.scopeValue || inferRoleScope(role).scopeValue || "all",
+      },
     },
     governance: {
       association: "SHOSA Executive",
@@ -682,6 +787,123 @@ app.get("/api/admin/audit-logs", adminAuthMiddleware, requirePermission("view_au
     return { ...rest, metadata };
   });
   res.json({ logs, limit });
+});
+
+// =========================
+// Admin — users and roles
+// =========================
+app.get("/api/admin/users", adminAuthMiddleware, requirePermission("manage_admins"), (req, res) => {
+  const users = all(
+    `SELECT id, fullName, email, role, scopeType, scopeValue, isActive, createdAt, updatedAt
+     FROM admins
+     ORDER BY datetime(createdAt) DESC, id DESC`
+  ).map(safeAdmin);
+  res.json({ users });
+});
+
+app.post("/api/admin/users", adminAuthMiddleware, requirePermission("manage_admins"), (req, res) => {
+  const body = req.body || {};
+  const fullName = String(body.fullName || "").trim();
+  const email = String(body.email || "").toLowerCase().trim();
+  const password = String(body.password || "");
+  const roleScope = validateAdminRoleScope(body.role, body.scopeType, body.scopeValue);
+
+  if (!fullName) return res.status(400).json({ error: "fullName is required." });
+  if (!email || !email.includes("@")) return res.status(400).json({ error: "Valid email is required." });
+  if (email === ADMIN_EMAIL.toLowerCase().trim()) return res.status(400).json({ error: "This email is reserved for the environment super admin." });
+  if (!password || password.length < 8) return res.status(400).json({ error: "Password must be at least 8 characters." });
+  if (roleScope.error) return res.status(400).json({ error: roleScope.error });
+
+  const existing = one(`SELECT id FROM admins WHERE lower(email) = :email`, { email });
+  if (existing) return res.status(400).json({ error: "Admin email already exists." });
+
+  const t = nowIso();
+  const info = run(
+    `INSERT INTO admins (fullName, email, passwordHash, role, scopeType, scopeValue, isActive, createdAt, updatedAt)
+     VALUES (:fullName, :email, :passwordHash, :role, :scopeType, :scopeValue, 1, :createdAt, :updatedAt)`,
+    {
+      fullName,
+      email,
+      passwordHash: bcrypt.hashSync(password, 12),
+      role: roleScope.role,
+      scopeType: roleScope.scopeType,
+      scopeValue: roleScope.scopeValue,
+      createdAt: t,
+      updatedAt: t,
+    }
+  );
+
+  const saved = one(`SELECT id, fullName, email, role, scopeType, scopeValue, isActive, createdAt, updatedAt FROM admins WHERE id = :id`, { id: info.lastInsertRowid });
+  writeAuditLog(req, {
+    action: "admin_user_created",
+    resourceType: "admin_user",
+    resourceId: info.lastInsertRowid,
+    status: "success",
+    metadata: { email, role: roleScope.role, scopeType: roleScope.scopeType, scopeValue: roleScope.scopeValue },
+  });
+  res.status(201).json({ admin: safeAdmin(saved) });
+});
+
+app.patch("/api/admin/users/:id", adminAuthMiddleware, requirePermission("manage_admins"), (req, res) => {
+  const id = parseInt(req.params.id, 10);
+  if (!id) return res.status(400).json({ error: "Invalid admin id." });
+
+  const existing = one(`SELECT * FROM admins WHERE id = :id`, { id });
+  if (!existing) return res.status(404).json({ error: "Admin user not found." });
+
+  const body = req.body || {};
+  const fullName = typeof body.fullName !== "undefined" ? String(body.fullName || "").trim() : existing.fullName;
+  if (!fullName) return res.status(400).json({ error: "fullName is required." });
+
+  const targetRole = typeof body.role !== "undefined" ? String(body.role || "").trim() : (existing.role || "viewer");
+  const targetScopeType = typeof body.scopeType !== "undefined" ? body.scopeType : (existing.scopeType || inferRoleScope(targetRole).scopeType);
+  const targetScopeValue = typeof body.scopeValue !== "undefined" ? body.scopeValue : (existing.scopeValue || inferRoleScope(targetRole).scopeValue || "all");
+  const roleScope = validateAdminRoleScope(targetRole, targetScopeType, targetScopeValue);
+  if (roleScope.error) return res.status(400).json({ error: roleScope.error });
+
+  let isActive = Number(existing.isActive) === 1 ? 1 : 0;
+  if (typeof body.isActive !== "undefined") {
+    isActive = (body.isActive === true || body.isActive === 1 || body.isActive === "1" || body.isActive === "true") ? 1 : 0;
+  }
+
+  let passwordHash = existing.passwordHash;
+  if (typeof body.password !== "undefined" && String(body.password || "").length > 0) {
+    const newPassword = String(body.password);
+    if (newPassword.length < 8) return res.status(400).json({ error: "Password must be at least 8 characters." });
+    passwordHash = bcrypt.hashSync(newPassword, 12);
+  }
+
+  run(
+    `UPDATE admins SET
+      fullName = :fullName,
+      passwordHash = :passwordHash,
+      role = :role,
+      scopeType = :scopeType,
+      scopeValue = :scopeValue,
+      isActive = :isActive,
+      updatedAt = :updatedAt
+     WHERE id = :id`,
+    {
+      id,
+      fullName,
+      passwordHash,
+      role: roleScope.role,
+      scopeType: roleScope.scopeType,
+      scopeValue: roleScope.scopeValue,
+      isActive,
+      updatedAt: nowIso(),
+    }
+  );
+
+  const saved = one(`SELECT id, fullName, email, role, scopeType, scopeValue, isActive, createdAt, updatedAt FROM admins WHERE id = :id`, { id });
+  writeAuditLog(req, {
+    action: "admin_user_updated",
+    resourceType: "admin_user",
+    resourceId: id,
+    status: "success",
+    metadata: { email: existing.email, role: roleScope.role, scopeType: roleScope.scopeType, scopeValue: roleScope.scopeValue, isActive },
+  });
+  res.json({ admin: safeAdmin(saved) });
 });
 
 // =========================
@@ -863,7 +1085,7 @@ app.delete("/api/admin/gallery/:id", adminAuthMiddleware, requirePermission("man
 app.post("/api/auth/register", authLimiter, upload.single("profilePhoto"), (req, res) => {
   const body = req.body || {};
   const {
-    fullName, email, phone, gender, gradYear, campus, period, house,
+    fullName, email, phone, gradYear, campus, period, house,
     occupation, city, country, bio, password, passwordConfirm, customPeriod,
   } = body;
 
