@@ -223,6 +223,7 @@ function initSchema() {
 
   addColumnIfMissing("alumni", "campusCode TEXT", "campusCode");
   addColumnIfMissing("alumni", "membershipTier TEXT DEFAULT 'alumni_member'", "membershipTier");
+  addColumnIfMissing("alumni", "gender TEXT", "gender");
 
   run(`
     CREATE TABLE IF NOT EXISTS campuses (
@@ -479,6 +480,7 @@ function generateToken(alumni) {
       id: alumni.id,
       email: alumni.email,
       fullName: alumni.fullName,
+      gender: alumni.gender || null,
       campus: alumni.campus || null,
       campusCode: alumni.campusCode || null,
       membershipTier: alumni.membershipTier || "alumni_member",
@@ -569,6 +571,20 @@ function requirePermission(permission) {
 
 function paymentReviewer(req) {
   return req.user?.email || req.user?.role || "admin";
+}
+
+function validateGender(gender, required = true) {
+  if ((gender === undefined || gender === null || gender === "") && !required) {
+    return { value: null };
+  }
+
+  const value = String(gender || "").trim();
+  if (!value) return { error: "gender is required." };
+  if (!["Male", "Female"].includes(value)) {
+    return { error: "gender must be either Male or Female." };
+  }
+
+  return { value };
 }
 
 // =========================
@@ -681,12 +697,12 @@ app.get("/api/admin/alumni", adminAuthMiddleware, requirePermission("view_alumni
 
   const rows = search
     ? all(
-        `SELECT id, fullName, email, phone, gradYear, campus, period, house, occupation, city, country, profilePhoto, createdAt
+        `SELECT id, fullName, email, phone, gender, gradYear, campus, period, house, occupation, city, country, profilePhoto, createdAt
          FROM alumni WHERE fullName LIKE :s OR email LIKE :s ORDER BY createdAt DESC LIMIT :limit OFFSET :offset`,
         { s: search, limit, offset }
       )
     : all(
-        `SELECT id, fullName, email, phone, gradYear, campus, period, house, occupation, city, country, profilePhoto, createdAt
+        `SELECT id, fullName, email, phone, gender, gradYear, campus, period, house, occupation, city, country, profilePhoto, createdAt
          FROM alumni ORDER BY createdAt DESC LIMIT :limit OFFSET :offset`,
         { limit, offset }
       );
@@ -847,7 +863,7 @@ app.delete("/api/admin/gallery/:id", adminAuthMiddleware, requirePermission("man
 app.post("/api/auth/register", authLimiter, upload.single("profilePhoto"), (req, res) => {
   const body = req.body || {};
   const {
-    fullName, email, phone, gradYear, campus, period, house,
+    fullName, email, phone, gender, gradYear, campus, period, house,
     occupation, city, country, bio, password, passwordConfirm, customPeriod,
   } = body;
 
@@ -861,6 +877,9 @@ app.post("/api/auth/register", authLimiter, upload.single("profilePhoto"), (req,
     return res.status(400).json({ error: "Passwords do not match." });
   }
 
+  const genderCheck = validateGender(gender, true);
+  if (genderCheck.error) return res.status(400).json({ error: genderCheck.error });
+
   const normalEmail = String(email).toLowerCase().trim();
   const existing = one(`SELECT id FROM alumni WHERE email = :email`, { email: normalEmail });
   if (existing) return res.status(400).json({ error: "Email already registered." });
@@ -872,13 +891,14 @@ app.post("/api/auth/register", authLimiter, upload.single("profilePhoto"), (req,
 
   const info = run(
     `INSERT INTO alumni
-      (fullName, email, phone, gradYear, campus, campusCode, membershipTier, period, house, occupation, city, country, bio, profilePhoto, passwordHash, lastProfileUpdate, createdAt, updatedAt)
+      (fullName, email, phone, gender, gradYear, campus, campusCode, membershipTier, period, house, occupation, city, country, bio, profilePhoto, passwordHash, lastProfileUpdate, createdAt, updatedAt)
      VALUES
-      (:fullName, :email, :phone, :gradYear, :campus, :campusCode, :membershipTier, :period, :house, :occupation, :city, :country, :bio, :profilePhoto, :passwordHash, NULL, :createdAt, :updatedAt)`,
+      (:fullName, :email, :phone, :gender, :gradYear, :campus, :campusCode, :membershipTier, :period, :house, :occupation, :city, :country, :bio, :profilePhoto, :passwordHash, NULL, :createdAt, :updatedAt)`,
     {
       fullName: String(fullName).trim(),
       email: normalEmail,
       phone: phone || null,
+      gender: genderCheck.value,
       gradYear: gradYear ? parseInt(gradYear, 10) || null : null,
       campus: campus || null,
       campusCode: ({"Main Campus":"main","Mbalala Campus":"mbalala","Green Campus":"green","A Level Campus":"alevel"}[campus] || null),
@@ -896,7 +916,7 @@ app.post("/api/auth/register", authLimiter, upload.single("profilePhoto"), (req,
     }
   );
 
-  const alumni = one(`SELECT id, fullName, email, profilePhoto FROM alumni WHERE id = :id`, { id: info.lastInsertRowid });
+  const alumni = one(`SELECT id, fullName, email, gender, profilePhoto FROM alumni WHERE id = :id`, { id: info.lastInsertRowid });
   res.json({ token: generateToken(alumni), alumni });
 });
 
@@ -913,7 +933,7 @@ app.post("/api/auth/login", authLimiter, (req, res) => {
   const token = generateToken(alumni);
   res.json({
     token,
-    alumni: { id: alumni.id, fullName: alumni.fullName, email: alumni.email, profilePhoto: alumni.profilePhoto || null },
+    alumni: { id: alumni.id, fullName: alumni.fullName, email: alumni.email, gender: alumni.gender || null, profilePhoto: alumni.profilePhoto || null },
   });
 });
 
@@ -944,9 +964,15 @@ app.put("/api/me", authMiddleware, upload.single("profilePhoto"), (req, res) => 
   }
 
   const body = req.body || {};
+  const genderCheck = typeof body.gender !== "undefined"
+    ? validateGender(body.gender, true)
+    : { value: alumni.gender || null };
+  if (genderCheck.error) return res.status(400).json({ error: genderCheck.error });
+
   const updated = {
     fullName: body.fullName || alumni.fullName,
     phone: typeof body.phone !== "undefined" ? (body.phone || null) : alumni.phone,
+    gender: genderCheck.value,
     gradYear: typeof body.gradYear !== "undefined" ? (body.gradYear ? parseInt(body.gradYear, 10) || null : null) : alumni.gradYear,
     campus: typeof body.campus !== "undefined" ? (body.campus || null) : alumni.campus,
     campusCode: typeof body.campus !== "undefined" ? (({"Main Campus":"main","Mbalala Campus":"mbalala","Green Campus":"green","A Level Campus":"alevel"}[body.campus]) || null) : alumni.campusCode,
@@ -963,7 +989,7 @@ app.put("/api/me", authMiddleware, upload.single("profilePhoto"), (req, res) => 
 
   run(
     `UPDATE alumni SET
-      fullName = :fullName, phone = :phone, gradYear = :gradYear, campus = :campus, campusCode = :campusCode, period = :period,
+      fullName = :fullName, phone = :phone, gender = :gender, gradYear = :gradYear, campus = :campus, campusCode = :campusCode, period = :period,
       house = :house, occupation = :occupation, city = :city, country = :country, bio = :bio,
       profilePhoto = :profilePhoto, lastProfileUpdate = :lastProfileUpdate, updatedAt = :updatedAt
      WHERE id = :id`,
