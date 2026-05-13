@@ -1,0 +1,52 @@
+const express = require('express');
+const prisma = require('../lib/prisma');
+const { auth, requireAlumni } = require('../middleware/auth');
+const { makeUpload } = require('../middleware/upload');
+const { cleanOptional } = require('../lib/validators');
+
+const router = express.Router();
+const uploadProfile = makeUpload('profiles');
+
+router.get('/me', auth, requireAlumni, async (req, res, next) => {
+  try {
+    const alumni = await prisma.alumni.findUnique({
+      where: { id: req.user.id },
+      include: { saccoMembership: true, payments: { orderBy: { createdAt: 'desc' }, take: 10 } }
+    });
+    if (!alumni) return res.status(404).json({ error: 'Alumni not found' });
+    const { passwordHash, ...safe } = alumni;
+    res.json(safe);
+  } catch (error) { next(error); }
+});
+
+router.put('/me', auth, requireAlumni, async (req, res, next) => {
+  try {
+    const { phone, occupation, city, country, bio, house, period } = req.body;
+    const alumni = await prisma.alumni.update({
+      where: { id: req.user.id },
+      data: {
+        phone: cleanOptional(phone) || undefined,
+        occupation: cleanOptional(occupation),
+        city: cleanOptional(city),
+        country: cleanOptional(country) || 'Uganda',
+        bio: cleanOptional(bio),
+        house: cleanOptional(house),
+        period: cleanOptional(period),
+        lastProfileUpdate: new Date()
+      }
+    });
+    const { passwordHash, ...safe } = alumni;
+    res.json(safe);
+  } catch (error) { next(error); }
+});
+
+router.post('/profile/photo', auth, requireAlumni, uploadProfile.single('photo'), async (req, res, next) => {
+  try {
+    if (!req.file) return res.status(400).json({ error: 'Photo file is required' });
+    const profilePhoto = `/uploads/profiles/${req.file.filename}`;
+    await prisma.alumni.update({ where: { id: req.user.id }, data: { profilePhoto, lastProfileUpdate: new Date() } });
+    res.json({ message: 'Profile photo uploaded', profilePhoto });
+  } catch (error) { next(error); }
+});
+
+module.exports = router;

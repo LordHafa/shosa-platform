@@ -1,0 +1,307 @@
+﻿<template>
+  <div class="space-y-8">
+    <section class="rounded-3xl bg-navy p-8 text-white shadow-xl">
+      <p class="font-bold text-gold">Official merchandise</p>
+      <h1 class="mt-2 text-4xl font-black">Wear the Seeta Alumni identity with pride.</h1>
+      <p class="mt-4 max-w-3xl leading-8 text-slate-200">
+        The store stays separate from SACCO payments. Alumni can browse products, choose preferred colours or variants,
+        build an order request, and send one clean WhatsApp-ready summary to the team.
+      </p>
+    </section>
+
+    <div class="grid gap-4 md:grid-cols-4">
+      <div class="card text-center"><div class="text-3xl font-black text-gold">CAP</div><strong>Caps</strong></div>
+      <div class="card text-center"><div class="text-3xl font-black text-gold">TEE</div><strong>T-Shirts / Polos</strong></div>
+      <div class="card text-center"><div class="text-3xl font-black text-gold">HDY</div><strong>Hoodies</strong></div>
+      <div class="card text-center"><div class="text-3xl font-black text-gold">WRB</div><strong>Wristbands</strong></div>
+    </div>
+
+    <div class="grid gap-6 lg:grid-cols-[1fr_380px]">
+      <section>
+        <h2 class="mb-5 text-2xl font-black text-navy dark:text-gold">Signature collection</h2>
+
+        <div class="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
+          <article v-for="product in products" :key="product.id" class="card overflow-hidden p-0">
+            <div class="bg-cream p-3 dark:bg-slate-900">
+              <img
+                :src="selectedVariant(product).image"
+                :alt="`${product.name} - ${selectedVariant(product).label}`"
+                class="h-56 w-full rounded-2xl object-contain"
+              />
+            </div>
+
+            <div class="p-5">
+              <p class="text-sm font-bold text-gold">{{ product.tag }}</p>
+              <h3 class="text-xl font-black">{{ product.name }}</h3>
+              <p class="mt-2 text-sm leading-6 text-slate-600 dark:text-slate-300">{{ product.description }}</p>
+
+              <div class="mt-4">
+                <p class="mb-2 text-xs font-bold uppercase tracking-wide text-slate-500">Choose option</p>
+                <div class="flex gap-2 overflow-x-auto pb-2">
+                  <button
+                    v-for="variant in product.variants"
+                    :key="variant.id"
+                    type="button"
+                    class="min-w-[74px] rounded-xl border p-1 text-xs transition"
+                    :class="selectedVariantId(product.id) === variant.id
+                      ? 'border-gold bg-gold/20 text-navy dark:text-white'
+                      : 'border-slate-200 bg-white text-slate-600 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300'"
+                    @click="selectVariant(product.id, variant.id)"
+                  >
+                    <img :src="variant.image" :alt="variant.label" class="mb-1 h-12 w-full rounded-lg object-cover" />
+                    <span class="block truncate">{{ variant.label }}</span>
+                  </button>
+                </div>
+              </div>
+
+              <div class="mt-4 flex items-center justify-between">
+                <strong class="text-navy dark:text-gold">{{ money(product.price) }}</strong>
+                <div class="flex items-center gap-2">
+                  <button class="rounded-lg bg-slate-200 px-3 py-1 dark:bg-slate-700" @click="decrease(product)">-</button>
+                  <span>{{ quantity(product) }}</span>
+                  <button class="rounded-lg bg-gold px-3 py-1 font-bold text-navy" @click="increase(product)">+</button>
+                </div>
+              </div>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <aside class="card h-fit">
+        <h2 class="text-xl font-black text-navy dark:text-gold">Send a merchandise request</h2>
+        <p class="mt-2 text-sm text-slate-500">
+          Build your order, add your details, then copy a clean summary for WhatsApp or admin follow-up.
+        </p>
+
+        <div class="mt-5 space-y-3">
+          <input v-model="customer.name" class="input" placeholder="Full name" />
+          <input v-model="customer.phone" class="input" placeholder="Phone / WhatsApp" />
+          <input v-model="customer.email" class="input" placeholder="Email" />
+          <select v-model="customer.delivery" class="input">
+            <option>Pick up from school/alumni desk</option>
+            <option>Delivery / rider arrangement</option>
+            <option>Reserve for next event</option>
+          </select>
+          <textarea v-model="customer.notes" class="input" placeholder="Preferred sizes, dates needed, extra notes"></textarea>
+        </div>
+
+        <div class="mt-5 rounded-2xl bg-cream p-4 dark:bg-slate-800">
+          <h3 class="font-black">Live order summary</h3>
+          <p v-if="!selectedItems.length" class="mt-2 text-sm text-slate-500">No items added yet. Use the + buttons.</p>
+
+          <div v-else class="mt-3 space-y-2 text-sm">
+            <div v-for="item in selectedItems" :key="item.key" class="flex justify-between gap-3">
+              <span>{{ item.qty }} x {{ item.name }} <span class="text-slate-500">({{ item.variantLabel }})</span></span>
+              <strong>{{ money(item.qty * item.price) }}</strong>
+            </div>
+            <div class="border-t pt-2 text-right text-base font-black">Total: {{ money(total) }}</div>
+          </div>
+        </div>
+
+        <button class="mt-5 w-full btn-secondary" @click="copySummary">Copy order summary</button>
+        <p v-if="message" class="mt-3 rounded-lg bg-green-100 p-3 text-sm text-green-700">{{ message }}</p>
+      </aside>
+    </div>
+  </div>
+</template>
+
+<script setup>
+import { computed, reactive, ref } from 'vue'
+
+const message = ref('')
+const customer = reactive({
+  name: '',
+  phone: '',
+  email: '',
+  delivery: 'Pick up from school/alumni desk',
+  notes: ''
+})
+
+const selectedVariants = reactive({})
+const cart = reactive({})
+
+const assetBase = '/assets/store-merchandise'
+
+const products = [
+  {
+    id: 1,
+    tag: 'Best seller',
+    name: 'Seeta Alumni T-Shirt',
+    description: 'Classic unisex alumni tee for reunions, volunteering, sports days, and everyday Seeta pride.',
+    price: 35000,
+    variants: [
+      { id: 'white', label: 'White', image: `${assetBase}/03_tshirts_unisex/tshirt_unisex_white.png` },
+      { id: 'navy_blue', label: 'Navy Blue', image: `${assetBase}/03_tshirts_unisex/tshirt_unisex_navy_blue.png` },
+      { id: 'black', label: 'Black', image: `${assetBase}/03_tshirts_unisex/tshirt_unisex_black.png` },
+      { id: 'maroon', label: 'Maroon', image: `${assetBase}/03_tshirts_unisex/tshirt_unisex_maroon.png` }
+    ]
+  },
+  {
+    id: 2,
+    tag: 'Women',
+    name: 'Women’s Seeta Alumni T-Shirt',
+    description: 'A fitted women’s tee for alumni events, casual wear, and proud Seeta representation.',
+    price: 35000,
+    variants: [
+      { id: 'white', label: 'White', image: `${assetBase}/04_tshirts_women/tshirt_women_white.png` },
+      { id: 'navy_blue', label: 'Navy Blue', image: `${assetBase}/04_tshirts_women/tshirt_women_navy_blue.png` },
+      { id: 'black', label: 'Black', image: `${assetBase}/04_tshirts_women/tshirt_women_black.png` },
+      { id: 'light_pink', label: 'Light Pink', image: `${assetBase}/04_tshirts_women/tshirt_women_light_pink.png` }
+    ]
+  },
+  {
+    id: 3,
+    tag: 'Smart wear',
+    name: 'Collared Polo Shirt',
+    description: 'A sharper branded look for committee work, official school visits, and alumni functions.',
+    price: 55000,
+    variants: [
+      { id: 'white', label: 'White', image: `${assetBase}/05_polo_shirts/polo_white.png` },
+      { id: 'navy_blue', label: 'Navy Blue', image: `${assetBase}/05_polo_shirts/polo_navy_blue.png` },
+      { id: 'black', label: 'Black', image: `${assetBase}/05_polo_shirts/polo_black.png` },
+      { id: 'maroon', label: 'Maroon', image: `${assetBase}/05_polo_shirts/polo_maroon.png` }
+    ]
+  },
+  {
+    id: 4,
+    tag: 'Premium',
+    name: 'Alumni Hoodie',
+    description: 'Warm premium layer for travel, evenings, league weekends, and alumni outdoor events.',
+    price: 80000,
+    variants: [
+      { id: 'forest_green', label: 'Forest Green', image: `${assetBase}/02_hoodies/hoodie_forest_green.png` },
+      { id: 'navy_blue', label: 'Navy Blue', image: `${assetBase}/02_hoodies/hoodie_navy_blue.png` },
+      { id: 'black', label: 'Black', image: `${assetBase}/02_hoodies/hoodie_black.png` },
+      { id: 'heather_grey', label: 'Heather Grey', image: `${assetBase}/02_hoodies/hoodie_heather_grey.png` }
+    ]
+  },
+  {
+    id: 5,
+    tag: 'Outdoor',
+    name: 'Seeta Alumni Cap',
+    description: 'A simple branded cap for outreach days, road trips, school activity, and casual wear.',
+    price: 30000,
+    variants: [
+      { id: 'white', label: 'White', image: `${assetBase}/01_caps/cap_white.png` },
+      { id: 'navy_blue', label: 'Navy Blue', image: `${assetBase}/01_caps/cap_navy_blue.png` },
+      { id: 'black', label: 'Black', image: `${assetBase}/01_caps/cap_black.png` },
+      { id: 'beige', label: 'Beige', image: `${assetBase}/01_caps/cap_beige.png` }
+    ]
+  },
+  {
+    id: 6,
+    tag: 'Budget friendly',
+    name: 'Wristband',
+    description: 'Affordable for awareness campaigns, team identity, giveaway bags, and youth engagement.',
+    price: 5000,
+    variants: [
+      { id: 'green', label: 'Green', image: `${assetBase}/06_wristbands/wristband_green.png` },
+      { id: 'maroon', label: 'Maroon', image: `${assetBase}/06_wristbands/wristband_maroon.png` },
+      { id: 'navy_blue', label: 'Navy Blue', image: `${assetBase}/06_wristbands/wristband_navy_blue.png` },
+      { id: 'gold_yellow', label: 'Gold Yellow', image: `${assetBase}/06_wristbands/wristband_gold_yellow.png` }
+    ]
+  },
+  {
+    id: 7,
+    tag: 'Daily use',
+    name: 'Alumni Tote Bag',
+    description: 'A practical bag for events, documents, giveaways, and campus visits.',
+    price: 25000,
+    variants: [
+      { id: 'natural', label: 'Natural', image: `${assetBase}/07_tote_bags/tote_bag_natural.png` },
+      { id: 'navy_blue', label: 'Navy Blue', image: `${assetBase}/07_tote_bags/tote_bag_navy_blue.png` },
+      { id: 'black', label: 'Black', image: `${assetBase}/07_tote_bags/tote_bag_black.png` },
+      { id: 'maroon', label: 'Maroon', image: `${assetBase}/07_tote_bags/tote_bag_maroon.png` }
+    ]
+  },
+  {
+    id: 8,
+    tag: 'Giftable',
+    name: 'Sticker Pack',
+    description: 'Great for laptops, notebooks, gifts, and small event packs that keep the brand visible.',
+    price: 10000,
+    variants: [
+      { id: 'seeta_high_rectangle', label: 'Rectangle', image: `${assetBase}/08_stickers/sticker_seeta_high_made_me_rectangle.png` },
+      { id: 'seeta_round', label: 'Round', image: `${assetBase}/08_stickers/sticker_seeta_high_made_me_round.png` },
+      { id: 'together_beyond_school', label: 'Together', image: `${assetBase}/08_stickers/sticker_together_beyond_school.png` },
+      { id: 'full_pack', label: 'Full Pack', image: `${assetBase}/08_stickers/_full_stickers_sheet.png` }
+    ]
+  }
+]
+
+function defaultVariant(product) {
+  return product.variants[0]
+}
+
+function selectedVariantId(productId) {
+  const product = products.find(p => p.id === productId)
+  return selectedVariants[productId] || defaultVariant(product).id
+}
+
+function selectedVariant(product) {
+  return product.variants.find(v => v.id === selectedVariantId(product.id)) || defaultVariant(product)
+}
+
+function selectVariant(productId, variantId) {
+  selectedVariants[productId] = variantId
+}
+
+function cartKey(product) {
+  return `${product.id}:${selectedVariant(product).id}`
+}
+
+function quantity(product) {
+  return cart[cartKey(product)] || 0
+}
+
+const selectedItems = computed(() => {
+  return Object.entries(cart)
+    .filter(([, qty]) => qty > 0)
+    .map(([key, qty]) => {
+      const [productId, variantId] = key.split(':')
+      const product = products.find(p => String(p.id) === productId)
+      const variant = product?.variants.find(v => v.id === variantId)
+      return {
+        key,
+        id: product?.id,
+        name: product?.name || 'Item',
+        variantLabel: variant?.label || 'Default',
+        price: product?.price || 0,
+        qty
+      }
+    })
+})
+
+const total = computed(() => selectedItems.value.reduce((sum, item) => sum + item.qty * item.price, 0))
+
+function money(v) {
+  return 'UGX ' + Number(v || 0).toLocaleString('en-UG')
+}
+
+function increase(product) {
+  const key = cartKey(product)
+  cart[key] = (cart[key] || 0) + 1
+}
+
+function decrease(product) {
+  const key = cartKey(product)
+  cart[key] = Math.max(0, (cart[key] || 0) - 1)
+}
+
+async function copySummary() {
+  const lines = [
+    'SEETA ALUMNI STORE ORDER',
+    `Name: ${customer.name || '-'}`,
+    `Phone: ${customer.phone || '-'}`,
+    `Email: ${customer.email || '-'}`,
+    `Delivery: ${customer.delivery}`,
+    'Items:',
+    ...selectedItems.value.map(i => `- ${i.qty} x ${i.name} (${i.variantLabel}) = ${money(i.qty * i.price)}`),
+    `Total: ${money(total.value)}`,
+    `Notes: ${customer.notes || '-'}`
+  ]
+
+  await navigator.clipboard.writeText(lines.join('\n'))
+  message.value = 'Order summary copied. You can paste it into WhatsApp or a message.'
+}
+</script>

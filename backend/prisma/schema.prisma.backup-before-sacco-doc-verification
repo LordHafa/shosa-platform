@@ -1,0 +1,343 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Alumni {
+  id                 Int               @id @default(autoincrement())
+  firstName          String
+  lastName           String
+  otherNames         String?
+  displayName        String
+  email              String            @unique
+  phone              String
+  gender             String?
+  campus             String
+  gradYear           Int
+  period             String?
+  house              String?
+  occupation         String?
+  city               String?
+  country            String            @default("Uganda")
+  bio                String?
+  profilePhoto       String?
+  membershipTier     String            @default("alumni")
+  passwordHash       String
+  verificationStatus String            @default("pending")
+  lastProfileUpdate  DateTime          @default(now())
+  createdAt          DateTime          @default(now())
+  updatedAt          DateTime          @updatedAt
+
+  saccoMembership    SaccoMembership?
+  payments           Payment[]
+  documents          AdminDocument[]
+  orders             StoreOrder[]
+
+  @@index([campus])
+  @@index([gradYear])
+}
+
+model SaccoMembership {
+  id                       Int       @id @default(autoincrement())
+  alumniId                 Int       @unique
+  membershipNumber         String    @unique
+  status                   String    @default("pending")
+  registrationFeePaymentId Int?
+  monthlyContribution      Int?
+  membershipType           String?
+  startDate                DateTime?
+  joinedAt                 DateTime?
+  approvedAt               DateTime?
+  approvedBy               Int?
+  notes                    String?
+  createdAt                DateTime  @default(now())
+  updatedAt                DateTime  @updatedAt
+
+  alumni                   Alumni    @relation(fields: [alumniId], references: [id], onDelete: Cascade)
+}
+
+model Payment {
+  id              Int       @id @default(autoincrement())
+  alumniId        Int
+  paymentType     String
+  label           String?
+  amount          Int
+  currency        String    @default("UGX")
+  phone           String?
+  network         String?
+  description     String?
+  rawPayload      Json?
+  status          String    @default("pending")
+  paymentChannel  String    @default("mobile_money")
+  transactionRef  String?   @unique
+  proofFileName   String?
+  confirmedAt     DateTime?
+  confirmedBy     Int?
+  reviewedAt      DateTime?
+  reviewedBy      Int?
+  rejectionReason String?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  alumni          Alumni    @relation(fields: [alumniId], references: [id], onDelete: Cascade)
+  reviews         PaymentReview[]
+
+  @@index([status])
+  @@index([paymentType])
+}
+
+model Admin {
+  id           Int             @id @default(autoincrement())
+  email        String          @unique
+  passwordHash String
+  fullName     String
+  role         String          @default("super_admin")
+  campusScope  String?
+  createdAt    DateTime        @default(now())
+  updatedAt    DateTime        @updatedAt
+
+  auditLogs       AuditLog[]
+  documents       AdminDocument[]
+  adminRoles      AdminRole[]
+  paymentReviews  PaymentReview[]
+}
+
+model AuditLog {
+  id           Int      @id @default(autoincrement())
+  adminId      Int?
+  adminEmail   String?
+  adminRole    String?
+  action       String
+  resourceType String
+  resourceId   String?
+  status       String
+  reason       String?
+  ip           String?
+  userAgent    String?
+  metadata     Json?
+  createdAt    DateTime @default(now())
+
+  admin        Admin?   @relation(fields: [adminId], references: [id], onDelete: SetNull)
+
+  @@index([action])
+  @@index([resourceType])
+}
+
+model GalleryItem {
+  id          Int      @id @default(autoincrement())
+  title       String
+  description String?
+  category    String
+  imagePath   String
+  uploadedBy  Int
+  isPublished Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Event {
+  id          Int      @id @default(autoincrement())
+  title       String
+  description String?
+  startDate   DateTime
+  endDate     DateTime?
+  location    String?
+  category    String
+  imagePath   String?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model StoreProduct {
+  id          Int          @id @default(autoincrement())
+  name        String
+  description String?
+  price       Int
+  currency    String       @default("UGX")
+  category    String
+  image       String?
+  isActive    Boolean      @default(true)
+  stockStatus String       @default("in_stock")
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  orders      StoreOrder[]
+}
+
+model StoreOrder {
+  id          Int          @id @default(autoincrement())
+  alumniId    Int
+  productId   Int
+  quantity    Int
+  totalAmount Int
+  status      String       @default("pending")
+  paymentId   Int?
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  alumni      Alumni       @relation(fields: [alumniId], references: [id], onDelete: Cascade)
+  product     StoreProduct @relation(fields: [productId], references: [id], onDelete: Restrict)
+}
+
+model AdminDocument {
+  id               Int       @id @default(autoincrement())
+  adminId          Int?
+  alumniId         Int?
+  documentType     String
+  originalFileName String
+  storedFileName   String
+  mimeType         String
+  sizeBytes        Int
+  uploadedBy       Int
+  isDeleted        Boolean   @default(false)
+  deletedAt        DateTime?
+  deletedBy        Int?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  admin            Admin?    @relation(fields: [adminId], references: [id], onDelete: SetNull)
+  alumni           Alumni?   @relation(fields: [alumniId], references: [id], onDelete: SetNull)
+}
+
+model ContactSubmission {
+  id          Int      @id @default(autoincrement())
+  name        String
+  email       String
+  phone       String?
+  category    String
+  subject     String
+  message     String
+  status      String   @default("new")
+  assignedTo  Int?
+  sourcePage  String?
+  ip          String?
+  userAgent   String?
+  repliedAt   DateTime?
+  archivedAt  DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Donation {
+  id          Int      @id @default(autoincrement())
+  donorName   String
+  donorEmail  String?
+  donorPhone  String?
+  category    String
+  amount      Int
+  paymentId   Int?
+  message     String?
+  createdAt   DateTime @default(now())
+}
+
+model Campus {
+  id        Int      @id @default(autoincrement())
+  code      String   @unique
+  name      String
+  sortOrder Int      @default(0)
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Role {
+  id          Int              @id @default(autoincrement())
+  code        String           @unique
+  name        String
+  description String?
+  scopeLevel  String           @default("global")
+  isSystem    Boolean          @default(true)
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+
+  permissions RolePermission[]
+  adminRoles  AdminRole[]
+}
+
+model Permission {
+  id          Int              @id @default(autoincrement())
+  code        String           @unique
+  name        String
+  category    String
+  description String?
+  createdAt   DateTime         @default(now())
+
+  roles       RolePermission[]
+}
+
+model RolePermission {
+  id           Int        @id @default(autoincrement())
+  roleId       Int
+  permissionId Int
+  createdAt    DateTime   @default(now())
+
+  role         Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  permission   Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+
+  @@unique([roleId, permissionId])
+}
+
+model AdminRole {
+  id         Int      @id @default(autoincrement())
+  adminId    Int
+  roleId     Int
+  scopeType  String?
+  scopeValue String?
+  createdAt  DateTime @default(now())
+
+  admin      Admin    @relation(fields: [adminId], references: [id], onDelete: Cascade)
+  role       Role     @relation(fields: [roleId], references: [id], onDelete: Cascade)
+
+  @@index([adminId])
+  @@index([roleId])
+}
+
+model PaymentReview {
+  id              Int      @id @default(autoincrement())
+  paymentId       Int
+  reviewerAdminId Int?
+  action          String
+  fromStatus      String?
+  toStatus        String
+  reason          String?
+  metadata        Json?
+  createdAt       DateTime @default(now())
+
+  payment         Payment  @relation(fields: [paymentId], references: [id], onDelete: Cascade)
+  reviewer        Admin?   @relation(fields: [reviewerAdminId], references: [id], onDelete: SetNull)
+
+  @@index([paymentId])
+  @@index([action])
+}
+
+model Setting {
+  id          Int      @id @default(autoincrement())
+  key         String   @unique
+  value       String
+  group       String?
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model NotificationLog {
+  id             Int       @id @default(autoincrement())
+  recipientEmail String?
+  recipientPhone String?
+  channel        String
+  subject        String?
+  message        String?
+  status         String    @default("queued")
+  metadata       Json?
+  createdAt      DateTime  @default(now())
+  sentAt         DateTime?
+
+  @@index([channel])
+  @@index([status])
+}
+

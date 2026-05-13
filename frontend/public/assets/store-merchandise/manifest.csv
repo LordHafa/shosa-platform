@@ -1,0 +1,50 @@
+category_folder,product_category,variant,filename,suggested_use
+01_caps,Caps,Full Sheet,01_caps/_full_caps_sheet.png,Optional catalogue/banner image
+01_caps,Caps,White,01_caps/cap_white.png,Individual product/variant image upload
+01_caps,Caps,Navy Blue,01_caps/cap_navy_blue.png,Individual product/variant image upload
+01_caps,Caps,Black,01_caps/cap_black.png,Individual product/variant image upload
+01_caps,Caps,Beige,01_caps/cap_beige.png,Individual product/variant image upload
+02_hoodies,Hoodies,Full Sheet,02_hoodies/_full_hoodies_sheet.png,Optional catalogue/banner image
+02_hoodies,Hoodies,Forest Green,02_hoodies/hoodie_forest_green.png,Individual product/variant image upload
+02_hoodies,Hoodies,Navy Blue,02_hoodies/hoodie_navy_blue.png,Individual product/variant image upload
+02_hoodies,Hoodies,Black,02_hoodies/hoodie_black.png,Individual product/variant image upload
+02_hoodies,Hoodies,Heather Grey,02_hoodies/hoodie_heather_grey.png,Individual product/variant image upload
+03_tshirts_unisex,T-Shirts - Unisex,Full Sheet,03_tshirts_unisex/_full_tshirts_unisex_sheet.png,Optional catalogue/banner image
+03_tshirts_unisex,T-Shirts - Unisex,White,03_tshirts_unisex/tshirt_unisex_white.png,Individual product/variant image upload
+03_tshirts_unisex,T-Shirts - Unisex,Navy Blue,03_tshirts_unisex/tshirt_unisex_navy_blue.png,Individual product/variant image upload
+03_tshirts_unisex,T-Shirts - Unisex,Black,03_tshirts_unisex/tshirt_unisex_black.png,Individual product/variant image upload
+03_tshirts_unisex,T-Shirts - Unisex,Maroon,03_tshirts_unisex/tshirt_unisex_maroon.png,Individual product/variant image upload
+04_tshirts_women,T-Shirts - Women,Full Sheet,04_tshirts_women/_full_tshirts_women_sheet.png,Optional catalogue/banner image
+04_tshirts_women,T-Shirts - Women,White,04_tshirts_women/tshirt_women_white.png,Individual product/variant image upload
+04_tshirts_women,T-Shirts - Women,Navy Blue,04_tshirts_women/tshirt_women_navy_blue.png,Individual product/variant image upload
+04_tshirts_women,T-Shirts - Women,Black,04_tshirts_women/tshirt_women_black.png,Individual product/variant image upload
+04_tshirts_women,T-Shirts - Women,Light Pink,04_tshirts_women/tshirt_women_light_pink.png,Individual product/variant image upload
+05_polo_shirts,Polo Shirts,Full Sheet,05_polo_shirts/_full_polo_shirts_sheet.png,Optional catalogue/banner image
+05_polo_shirts,Polo Shirts,White,05_polo_shirts/polo_white.png,Individual product/variant image upload
+05_polo_shirts,Polo Shirts,Navy Blue,05_polo_shirts/polo_navy_blue.png,Individual product/variant image upload
+05_polo_shirts,Polo Shirts,Black,05_polo_shirts/polo_black.png,Individual product/variant image upload
+05_polo_shirts,Polo Shirts,Maroon,05_polo_shirts/polo_maroon.png,Individual product/variant image upload
+06_wristbands,Wristbands,Full Sheet,06_wristbands/_full_wristbands_sheet.png,Optional catalogue/banner image
+06_wristbands,Wristbands,Green,06_wristbands/wristband_green.png,Individual product/variant image upload
+06_wristbands,Wristbands,Maroon,06_wristbands/wristband_maroon.png,Individual product/variant image upload
+06_wristbands,Wristbands,Navy Blue,06_wristbands/wristband_navy_blue.png,Individual product/variant image upload
+06_wristbands,Wristbands,Gold/Yellow,06_wristbands/wristband_gold_yellow.png,Individual product/variant image upload
+07_tote_bags,Tote Bags,Full Sheet,07_tote_bags/_full_tote_bags_sheet.png,Optional catalogue/banner image
+07_tote_bags,Tote Bags,Natural,07_tote_bags/tote_bag_natural.png,Individual product/variant image upload
+07_tote_bags,Tote Bags,Navy Blue,07_tote_bags/tote_bag_navy_blue.png,Individual product/variant image upload
+07_tote_bags,Tote Bags,Black,07_tote_bags/tote_bag_black.png,Individual product/variant image upload
+07_tote_bags,Tote Bags,Maroon,07_tote_bags/tote_bag_maroon.png,Individual product/variant image upload
+08_stickers,Stickers,Full Sheet,08_stickers/_full_stickers_sheet.png,Optional catalogue/banner image
+08_stickers,Stickers,Round Logo,08_stickers/sticker_seeta_alumni_round_logo.png,Individual product/variant image upload
+08_stickers,Stickers,Seeta High Made Me Rectangle,08_stickers/sticker_seeta_high_made_me_rectangle.png,Individual product/variant image upload
+08_stickers,Stickers,SHOSA Round,08_stickers/sticker_shosa_round.png,Individual product/variant image upload
+08_stickers,Stickers,Together Beyond School,08_stickers/sticker_together_beyond_school.png,Individual product/variant image upload
+08_stickers,Stickers,One School One Family,08_stickers/sticker_one_school_one_family.png,Individual product/variant image upload
+08_stickers,Stickers,Seeta Pride Lifelong,08_stickers/sticker_seeta_pride_lifelong.png,Individual product/variant image upload
+08_stickers,Stickers,Proud Alumni,08_stickers/sticker_proud_alumni.png,Individual product/variant image upload
+08_stickers,Stickers,SHOSA More Than A School,08_stickers/sticker_shosa_more_than_school.png,Individual product/variant image upload
+08_stickers,Stickers,Values Purpose,08_stickers/sticker_values_purpose.png,Individual product/variant image upload
+08_stickers,Stickers,From Seeta For Life,08_stickers/sticker_from_seeta_for_life.png,Individual product/variant image upload
+08_stickers,Stickers,Seeta High Made Me Round,08_stickers/sticker_seeta_high_made_me_round.png,Individual product/variant image upload
+08_stickers,Stickers,Once Seeta Always Seeta,08_stickers/sticker_once_seeta_always_seeta.png,Individual product/variant image upload
+09_collection_overview,Overview,Full merchandise overview,09_collection_overview/seeta_alumni_merchandise_collection_page.png,Store landing/banner image

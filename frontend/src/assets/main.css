@@ -1,0 +1,75 @@
+﻿@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    overflow-x: hidden;
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    @apply bg-cream text-ink antialiased dark:bg-slate-950 dark:text-slate-100;
+    overflow-x: hidden;
+    padding-left: env(safe-area-inset-left, 0);
+    padding-right: env(safe-area-inset-right, 0);
+  }
+
+  #app {
+    min-height: 100dvh;
+  }
+
+  img, video, canvas, svg {
+    max-width: 100%;
+  }
+
+  input, select, textarea {
+    @apply text-ink dark:text-white;
+    font-size: 16px;
+  }
+
+  button, a, input, select, textarea {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  ::placeholder {
+    @apply text-slate-400 dark:text-slate-400;
+    opacity: 1;
+  }
+}
+
+@layer components {
+  .card {
+    @apply rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-200 transition dark:bg-slate-900 dark:ring-slate-800 md:p-6;
+  }
+
+  .btn-primary {
+    @apply inline-flex min-h-11 items-center justify-center rounded-xl bg-navy px-5 py-3 font-semibold text-white transition hover:scale-[1.01] hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60 md:py-2.5;
+  }
+
+  .btn-secondary {
+    @apply inline-flex min-h-11 items-center justify-center rounded-xl bg-gold px-5 py-3 font-semibold text-navy transition hover:scale-[1.01] hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60 md:py-2.5;
+  }
+
+  .input {
+    @apply min-h-11 w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-base outline-none transition focus:border-gold focus:ring-2 focus:ring-gold/30 dark:border-slate-700 dark:bg-slate-800 dark:text-white md:py-2.5 md:text-sm;
+  }
+
+  .label {
+    @apply mb-1.5 block text-sm font-bold text-slate-700 dark:text-slate-200;
+  }
+}
+
+@layer utilities {
+  .pt-safe {
+    padding-top: calc(0.75rem + env(safe-area-inset-top, 0));
+  }
+
+  .pb-safe {
+    padding-bottom: calc(0.75rem + env(safe-area-inset-bottom, 0));
+  }
+
+  .bg-navy\/98 {
+    background-color: rgb(11 31 77 / 0.98);
+  }
+}

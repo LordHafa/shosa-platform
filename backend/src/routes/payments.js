@@ -1,0 +1,95 @@
+﻿const express = require('express');
+const prisma = require('../lib/prisma');
+const { auth, requireAlumni } = require('../middleware/auth');
+const { parsePositiveUgx, cleanOptional } = require('../lib/validators');
+const {
+  SACCO_PAYMENT_LABELS,
+  SACCO_PAYMENT_TYPES,
+  getSaccoPaymentContext,
+  validateSaccoPaymentRequest
+} = require('../lib/saccoRules');
+
+const router = express.Router();
+
+router.use(auth, requireAlumni);
+
+const ALLOWED_PAYMENT_TYPES = new Set([
+  ...SACCO_PAYMENT_TYPES,
+  'donation',
+  'merchandise_order',
+  'event_fee',
+  'other'
+]);
+
+function paymentChannelFromNetwork(network) {
+  if (network === 'Bank Transfer') return 'bank_transfer';
+  if (network === 'Cash / Manual Deposit') return 'cash';
+  return 'mobile_money';
+}
+
+router.get('/my', async (req, res, next) => {
+  try {
+    const payments = await prisma.payment.findMany({
+      where: { alumniId: req.user.id },
+      include: { receipt: true },
+      orderBy: { createdAt: 'desc' }
+    });
+
+    res.json(payments);
+  } catch (error) { next(error); }
+});
+
+router.post('/mobilemoney', async (req, res, next) => {
+  try {
+    const { paymentType, label, amount, phone, network, transactionRef, description } = req.body;
+    const normalizedType = String(paymentType || '').trim();
+
+    if (!normalizedType || !ALLOWED_PAYMENT_TYPES.has(normalizedType)) {
+      return res.status(400).json({ error: 'Invalid payment type' });
+    }
+
+    const parsedAmount = parsePositiveUgx(amount);
+
+    if (!phone) return res.status(400).json({ error: 'Payment phone number is required' });
+    if (!network) return res.status(400).json({ error: 'Payment network is required' });
+
+    if (SACCO_PAYMENT_TYPES.has(normalizedType)) {
+      const context = await getSaccoPaymentContext(prisma, req.user.id);
+      validateSaccoPaymentRequest({
+        paymentType: normalizedType,
+        amount: parsedAmount,
+        context
+      });
+    }
+
+    if (transactionRef) {
+      const duplicate = await prisma.payment.findUnique({
+        where: { transactionRef: String(transactionRef).trim() }
+      });
+
+      if (duplicate) {
+        return res.status(400).json({ error: 'This transaction reference has already been recorded' });
+      }
+    }
+
+    const payment = await prisma.payment.create({
+      data: {
+        alumniId: req.user.id,
+        paymentType: normalizedType,
+        label: cleanOptional(label) || SACCO_PAYMENT_LABELS[normalizedType] || normalizedType,
+        amount: parsedAmount,
+        phone: String(phone).trim(),
+        network: String(network).trim(),
+        transactionRef: cleanOptional(transactionRef),
+        description: cleanOptional(description),
+        status: 'pending',
+        paymentChannel: paymentChannelFromNetwork(network)
+      }
+    });
+
+    res.status(201).json(payment);
+  } catch (error) { next(error); }
+});
+
+module.exports = router;
+

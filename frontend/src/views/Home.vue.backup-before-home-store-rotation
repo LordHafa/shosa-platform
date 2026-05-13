@@ -1,0 +1,139 @@
+﻿<template>
+  <section class="space-y-10">
+    <div class="relative overflow-hidden rounded-3xl bg-navy px-5 py-12 text-center text-white shadow-xl md:px-12 md:py-24">
+      <div class="absolute inset-0 opacity-25">
+        <img src="/assets/reference/alumni-orientation.jpg" alt="Seeta alumni gathering" class="h-full w-full object-cover" />
+      </div>
+      <div class="absolute inset-0 bg-gradient-to-br from-navy via-navy/95 to-slate-950/95"></div>
+      <div class="relative z-10">
+        <p class="mb-3 font-semibold text-gold">Seeta High made us. Now we build together.</p>
+        <h1 class="mx-auto max-w-5xl text-3xl font-black leading-tight md:text-6xl">Seeta Alumni Website + SACCO</h1>
+        <p class="mx-auto mt-5 max-w-3xl text-base leading-7 text-slate-200 md:text-lg md:leading-8">
+          Connect with alumni, join SACCO, follow events, preserve memories, and carry the Seeta identity forward.
+        </p>
+        <div class="mt-8 grid gap-3 sm:flex sm:flex-wrap sm:justify-center">
+          <router-link to="/register" class="btn-secondary">Register as Alumni</router-link>
+          <router-link to="/login" class="inline-flex min-h-11 items-center justify-center rounded-xl border border-white px-5 py-3 font-semibold hover:bg-white hover:text-navy md:py-2.5">Unified Login</router-link>
+          <router-link to="/store" class="inline-flex min-h-11 items-center justify-center rounded-xl border border-gold px-5 py-3 font-semibold text-gold hover:bg-gold hover:text-navy md:py-2.5">Visit Store</router-link>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid gap-5 md:grid-cols-4">
+      <div class="card"><div class="text-3xl font-black text-navy dark:text-gold">2000</div><p>School start year</p></div>
+      <div class="card"><div class="text-3xl font-black text-navy dark:text-gold">4</div><p>Campuses: Main, Mbalala, Green, A Level</p></div>
+      <div class="card"><div class="text-3xl font-black text-navy dark:text-gold">UGX 50,000</div><p>SACCO registration fee</p></div>
+      <div class="card"><div class="text-3xl font-black text-navy dark:text-gold">1 Login</div><p>Alumni and admin access from one page</p></div>
+    </div>
+
+    <section>
+      <p class="font-bold text-gold">Ways to engage</p>
+      <h2 class="mt-2 text-3xl font-black text-navy dark:text-gold">Whether reconnecting or driving change, there is a place for you.</h2>
+      <div class="mt-6 grid gap-6 lg:grid-cols-3">
+        <article v-for="item in engagement" :key="item.title" class="card">
+          <p class="text-sm font-bold uppercase tracking-wide text-gold">{{ item.kicker }}</p>
+          <h3 class="mt-2 text-2xl font-black text-navy dark:text-gold">{{ item.title }}</h3>
+          <p class="mt-3 leading-7 text-slate-600 dark:text-slate-300">{{ item.text }}</p>
+          <router-link :to="item.to" class="mt-5 inline-block font-bold text-navy dark:text-gold">{{ item.action }} -></router-link>
+        </article>
+      </div>
+    </section>
+
+    <div class="card overflow-hidden p-0">
+      <div class="grid lg:grid-cols-2">
+        <img src="/assets/reference/alumni-orientation.jpg" alt="Alumni orientation" class="h-80 w-full object-cover lg:h-full" />
+        <div class="p-6 md:p-8">
+          <p class="font-bold text-gold">This term at Seeta High</p>
+          <h2 class="mt-2 text-3xl font-black text-navy dark:text-gold">Alumni showing up for the next generation.</h2>
+          <p class="mt-4 leading-8 text-slate-600 dark:text-slate-300">
+            From student orientation to mentorship, SACCO growth, merchandise, events and community support, the alumni platform is a living network.
+          </p>
+          <div class="mt-6 grid gap-3 sm:grid-cols-2">
+            <div class="rounded-2xl bg-cream p-4 dark:bg-slate-800"><strong>Clear membership journey</strong><br><span class="text-sm text-slate-500">Register once, then access alumni and SACCO flows.</span></div>
+            <div class="rounded-2xl bg-cream p-4 dark:bg-slate-800"><strong>Audit-first payments</strong><br><span class="text-sm text-slate-500">Admins verify payments before status changes.</span></div>
+            <div class="rounded-2xl bg-cream p-4 dark:bg-slate-800"><strong>Official communication</strong><br><span class="text-sm text-slate-500">Contact, files and audit logs reduce scattered records.</span></div>
+            <div class="rounded-2xl bg-cream p-4 dark:bg-slate-800"><strong>Community memory</strong><br><span class="text-sm text-slate-500">Gallery and events keep alumni work visible.</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <section class="grid gap-6 lg:grid-cols-2">
+      <div class="card">
+        <p class="font-bold text-gold">Upcoming activity</p>
+        <h2 class="mt-2 text-2xl font-black text-navy dark:text-gold">Come through for what is next.</h2>
+        <div class="mt-5 space-y-4">
+          <div v-for="event in eventHighlights" :key="event.title" class="rounded-2xl border border-slate-200 p-4 dark:border-slate-700">
+            <p class="text-sm font-bold text-gold">{{ event.kicker }}</p>
+            <h3 class="font-black">{{ event.title }}</h3>
+            <p class="mt-1 text-sm leading-6 text-slate-600 dark:text-slate-300">{{ event.text }}</p>
+          </div>
+        </div>
+        <router-link to="/events" class="mt-5 inline-block btn-secondary">View events</router-link>
+      </div>
+      <div class="card">
+        <p class="font-bold text-gold">SACCO discipline</p>
+        <h2 class="mt-2 text-2xl font-black text-navy dark:text-gold">Simple for members, controlled for finance.</h2>
+        <ul class="mt-5 space-y-3 text-slate-600 dark:text-slate-300">
+          <li>- Public members start as regular SACCO applicants.</li>
+          <li>- The first SACCO payment is the fixed UGX 50,000 registration fee.</li>
+          <li>- Admin approval activates the SACCO membership.</li>
+          <li>- Payments, files and audit logs remain traceable.</li>
+        </ul>
+        <router-link to="/sacco/register" class="mt-5 inline-block btn-primary">Start SACCO journey</router-link>
+      </div>
+    </section>
+
+    <section>
+      <div class="mb-5 flex flex-wrap items-end justify-between gap-4">
+        <div>
+          <p class="font-bold text-gold">Store and identity</p>
+          <h2 class="text-3xl font-black text-navy dark:text-gold">Carry the Seeta story with quiet pride.</h2>
+        </div>
+        <router-link to="/store" class="font-bold text-navy dark:text-gold">Open store -></router-link>
+      </div>
+
+      <div class="grid gap-5 md:grid-cols-3">
+        <article v-for="product in featuredProducts" :key="product.id" class="card overflow-hidden p-0">
+          <div class="flex h-56 items-center justify-center bg-gradient-to-br from-cream via-white to-gold/10 p-4 dark:from-slate-900 dark:via-slate-900 dark:to-navy/50">
+            <img
+              :src="defaultVariant(product).image"
+              :alt="product.name"
+              class="max-h-full max-w-full rounded-2xl object-contain drop-shadow"
+            />
+          </div>
+          <div class="p-5">
+            <p class="text-sm font-bold text-gold">{{ product.tag }}</p>
+            <h3 class="text-xl font-black">{{ product.name }}</h3>
+            <p class="mt-1 font-bold text-navy dark:text-gold">{{ money(product.price) }}</p>
+          </div>
+        </article>
+      </div>
+    </section>
+  </section>
+</template>
+
+<script setup>
+import { computed } from 'vue'
+import { defaultVariant, money, products } from '../data/storeProducts'
+
+const engagement = [
+  { kicker: 'Alumni network', title: 'Stay connected', text: 'Keep in touch with classmates, discover alumni across professions, and build relationships that keep the Seeta story alive beyond school.', to: '/register', action: 'Register now' },
+  { kicker: 'Seeta SACCO', title: 'Invest together', text: 'A member-owned savings and investment vehicle for alumni to grow together through structured contributions and transparent approval flows.', to: '/sacco/register', action: 'Join SACCO' },
+  { kicker: 'Support and giving', title: 'Give back visibly', text: 'Support student orientation, mentorship, career talks, medical camps, sports, reunions and school-facing initiatives.', to: '/donate', action: 'Make a donation' }
+]
+
+const eventHighlights = [
+  { kicker: 'Orientation support', title: 'Student Orientation', text: 'Alumni presence during orientation reminds new students that Seeta is a community they can one day grow into.' },
+  { kicker: 'Community sports', title: 'Seeta Alumni League', text: 'Sport remains one of the easiest ways for different alumni generations to reconnect and create shared memories again.' },
+  { kicker: 'Giving back', title: 'Mentorship and Career Talks', text: 'Share experience, open opportunities and help students see paths they may not yet know are possible.' }
+]
+
+const featuredProductIds = [5, 1, 8]
+
+const featuredProducts = computed(() => {
+  return featuredProductIds
+    .map(id => products.find(product => product.id === id))
+    .filter(Boolean)
+})
+</script>

@@ -1,0 +1,99 @@
+{
+  "source_pdf": "SHOSA Pictorial journey since 2012.pdf",
+  "total_images_extracted": 108,
+  "folders": [
+    {
+      "folder": "00_cover_and_logos",
+      "title": "Cover and SHOSA identity logos",
+      "pages": "1-1",
+      "image_count": 3
+    },
+    {
+      "folder": "01_founders_background_and_projects",
+      "title": "Founding director, background and priority programmes",
+      "pages": "3-4",
+      "image_count": 1
+    },
+    {
+      "folder": "02_shosa_awards_reunion_dinner_2016_kololo",
+      "title": "SHOSA Awards Reunion Dinner 2016 - Kololo Courts Hotel",
+      "pages": "5-14",
+      "image_count": 19
+    },
+    {
+      "folder": "03_alumni_meeting_director_joan_2019",
+      "title": "Alumni Meeting with Director Joan - Bukoto, 2019",
+      "pages": "15-16",
+      "image_count": 2
+    },
+    {
+      "folder": "04_shosa_sacco_planning_meeting_2016_kololo",
+      "title": "SHOSA Saving Scheme / SACCO Planning Meeting 2016 - Kololo Courts Hotel",
+      "pages": "17-22",
+      "image_count": 12
+    },
+    {
+      "folder": "05_photo_moment_mr_obbo_headteacher",
+      "title": "Photo Moment with Mr. Obbo Allan, Head Teacher at Seeta High",
+      "pages": "23-25",
+      "image_count": 4
+    },
+    {
+      "folder": "06_strategic_planning_madam_kagoya_lydia",
+      "title": "Strategic Planning Meeting with Madam Kagoya Lydia",
+      "pages": "26-27",
+      "image_count": 4
+    },
+    {
+      "folder": "07_shosa_fest_nama_campus",
+      "title": "SHOSA Fest / Meeting at Seeta Nama Campus",
+      "pages": "28-35",
+      "image_count": 9
+    },
+    {
+      "folder": "08_former_prefects_convention_green_campus_2016",
+      "title": "Former Prefects Convention - Green Campus 2016",
+      "pages": "36-41",
+      "image_count": 8
+    },
+    {
+      "folder": "09_shosa_medical_association_camp_nama",
+      "title": "SHOSA Medical Association Medical Camp at Nama",
+      "pages": "42-62",
+      "image_count": 23
+    },
+    {
+      "folder": "10_shosa_dinner_2012_arirang",
+      "title": "SHOSA Dinner 2012 - Arirang Restaurant",
+      "pages": "63-68",
+      "image_count": 7
+    },
+    {
+      "folder": "11_patriotism_secretariat_pioneer_alumni_2010",
+      "title": "Pioneer Alumni in Patriotism Secretariat - 2010",
+      "pages": "69-69",
+      "image_count": 2
+    },
+    {
+      "folder": "12_green_campus_debating_session_2012",
+      "title": "Old Students at Seeta Green Campus Debating Session - 2012",
+      "pages": "70-75",
+      "image_count": 6
+    },
+    {
+      "folder": "13_director_rose_muyingo_and_mr_obbo_2011",
+      "title": "Meeting with Director Mrs. Rose Muyingo and Mr. Obbo - 2011",
+      "pages": "76-76",
+      "image_count": 2
+    },
+    {
+      "folder": "14_s5_orientation_main_campus_2016",
+      "title": "S.5 Orientation at Main Campus - 2016",
+      "pages": "77-80",
+      "image_count": 6
+    }
+  ],
+  "image_format": "JPEG optimized for web/system upload",
+  "max_dimension_pixels": 1600,
+  "note": "Same universal folder structure as the extracted images, but optimized to reduce download/upload size."
+}

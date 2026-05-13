@@ -1,0 +1,46 @@
+<template>
+  <section class="mx-auto max-w-6xl space-y-6">
+    <div class="rounded-3xl bg-navy p-8 text-white shadow-xl">
+      <p class="font-bold text-gold">SACCO payments</p>
+      <h1 class="mt-2 text-3xl font-black md:text-4xl">Submit and track payments</h1>
+      <p class="mt-3 max-w-3xl leading-7 text-slate-200">Record mobile money or manual payment details for admin verification. Members cannot approve their own payments.</p>
+    </div>
+
+    <div class="grid gap-6 lg:grid-cols-[420px_1fr]">
+      <form class="card space-y-4" @submit.prevent="submitPayment">
+        <h2 class="text-2xl font-black text-navy dark:text-gold">New payment record</h2>
+        <div><label class="label">Payment Type *</label><select v-model="form.paymentType" class="input" required><option value="sacco_yearly_subscription">Yearly SACCO Subscription</option><option value="sacco_savings_monthly">Monthly Savings</option><option value="sacco_savings_quarterly">Quarterly Savings</option><option value="donation">Donation</option><option value="merchandise_order">Merchandise Order</option><option value="event_fee">Event Fee</option><option value="other">Other</option></select></div>
+        <div><label class="label">Amount UGX *</label><input v-model="form.amount" class="input" inputmode="numeric" placeholder="50000" required /></div>
+        <div><label class="label">Phone Number *</label><input v-model.trim="form.phone" class="input" required placeholder="0772000000" /></div>
+        <div><label class="label">Network *</label><select v-model="form.network" class="input" required><option>MTN Mobile Money</option><option>Airtel Money</option><option>Bank Transfer</option><option>Cash / Manual Deposit</option><option>Other</option></select></div>
+        <div><label class="label">Transaction Reference</label><input v-model.trim="form.transactionRef" class="input" placeholder="Optional but recommended" /></div>
+        <div><label class="label">Description</label><textarea v-model.trim="form.description" class="input min-h-24"></textarea></div>
+        <p v-if="message" class="rounded-lg bg-green-100 p-3 text-green-700">{{ message }}</p>
+        <p v-if="error" class="rounded-lg bg-red-100 p-3 text-red-700">{{ error }}</p>
+        <button class="btn-primary w-full" :disabled="loading">{{ loading ? 'Submitting...' : 'Submit Payment for Review' }}</button>
+      </form>
+
+      <div class="card overflow-x-auto">
+        <div class="mb-4 flex flex-wrap items-center justify-between gap-3"><h2 class="text-2xl font-black text-navy dark:text-gold">My payment history</h2><button class="btn-secondary" @click="loadPayments">Refresh</button></div>
+        <table class="w-full min-w-[760px] text-left text-sm">
+          <thead><tr class="border-b"><th class="py-3">Date</th><th>Type</th><th>Amount</th><th>Network</th><th>Status</th><th>Reference</th></tr></thead>
+          <tbody>
+            <tr v-for="p in payments" :key="p.id" class="border-b border-slate-100 dark:border-slate-700">
+              <td class="py-3">{{ new Date(p.createdAt).toLocaleDateString() }}</td><td>{{ p.label || p.paymentType }}</td><td>UGX {{ Number(p.amount).toLocaleString() }}</td><td>{{ p.network || '-' }}</td><td>{{ p.status }}</td><td>{{ p.transactionRef || '-' }}</td>
+            </tr>
+            <tr v-if="!payments.length"><td colspan="6" class="py-8 text-center text-slate-500">No payments yet.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+</template>
+<script setup>
+import { onMounted, reactive, ref } from 'vue'
+import api from '../api'
+const payments = ref([]); const loading = ref(false); const error = ref(''); const message = ref('')
+const form = reactive({ paymentType:'sacco_yearly_subscription', amount:'', phone:'', network:'MTN Mobile Money', transactionRef:'', description:'' })
+async function loadPayments(){ payments.value = (await api.get('/payments/my')).data }
+async function submitPayment(){ loading.value=true; error.value=''; message.value=''; try { await api.post('/payments/mobilemoney', form); message.value='Payment submitted for admin review.'; Object.assign(form,{ paymentType:'sacco_yearly_subscription', amount:'', phone:'', network:'MTN Mobile Money', transactionRef:'', description:'' }); await loadPayments() } catch(e){ error.value=e.response?.data?.error || 'Payment submission failed' } finally { loading.value=false } }
+onMounted(loadPayments)
+</script>

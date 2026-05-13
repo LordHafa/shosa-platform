@@ -1,0 +1,214 @@
+﻿<template>
+  <section class="mx-auto max-w-5xl space-y-6">
+    <div class="rounded-3xl bg-navy p-6 text-white shadow-xl md:p-8">
+      <p class="font-bold text-gold">Seeta Alumni membership</p>
+      <h1 class="mt-2 text-3xl font-black md:text-4xl">Create your alumni profile</h1>
+      <p class="mt-3 max-w-3xl leading-7 text-slate-200">
+        Register once to access your alumni dashboard, SACCO onboarding, payments, events, gallery memories, and official Seeta Alumni communication.
+      </p>
+    </div>
+
+    <form class="card grid gap-4 md:grid-cols-2" @submit.prevent="submit">
+      <div>
+        <label class="label">First Name *</label>
+        <input v-model.trim="form.firstName" class="input" required />
+      </div>
+
+      <div>
+        <label class="label">Last Name *</label>
+        <input v-model.trim="form.lastName" class="input" required />
+      </div>
+
+      <div>
+        <label class="label">Other Names / Middle Name</label>
+        <input v-model.trim="form.otherNames" class="input" />
+      </div>
+
+      <div>
+        <label class="label">Email *</label>
+        <input v-model.trim="form.email" class="input" type="email" required />
+      </div>
+
+      <div>
+        <label class="label">Phone *</label>
+        <input v-model.trim="form.phone" class="input" inputmode="tel" required placeholder="0772000000" />
+      </div>
+
+      <div>
+        <label class="label">Gender</label>
+        <select v-model="form.gender" class="input">
+          <option value="">Select</option>
+          <option>Male</option>
+          <option>Female</option>
+        </select>
+      </div>
+
+      <div>
+        <label class="label">Campus *</label>
+        <select v-model="form.campus" class="input" required>
+          <option value="">Select campus</option>
+          <option>Main Campus</option>
+          <option>Mbalala Campus</option>
+          <option>Green Campus</option>
+          <option>A Level Campus</option>
+        </select>
+      </div>
+
+      <div>
+        <label class="label">Graduation / Completion Year *</label>
+        <input
+          v-model.number="form.gradYear"
+          class="input"
+          type="number"
+          inputmode="numeric"
+          min="2000"
+          max="2100"
+          required
+          placeholder="e.g. 2014"
+        />
+        <p class="mt-1 text-xs text-slate-500 dark:text-slate-400">
+          This is used as your main alumni year group.
+        </p>
+      </div>
+
+      <div>
+        <label class="label">Level / Section Attended *</label>
+        <select v-model="form.attendanceLevel" class="input" required>
+          <option value="">Select level attended</option>
+          <option v-for="option in attendanceOptions" :key="option" :value="option">{{ option }}</option>
+        </select>
+      </div>
+
+      <div v-if="isPartialAttendance">
+        <label class="label">Brief Attendance Note</label>
+        <input
+          v-model.trim="form.attendanceNote"
+          class="input"
+          placeholder="e.g. Joined in S.2, left after S.3"
+        />
+      </div>
+
+      <div>
+        <label class="label">House</label>
+        <input v-model.trim="form.house" class="input" placeholder="If applicable" />
+      </div>
+
+      <div>
+        <label class="label">Occupation</label>
+        <input v-model.trim="form.occupation" class="input" placeholder="e.g. Software Developer" />
+      </div>
+
+      <div>
+        <label class="label">City</label>
+        <input v-model.trim="form.city" class="input" placeholder="e.g. Kampala" />
+      </div>
+
+      <div>
+        <label class="label">Country</label>
+        <input v-model.trim="form.country" class="input" placeholder="Uganda" />
+      </div>
+
+      <div>
+        <label class="label">Password *</label>
+        <input v-model="form.password" class="input" type="password" minlength="8" required />
+      </div>
+
+      <div>
+        <label class="label">Confirm Password *</label>
+        <input v-model="form.passwordConfirm" class="input" type="password" minlength="8" required />
+      </div>
+
+      <label class="md:col-span-2 flex items-start gap-3 rounded-2xl bg-cream p-4 text-sm dark:bg-slate-800">
+        <input v-model="form.consent" type="checkbox" required class="mt-1" />
+        <span>
+          I confirm that the information provided is accurate and consent to Seeta Alumni Association using it for alumni membership, communication, SACCO onboarding, and official record keeping.
+        </span>
+      </label>
+
+      <p v-if="message" class="md:col-span-2 rounded-lg bg-green-100 p-3 text-green-700">{{ message }}</p>
+      <p v-if="error" class="md:col-span-2 rounded-lg bg-red-100 p-3 text-red-700">{{ error }}</p>
+
+      <button class="btn-primary md:col-span-2" :disabled="loading">
+        {{ loading ? 'Registering...' : 'Create Alumni Account' }}
+      </button>
+    </form>
+  </section>
+</template>
+
+<script setup>
+import { computed, reactive, ref } from 'vue'
+import { useRouter } from 'vue-router'
+import { useAuthStore } from '../stores/auth'
+
+const router = useRouter()
+const auth = useAuthStore()
+const loading = ref(false)
+const error = ref('')
+const message = ref('')
+
+const attendanceOptions = [
+  'S.1 - S.4 / O-Level',
+  'S.5 - S.6 / A-Level',
+  'S.1 - S.6 / O-Level and A-Level',
+  'Partial / Non-continuous attendance'
+]
+
+const form = reactive({
+  firstName: '',
+  lastName: '',
+  otherNames: '',
+  email: '',
+  phone: '',
+  gender: '',
+  campus: '',
+  gradYear: '',
+  attendanceLevel: '',
+  attendanceNote: '',
+  house: '',
+  occupation: '',
+  city: '',
+  country: 'Uganda',
+  password: '',
+  passwordConfirm: '',
+  consent: false
+})
+
+const isPartialAttendance = computed(() => form.attendanceLevel === 'Partial / Non-continuous attendance')
+
+function buildPeriod() {
+  if (!form.attendanceLevel) return ''
+
+  if (isPartialAttendance.value && form.attendanceNote.trim()) {
+    return `${form.attendanceLevel}: ${form.attendanceNote.trim()}`
+  }
+
+  return form.attendanceLevel
+}
+
+async function submit() {
+  loading.value = true
+  error.value = ''
+  message.value = ''
+
+  try {
+    if (form.password !== form.passwordConfirm) throw new Error('Passwords do not match')
+
+    const payload = {
+      ...form,
+      period: buildPeriod()
+    }
+
+    delete payload.attendanceLevel
+    delete payload.attendanceNote
+
+    await auth.register(payload)
+
+    message.value = 'Registration successful. Redirecting to login...'
+    setTimeout(() => router.push('/login'), 900)
+  } catch (e) {
+    error.value = e.response?.data?.error || e.message || 'Registration failed'
+  } finally {
+    loading.value = false
+  }
+}
+</script>
