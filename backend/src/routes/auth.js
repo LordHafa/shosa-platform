@@ -4,6 +4,7 @@ const jwt = require('jsonwebtoken');
 const prisma = require('../lib/prisma');
 const { auth, getJwtSecret } = require('../middleware/auth');
 const { makeUpload } = require('../middleware/upload');
+const { writeAudit } = require('../lib/audit');
 const {
   normalizeEmail,
   validateEmail,
@@ -33,6 +34,37 @@ async function emailExistsAnywhere(email) {
   ]);
 
   return Boolean(alumni || admin);
+}
+
+async function writeLoginAudit(req, { action, status, reason = null, user = null, type = null, role = null, email = null }) {
+  const originalUser = req.user;
+
+  if (user) {
+    req.user = {
+      id: user.id,
+      email: user.email,
+      type,
+      role,
+      campusScope: user.campusScope || null,
+      name: user.fullName || user.displayName || user.email
+    };
+  }
+
+  try {
+    await writeAudit(req, {
+      action,
+      resourceType: 'Auth',
+      status,
+      reason,
+      metadata: {
+        email: email || user?.email || null,
+        type,
+        role
+      }
+    });
+  } finally {
+    req.user = originalUser;
+  }
 }
 
 router.post('/register', uploadProfile.single('photo'), async (req, res, next) => {
@@ -99,11 +131,27 @@ router.post('/register', uploadProfile.single('photo'), async (req, res, next) =
 router.post('/login', async (req, res, next) => {
   try {
     const { email, password } = req.body;
-    if (!email || !password) return res.status(400).json({ error: 'Email and password are required' });
-
     const normalizedEmail = normalizeEmail(email);
 
+    if (!email || !password) {
+      await writeLoginAudit(req, {
+        action: 'LOGIN_FAILED',
+        status: 'failure',
+        reason: 'Missing email or password',
+        email: normalizedEmail
+      });
+
+      return res.status(400).json({ error: 'Email and password are required' });
+    }
+
     if (!isPasswordWithinBounds(password)) {
+      await writeLoginAudit(req, {
+        action: 'LOGIN_FAILED',
+        status: 'failure',
+        reason: 'Invalid credentials',
+        email: normalizedEmail
+      });
+
       return res.status(401).json({ error: 'Invalid credentials' });
     }
 
@@ -117,16 +165,47 @@ router.post('/login', async (req, res, next) => {
       role = user?.role || null;
     }
 
-    if (!user) return res.status(401).json({ error: 'Invalid credentials' });
+    if (!user) {
+      await writeLoginAudit(req, {
+        action: 'LOGIN_FAILED',
+        status: 'failure',
+        reason: 'Invalid credentials',
+        email: normalizedEmail
+      });
+
+      return res.status(401).json({ error: 'Invalid credentials' });
+    }
 
     const valid = await bcrypt.compare(password, user.passwordHash);
-    if (!valid) return res.status(401).json({ error: 'Invalid credentials' });
+
+    if (!valid) {
+      await writeLoginAudit(req, {
+        action: 'LOGIN_FAILED',
+        status: 'failure',
+        reason: 'Invalid credentials',
+        user,
+        type,
+        role,
+        email: normalizedEmail
+      });
+
+      return res.status(401).json({ error: 'Invalid credentials' });
+    }
 
     const token = jwt.sign(
       { id: user.id, email: user.email, type, role, campusScope: user.campusScope || null, name: user.fullName || user.displayName },
       getJwtSecret(),
       { expiresIn: '7d' }
     );
+
+    await writeLoginAudit(req, {
+      action: 'LOGIN_SUCCESS',
+      status: 'success',
+      user,
+      type,
+      role,
+      email: user.email
+    });
 
     const redirect = type === 'admin' ? '/admin' : '/alumni/dashboard';
     res.json({ token, type, role, campusScope: user.campusScope || null, name: user.fullName || user.displayName, redirect });

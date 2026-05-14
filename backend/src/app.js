@@ -49,12 +49,18 @@ const globalLimiter = rateLimit({
   message: { error: 'Too many requests. Please try again later.' }
 });
 
+const ipKeyGenerator = rateLimit.ipKeyGenerator || ((ip) => ip);
+
 const loginLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   limit: 5,
   standardHeaders: true,
   legacyHeaders: false,
-  message: { error: 'Too many login attempts. Please wait 15 minutes and try again.' }
+  message: { error: 'Too many login attempts. Please wait 15 minutes and try again.' },
+  keyGenerator: (req) => {
+    const email = String(req.body?.email || 'unknown').toLowerCase().trim();
+    return `${ipKeyGenerator(req.ip)}:${email || 'unknown'}`;
+  }
 });
 
 app.use('/api/auth/login', loginLimiter);

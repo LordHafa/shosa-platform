@@ -6,7 +6,7 @@ function getJwtSecret() {
   const secret = process.env.JWT_SECRET;
 
   if (!secret || !String(secret).trim()) {
-    const error = new Error('Server authentication is not configured');
+    const error = new Error('Internal server error');
     error.status = 500;
     throw error;
   }

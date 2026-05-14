@@ -102,7 +102,7 @@ router.post('/profile/photo', auth, requireAlumni, uploadProfile.single('photo')
     const profilePhoto = `/uploads/profiles/${req.file.filename}`;
     await prisma.alumni.update({
       where: { id: req.user.id },
-      data: { profilePhoto, lastProfileUpdate: new Date() }
+      data: { profilePhoto }
     });
 
     res.json({ message: 'Profile photo uploaded', profilePhoto });

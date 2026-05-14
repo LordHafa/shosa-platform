@@ -577,7 +577,7 @@ router.get('/users/:id/documents/:documentId/download', requirePermission('docum
     const filePath = documentPath(document.storedFileName);
     if (!fs.existsSync(filePath)) return res.status(404).json({ error: 'Document file is missing on disk' });
     await writeAudit(req, { action: 'DOWNLOAD_ADMIN_DOCUMENT', resourceType: 'AdminDocument', resourceId: document.id, status: 'success', metadata: { alumniId } });
-    res.download(filePath, document.originalFileName);
+    res.download(filePath, path.basename(document.originalFileName || 'document'));
   } catch (error) { next(error); }
 });
 
