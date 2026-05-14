@@ -17,8 +17,8 @@ Database: `seeta_db` on PostgreSQL port `5433`
 
 Default seeded admin:
 
-- Email: `admin@seetaalumni.ug`
-- Password: `Admin123!`
+- Email: `your-admin-email@example.com`
+- Password: `your-private-seed-admin-password`
 
 ## Important
 

@@ -2,8 +2,8 @@
 
 ## 1. Admin Login
 - Go to http://localhost:5173/login
-- Email: admin@seetaalumni.ug
-- Password: Admin123!
+- Email: your-admin-email@example.com
+- Password: your-private-seed-admin-password
 - Expected: admin dashboard opens.
 
 ## 2. Alumni Registration

@@ -1,12 +1,16 @@
-﻿param(
+param(
   [int]$Limit = 5,
   [switch]$All
 )
 
 $ApiBase = "http://localhost:5000/api"
-$Email = "admin@seetaalumni.ug"
-$Password = "Admin123!"
-$ImagesRoot = "C:\Users\MY PC\OneDrive\Desktop\seeta-alumni-setup\seeta-alumni-test\frontend\public\assets\gallery-pictorial-journey"
+$Email = $env:SHOSA_ADMIN_EMAIL
+$Password = $env:SHOSA_ADMIN_PASSWORD
+
+if (-not $Email -or -not $Password) {
+  throw "Set SHOSA_ADMIN_EMAIL and SHOSA_ADMIN_PASSWORD environment variables before running this script."
+}
+$ImagesRoot = Join-Path (Get-Location) "frontend\public\assets\gallery-pictorial-journey"
 
 function Get-CategoryFromFolder($folderName) {
   if ($folderName -match "sacco") { return "sacco_activities" }
