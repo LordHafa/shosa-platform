@@ -68,7 +68,7 @@ router.post('/mobilemoney', async (req, res, next) => {
       });
 
       if (duplicate) {
-        return res.status(400).json({ error: 'This transaction reference has already been recorded' });
+        return res.status(409).json({ error: 'This transaction reference has already been recorded' });
       }
     }
 
@@ -88,7 +88,13 @@ router.post('/mobilemoney', async (req, res, next) => {
     });
 
     res.status(201).json(payment);
-  } catch (error) { next(error); }
+    } catch (error) {
+    if (error.code === 'P2002' && Array.isArray(error.meta?.target) && error.meta.target.includes('transactionRef')) {
+      return res.status(409).json({ error: 'This transaction reference has already been recorded' });
+    }
+
+    return next(error);
+  }
 });
 
 module.exports = router;

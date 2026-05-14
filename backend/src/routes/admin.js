@@ -172,6 +172,38 @@ function buildPaymentWhere(query, user) {
   return applyPaymentScope(where, user);
 }
 
+function alumniCampusScopeFilter(user) {
+  const scoped = adminScopeWhere(user, 'campus');
+  if (!scoped?.campus) return null;
+
+  const aliases = campusAliases(scoped.campus);
+
+  return {
+    OR: aliases.map((campus) => ({
+      campus: { equals: campus, mode: 'insensitive' }
+    }))
+  };
+}
+
+function applyAlumniScope(baseWhere, user) {
+  return combineWhereClauses(baseWhere || {}, alumniCampusScopeFilter(user));
+}
+
+function applyAlumniRelationScope(baseWhere, user) {
+  const alumniScope = alumniCampusScopeFilter(user);
+  if (!alumniScope) return baseWhere || {};
+
+  return combineWhereClauses(baseWhere || {}, { alumni: alumniScope });
+}
+
+function conflictError(message) {
+  const error = new Error(message);
+  error.status = 409;
+  return error;
+}
+
+const FINALIZABLE_PAYMENT_STATUS_LIST = ['pending', 'pending_gateway_confirmation'];
+
 router.get('/dashboard', requirePermission('dashboard:read'), async (req, res, next) => {
   try {
     const monthKeys = lastSixMonthKeys();
@@ -294,13 +326,16 @@ router.put('/alumni/:id/verification', requirePermission('alumni:update'), async
 
 router.get('/sacco-members', requirePermission('alumni:read'), async (req, res, next) => {
   try {
-    const status = req.query.status ? String(req.query.status) : undefined;
+    const baseWhere = req.query.status ? { status: String(req.query.status) } : {};
+    const where = applyAlumniRelationScope(baseWhere, req.user);
+
     const memberships = await prisma.saccoMembership.findMany({
-      where: status ? { status } : undefined,
+      where,
       include: { alumni: { select: { id: true, displayName: true, email: true, phone: true, campus: true, gradYear: true } } },
       orderBy: { createdAt: 'desc' },
       take: 200
     });
+
     res.json(memberships);
   } catch (error) { next(error); }
 });
@@ -331,10 +366,26 @@ router.post('/payments/:id/approve', requirePermission('payments:review'), async
     }
 
     const updated = await prisma.$transaction(async (tx) => {
-      const approved = await tx.payment.update({
-        where: { id },
-        data: { status: 'approved', confirmedAt: new Date(), confirmedBy: req.user.id, reviewedAt: new Date(), reviewedBy: req.user.id }
+      const finalized = await tx.payment.updateMany({
+        where: {
+          id,
+          status: { in: FINALIZABLE_PAYMENT_STATUS_LIST }
+        },
+        data: {
+          status: 'approved',
+          confirmedAt: new Date(),
+          confirmedBy: req.user.id,
+          reviewedAt: new Date(),
+          reviewedBy: req.user.id
+        }
       });
+
+      if (finalized.count !== 1) {
+        throw conflictError('Payment was already finalized or changed. Refresh and try again.');
+      }
+
+      const approved = await tx.payment.findUnique({ where: { id } });
+
       if (payment.paymentType === 'sacco_membership_fee') {
         await tx.saccoMembership.updateMany({
           where: { alumniId: payment.alumniId },
@@ -342,6 +393,7 @@ router.post('/payments/:id/approve', requirePermission('payments:review'), async
         });
         await tx.alumni.update({ where: { id: payment.alumniId }, data: { membershipTier: 'sacco_member' } });
       }
+
       await tx.paymentReview.create({
         data: {
           paymentId: id,
@@ -352,6 +404,7 @@ router.post('/payments/:id/approve', requirePermission('payments:review'), async
           metadata: { paymentType: payment.paymentType, amount: payment.amount }
         }
       });
+
       return approved;
     });
 
@@ -393,10 +446,25 @@ router.post('/payments/:id/reject', requirePermission('payments:review'), async 
     ensurePaymentCanBeFinalized(payment);
 
     const updated = await prisma.$transaction(async (tx) => {
-      const rejected = await tx.payment.update({
-        where: { id },
-        data: { status: 'rejected', rejectionReason: reason, reviewedAt: new Date(), reviewedBy: req.user.id }
+      const finalized = await tx.payment.updateMany({
+        where: {
+          id,
+          status: { in: FINALIZABLE_PAYMENT_STATUS_LIST }
+        },
+        data: {
+          status: 'rejected',
+          rejectionReason: reason,
+          reviewedAt: new Date(),
+          reviewedBy: req.user.id
+        }
       });
+
+      if (finalized.count !== 1) {
+        throw conflictError('Payment was already finalized or changed. Refresh and try again.');
+      }
+
+      const rejected = await tx.payment.findUnique({ where: { id } });
+
       await tx.paymentReview.create({
         data: {
           paymentId: id,
@@ -408,8 +476,10 @@ router.post('/payments/:id/reject', requirePermission('payments:review'), async 
           metadata: { paymentType: payment.paymentType, amount: payment.amount }
         }
       });
+
       return rejected;
     });
+
     await writeAudit(req, { action: 'REJECT_PAYMENT', resourceType: 'Payment', resourceId: id, status: 'success', reason, metadata: { paymentType: payment.paymentType, amount: payment.amount } });
     res.json(updated);
   } catch (error) { next(error); }
@@ -577,10 +647,18 @@ router.put('/users/:id', requirePermission('*'), async (req, res, next) => {
 router.get('/users/:id/documents', requirePermission('documents:manage'), async (req, res, next) => {
   try {
     const alumniId = parseId(req.params.id, 'alumni ID');
+    const alumni = await prisma.alumni.findFirst({
+      where: applyAlumniScope({ id: alumniId }, req.user),
+      select: { id: true }
+    });
+
+    if (!alumni) return res.status(404).json({ error: 'Alumni not found' });
+
     const documents = await prisma.adminDocument.findMany({
       where: { alumniId, isDeleted: false },
       orderBy: { createdAt: 'desc' }
     });
+
     res.json(documents);
   } catch (error) { next(error); }
 });
@@ -588,7 +666,7 @@ router.get('/users/:id/documents', requirePermission('documents:manage'), async 
 router.post('/users/:id/documents', requirePermission('documents:manage'), uploadDocument.single('document'), async (req, res, next) => {
   try {
     const alumniId = parseId(req.params.id, 'alumni ID');
-    const alumni = await prisma.alumni.findUnique({ where: { id: alumniId }, select: { id: true, displayName: true } });
+    const alumni = await prisma.alumni.findFirst({ where: applyAlumniScope({ id: alumniId }, req.user), select: { id: true, displayName: true, campus: true } });
     if (!alumni) return res.status(404).json({ error: 'Alumni not found' });
     if (!req.file) return res.status(400).json({ error: 'Document file is required' });
     const documentType = cleanOptional(req.body.documentType) || 'general';
@@ -613,7 +691,7 @@ router.get('/users/:id/documents/:documentId/download', requirePermission('docum
   try {
     const alumniId = parseId(req.params.id, 'alumni ID');
     const documentId = parseId(req.params.documentId, 'document ID');
-    const document = await prisma.adminDocument.findFirst({ where: { id: documentId, alumniId, isDeleted: false } });
+    const document = await prisma.adminDocument.findFirst({ where: applyAlumniRelationScope({ id: documentId, alumniId, isDeleted: false }, req.user) });
     if (!document) return res.status(404).json({ error: 'Document not found' });
     const filePath = documentPath(document.storedFileName);
     if (!fs.existsSync(filePath)) return res.status(404).json({ error: 'Document file is missing on disk' });
@@ -626,7 +704,7 @@ router.delete('/users/:id/documents/:documentId', requirePermission('documents:m
   try {
     const alumniId = parseId(req.params.id, 'alumni ID');
     const documentId = parseId(req.params.documentId, 'document ID');
-    const document = await prisma.adminDocument.findFirst({ where: { id: documentId, alumniId, isDeleted: false } });
+    const document = await prisma.adminDocument.findFirst({ where: applyAlumniRelationScope({ id: documentId, alumniId, isDeleted: false }, req.user) });
     if (!document) return res.status(404).json({ error: 'Document not found' });
     const updated = await prisma.adminDocument.update({ where: { id: document.id }, data: { isDeleted: true, deletedAt: new Date(), deletedBy: req.user.id } });
     await writeAudit(req, { action: 'DELETE_ADMIN_DOCUMENT', resourceType: 'AdminDocument', resourceId: document.id, status: 'success', metadata: { alumniId, originalFileName: document.originalFileName } });
@@ -637,7 +715,7 @@ router.delete('/users/:id/documents/:documentId', requirePermission('documents:m
 router.get('/documents', requirePermission('documents:manage'), async (req, res, next) => {
   try {
     const documents = await prisma.adminDocument.findMany({
-      where: { isDeleted: false },
+      where: applyAlumniRelationScope({ isDeleted: false }, req.user),
       include: { alumni: { select: { id: true, displayName: true, email: true, campus: true } }, receipt: true },
       orderBy: { createdAt: 'desc' },
       take: 200
@@ -653,7 +731,7 @@ router.put('/documents/:documentId/verify', requirePermission('documents:manage'
     const reviewNote = cleanOptional(req.body.reviewNote);
 
     const document = await prisma.adminDocument.findFirst({
-      where: { id: documentId, isDeleted: false }
+      where: applyAlumniRelationScope({ id: documentId, isDeleted: false }, req.user)
     });
 
     if (!document) return res.status(404).json({ error: 'Document not found' });
@@ -686,7 +764,7 @@ router.put('/documents/:documentId/reject', requirePermission('documents:manage'
     const reviewNote = requireNonEmpty(req.body.reviewNote, 'Review note');
 
     const document = await prisma.adminDocument.findFirst({
-      where: { id: documentId, isDeleted: false }
+      where: applyAlumniRelationScope({ id: documentId, isDeleted: false }, req.user)
     });
 
     if (!document) return res.status(404).json({ error: 'Document not found' });

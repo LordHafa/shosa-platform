@@ -133,7 +133,7 @@ router.post('/register', uploadSaccoDocuments.fields(SACCO_DOCUMENT_UPLOAD_FIELD
 
       if (duplicate) {
         const error = new Error('This transaction reference has already been recorded');
-        error.status = 400;
+        error.status = 409;
         throw error;
       }
     }
