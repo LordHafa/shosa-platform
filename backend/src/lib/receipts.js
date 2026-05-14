@@ -65,7 +65,7 @@ function receiptNumberFor(payment) {
 }
 
 function verificationCodeFor(payment) {
-  return `RCPT-${payment.id}-${crypto.randomBytes(5).toString('hex').toUpperCase()}`;
+  return `RCPT-${payment.id}-${crypto.randomBytes(16).toString('hex').toUpperCase()}`;
 }
 
 function smtpConfig() {

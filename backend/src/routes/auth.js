@@ -195,7 +195,7 @@ router.post('/login', async (req, res, next) => {
     const token = jwt.sign(
       { id: user.id, email: user.email, type, role, campusScope: user.campusScope || null, name: user.fullName || user.displayName },
       getJwtSecret(),
-      { expiresIn: '7d' }
+      { expiresIn: process.env.JWT_EXPIRES_IN || '7d' }
     );
 
     await writeLoginAudit(req, {

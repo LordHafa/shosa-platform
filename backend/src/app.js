@@ -18,8 +18,12 @@ const app = express();
 app.set('trust proxy', 1);
 
 function allowedOrigins() {
-  const raw = process.env.FRONTEND_URL || 'http://localhost:5173';
-  return raw.split(',').map((item) => item.trim()).filter(Boolean);
+  const raw = process.env.ALLOWED_ORIGINS || process.env.FRONTEND_URL || 'http://localhost:5173';
+
+  return raw
+    .split(',')
+    .map((item) => item.trim())
+    .filter(Boolean);
 }
 
 app.use(helmet({ crossOriginResourcePolicy: { policy: 'cross-origin' } }));
