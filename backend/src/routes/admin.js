@@ -7,7 +7,7 @@ const { auth, requireAdmin, requirePermission } = require('../middleware/auth');
 const { makeUpload } = require('../middleware/upload');
 const { writeAudit } = require('../lib/audit');
 const { normalizeEmail, isValidEmail, validatePassword, getBcryptRounds } = require('../lib/validators');
-const { adminScopeWhere, CAMPUSES, ROLE_DEFINITIONS, PERMISSION_DEFINITIONS, ROLE_PERMISSIONS } = require('../lib/permissions');
+const { adminScopeWhere, hasPermission, CAMPUSES, ROLE_DEFINITIONS, PERMISSION_DEFINITIONS, ROLE_PERMISSIONS } = require('../lib/permissions');
 const {
   parseId,
   cleanOptional,
@@ -210,6 +210,7 @@ router.get('/dashboard', requirePermission('dashboard:read'), async (req, res, n
     const trendStart = new Date(`${monthKeys[0]}-01T00:00:00.000Z`);
     const scopedAlumniWhere = adminScopeWhere(req.user, 'campus');
     const scopedPaymentWhere = applyPaymentScope({}, req.user);
+    const canViewAuditLogs = hasPermission(req.user.role || 'admin', 'audit:read');
 
     const [
       totalAlumni,
@@ -237,23 +238,23 @@ router.get('/dashboard', requirePermission('dashboard:read'), async (req, res, n
       prisma.alumni.count({ where: scopedAlumniWhere }),
       prisma.alumni.count({ where: { ...(scopedAlumniWhere || {}), verificationStatus: 'pending' } }),
       prisma.alumni.count({ where: { ...(scopedAlumniWhere || {}), verificationStatus: 'verified' } }),
-      prisma.saccoMembership.count({ where: { status: 'active' } }),
-      prisma.saccoMembership.count({ where: { status: 'pending' } }),
+      prisma.saccoMembership.count({ where: applyAlumniRelationScope({ status: 'active' }, req.user) }),
+      prisma.saccoMembership.count({ where: applyAlumniRelationScope({ status: 'pending' }, req.user) }),
       prisma.payment.count({ where: applyPaymentScope({ status: { in: ['pending', 'pending_gateway_confirmation'] } }, req.user) }),
       prisma.payment.count({ where: applyPaymentScope({ status: 'approved' }, req.user) }),
       prisma.payment.count({ where: applyPaymentScope({ status: 'rejected' }, req.user) }),
       prisma.payment.aggregate({ where: applyPaymentScope({ status: 'approved' }, req.user), _sum: { amount: true } }),
       prisma.contactSubmission.count({ where: { status: 'new' } }),
       prisma.galleryItem.count(),
-      prisma.adminDocument.count({ where: { isDeleted: false } }),
-      prisma.auditLog.count(),
+      prisma.adminDocument.count({ where: applyAlumniRelationScope({ isDeleted: false }, req.user) }),
+      canViewAuditLogs ? prisma.auditLog.count() : Promise.resolve(0),
       prisma.role.count(),
       prisma.campus.count({ where: { isActive: true } }),
       prisma.permission.count(),
       prisma.alumni.findMany({ where: scopedAlumniWhere, orderBy: { createdAt: 'desc' }, take: 8, select: { id: true, displayName: true, email: true, campus: true, gradYear: true, verificationStatus: true } }),
       prisma.payment.findMany({ where: applyPaymentScope({ status: 'approved', createdAt: { gte: trendStart } }, req.user), select: { amount: true, paymentType: true, createdAt: true } }),
       prisma.payment.findMany({ where: scopedPaymentWhere, include: { alumni: { select: { id: true, displayName: true, email: true, campus: true } }, receipt: true }, orderBy: { createdAt: 'desc' }, take: 8 }),
-      prisma.auditLog.findMany({ orderBy: { createdAt: 'desc' }, take: 8 }),
+      canViewAuditLogs ? prisma.auditLog.findMany({ orderBy: { createdAt: 'desc' }, take: 8 }) : Promise.resolve([]),
       prisma.alumni.findMany({ where: scopedAlumniWhere, select: { campus: true, gradYear: true } })
     ]);
 
@@ -317,6 +318,14 @@ router.put('/alumni/:id/verification', requirePermission('alumni:update'), async
   try {
     const id = parseId(req.params.id, 'alumni ID');
     const verificationStatus = validateVerificationStatus(req.body.status);
+
+    const existing = await prisma.alumni.findFirst({
+      where: applyAlumniScope({ id }, req.user),
+      select: { id: true }
+    });
+
+    if (!existing) return res.status(404).json({ error: 'Alumni not found' });
+
     const updated = await prisma.alumni.update({ where: { id }, data: { verificationStatus } });
     await writeAudit(req, { action: 'UPDATE_ALUMNI_VERIFICATION', resourceType: 'Alumni', resourceId: id, status: 'success', metadata: { verificationStatus } });
     const { passwordHash, ...safe } = updated;
@@ -346,7 +355,7 @@ router.get('/payments', requirePermission('payments:read'), async (req, res, nex
 
     const payments = await prisma.payment.findMany({
       where,
-      include: { alumni: { select: { id: true, displayName: true, email: true, campus: true } }, receipt: true },
+      include: { alumni: { select: { id: true, displayName: true, email: true, campus: true } } },
       orderBy: { createdAt: 'desc' },
       take: 250
     });
@@ -716,7 +725,7 @@ router.get('/documents', requirePermission('documents:manage'), async (req, res,
   try {
     const documents = await prisma.adminDocument.findMany({
       where: applyAlumniRelationScope({ isDeleted: false }, req.user),
-      include: { alumni: { select: { id: true, displayName: true, email: true, campus: true } }, receipt: true },
+      include: { alumni: { select: { id: true, displayName: true, email: true, campus: true } } },
       orderBy: { createdAt: 'desc' },
       take: 200
     });
