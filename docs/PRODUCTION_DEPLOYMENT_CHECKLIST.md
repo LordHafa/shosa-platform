@@ -11,8 +11,8 @@ Complete this before full public launch.
 - Do not put secrets in VITE_ frontend variables.
 
 2. Credential rotation
-- Do not use Admin123! anywhere.
-- Do not use SeetaPostgres123! anywhere.
+- Do not use any old/default admin password anywhere.
+- Do not use any old/sample PostgreSQL password anywhere.
 - Rotate the PostgreSQL password before production.
 - Use a one-time strong SEED_ADMIN_PASSWORD.
 - Run seed once, then remove SEED_ADMIN_PASSWORD from persistent production env if not needed.
