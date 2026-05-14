@@ -29,6 +29,35 @@ function requireStrongJwtSecret() {
 
 requireStrongJwtSecret();
 
+function requireProductionOrigins() {
+  if (process.env.NODE_ENV !== 'production') return;
+
+  const raw = process.env.ALLOWED_ORIGINS || process.env.FRONTEND_URL || '';
+  const origins = raw.split(',').map((item) => item.trim()).filter(Boolean);
+
+  if (!origins.length) {
+    fatal('ALLOWED_ORIGINS or production FRONTEND_URL must be set in production.');
+  }
+
+  const unsafeOrigin = origins.find((origin) => {
+    const value = origin.toLowerCase();
+    return (
+      value === '*' ||
+      value.startsWith('http://localhost') ||
+      value.startsWith('http://127.0.0.1') ||
+      value.startsWith('http://0.0.0.0') ||
+      value.startsWith('http://')
+    );
+  });
+
+  if (unsafeOrigin) {
+    fatal(`Unsafe production CORS origin configured: ${unsafeOrigin}`);
+  }
+}
+
+requireProductionOrigins();
+
+
 const app = require('./app');
 
 const PORT = process.env.PORT || 5000;

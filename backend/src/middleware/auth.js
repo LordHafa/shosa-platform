@@ -1,4 +1,5 @@
 const jwt = require('jsonwebtoken');
+const prisma = require('../lib/prisma');
 const { hasPermission } = require('../lib/permissions');
 const { writeAudit } = require('../lib/audit');
 
@@ -14,7 +15,7 @@ function getJwtSecret() {
   return secret;
 }
 
-function auth(req, res, next) {
+async function auth(req, res, next) {
   const header = req.headers.authorization || '';
   const token = header.startsWith('Bearer ') ? header.slice(7) : null;
 
@@ -22,11 +23,74 @@ function auth(req, res, next) {
     return res.status(401).json({ error: 'Authentication required' });
   }
 
+  let decoded;
+
   try {
-    req.user = jwt.verify(token, getJwtSecret(), { algorithms: ['HS256'] });
-    return next();
+    decoded = jwt.verify(token, getJwtSecret(), { algorithms: ['HS256'] });
   } catch (error) {
     return res.status(401).json({ error: 'Invalid or expired token' });
+  }
+
+  try {
+    if (decoded.type === 'admin') {
+      const admin = await prisma.admin.findUnique({
+        where: { id: decoded.id },
+        select: {
+          id: true,
+          email: true,
+          fullName: true,
+          role: true,
+          campusScope: true
+        }
+      });
+
+      if (!admin) {
+        return res.status(401).json({ error: 'Invalid or expired token' });
+      }
+
+      req.user = {
+        id: admin.id,
+        email: admin.email,
+        type: 'admin',
+        role: admin.role,
+        campusScope: admin.campusScope || null,
+        name: admin.fullName
+      };
+
+      return next();
+    }
+
+    if (decoded.type === 'alumni') {
+      const alumni = await prisma.alumni.findUnique({
+        where: { id: decoded.id },
+        select: {
+          id: true,
+          email: true,
+          displayName: true,
+          verificationStatus: true
+        }
+      });
+
+      if (!alumni) {
+        return res.status(401).json({ error: 'Invalid or expired token' });
+      }
+
+      req.user = {
+        id: alumni.id,
+        email: alumni.email,
+        type: 'alumni',
+        role: null,
+        campusScope: null,
+        name: alumni.displayName,
+        verificationStatus: alumni.verificationStatus
+      };
+
+      return next();
+    }
+
+    return res.status(401).json({ error: 'Invalid or expired token' });
+  } catch (error) {
+    return next(error);
   }
 }
 
@@ -51,10 +115,12 @@ function requirePermission(permission) {
       writeAudit(req, { action: 'PERMISSION_DENIED', resourceType: 'Permission', resourceId: permission, status: 'denied', reason: 'Not an admin' });
       return res.status(403).json({ error: 'Admin access required' });
     }
+
     if (!hasPermission(req.user.role || 'admin', permission)) {
       writeAudit(req, { action: 'PERMISSION_DENIED', resourceType: 'Permission', resourceId: permission, status: 'denied', reason: 'Missing permission' });
       return res.status(403).json({ error: 'You do not have permission to perform this action' });
     }
+
     return next();
   };
 }

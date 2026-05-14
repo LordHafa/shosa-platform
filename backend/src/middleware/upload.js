@@ -1,9 +1,18 @@
 const fs = require('fs');
 const path = require('path');
+const crypto = require('crypto');
 const multer = require('multer');
 
-const IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
-const DOCUMENT_TYPES = [...IMAGE_TYPES, 'application/pdf'];
+const IMAGE_MIME_EXTENSIONS = new Map([
+  ['image/jpeg', new Set(['.jpg', '.jpeg'])],
+  ['image/png', new Set(['.png'])],
+  ['image/webp', new Set(['.webp'])]
+]);
+
+const DOCUMENT_MIME_EXTENSIONS = new Map([
+  ...IMAGE_MIME_EXTENSIONS,
+  ['application/pdf', new Set(['.pdf'])]
+]);
 
 function ensureDir(folder) {
   fs.mkdirSync(folder, { recursive: true });
@@ -11,14 +20,40 @@ function ensureDir(folder) {
 
 function safeFileName(originalname) {
   const ext = path.extname(originalname || '').toLowerCase();
-  const base = path.basename(originalname || 'upload', ext).replace(/[^a-zA-Z0-9._-]/g, '_').slice(0, 80);
-  return `${Date.now()}-${Math.round(Math.random() * 1e9)}-${base}${ext}`;
+  const base = path
+    .basename(originalname || 'upload', ext)
+    .replace(/[^a-zA-Z0-9._-]/g, '_')
+    .slice(0, 80);
+
+  const random = crypto.randomBytes(16).toString('hex');
+  return `${Date.now()}-${random}-${base}${ext}`;
+}
+
+function uploadError(message) {
+  const error = new Error(message);
+  error.status = 400;
+  return error;
+}
+
+function validateFileType(file, mode) {
+  const ext = path.extname(file.originalname || '').toLowerCase();
+  const allowedMap = mode === 'document' ? DOCUMENT_MIME_EXTENSIONS : IMAGE_MIME_EXTENSIONS;
+  const allowedExtensions = allowedMap.get(file.mimetype);
+
+  if (!allowedExtensions || !allowedExtensions.has(ext)) {
+    const message = mode === 'document'
+      ? 'Only PDF, JPG, PNG, or WEBP files with matching extensions are allowed for private documents'
+      : 'Only JPG, PNG, or WEBP images with matching extensions are allowed';
+
+    return uploadError(message);
+  }
+
+  return null;
 }
 
 function makeUpload(folder, options = {}) {
   const mode = options.mode || 'image';
   const isPrivate = Boolean(options.private);
-  const allowed = mode === 'document' ? DOCUMENT_TYPES : IMAGE_TYPES;
 
   const storage = multer.diskStorage({
     destination: (req, file, cb) => {
@@ -36,19 +71,11 @@ function makeUpload(folder, options = {}) {
     storage,
     limits: { fileSize: parseInt(process.env.MAX_UPLOAD_SIZE || '5242880', 10) },
     fileFilter: (req, file, cb) => {
-      const ext = path.extname(file.originalname || '').toLowerCase();
-      const badExt = new Set(['.svg', '.html', '.htm', '.js', '.exe', '.bat', '.cmd', '.ps1']);
-      if (badExt.has(ext)) return cb(new Error('This file type is not allowed'));
-      if (!allowed.includes(file.mimetype)) {
-        const message = mode === 'document'
-          ? 'Only PDF, JPG, PNG, or WEBP files are allowed for private documents'
-          : 'Only JPG, PNG, or WEBP images are allowed';
-        return cb(new Error(message));
-      }
+      const error = validateFileType(file, mode);
+      if (error) return cb(error);
       cb(null, true);
     }
   });
 }
 
-module.exports = { makeUpload };
-
+module.exports = { makeUpload, validateFileType };

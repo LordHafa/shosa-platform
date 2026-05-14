@@ -123,11 +123,61 @@ function buildAlumniWhere(query, user) {
 
   return { AND: andClauses };
 }
+
+function combineWhereClauses(...clauses) {
+  const clean = clauses.filter((clause) => clause && Object.keys(clause).length);
+  if (!clean.length) return {};
+  if (clean.length === 1) return clean[0];
+  return { AND: clean };
+}
+
+function paymentCampusScopeFilter(user) {
+  const scoped = adminScopeWhere(user, 'campus');
+  if (!scoped?.campus) return null;
+
+  const aliases = campusAliases(scoped.campus);
+
+  return {
+    OR: aliases.map((campus) => ({
+      alumni: {
+        campus: { equals: campus, mode: 'insensitive' }
+      }
+    }))
+  };
+}
+
+function applyPaymentScope(baseWhere, user) {
+  return combineWhereClauses(baseWhere || {}, paymentCampusScopeFilter(user));
+}
+
+function buildPaymentWhere(query, user) {
+  const where = {};
+
+  if (query.status) where.status = String(query.status);
+  if (query.type) where.paymentType = String(query.type);
+
+  if (query.search) {
+    const search = String(query.search).trim();
+
+    if (search) {
+      where.OR = [
+        { transactionRef: { contains: search, mode: 'insensitive' } },
+        { label: { contains: search, mode: 'insensitive' } },
+        { alumni: { displayName: { contains: search, mode: 'insensitive' } } },
+        { alumni: { email: { contains: search, mode: 'insensitive' } } }
+      ];
+    }
+  }
+
+  return applyPaymentScope(where, user);
+}
+
 router.get('/dashboard', requirePermission('dashboard:read'), async (req, res, next) => {
   try {
     const monthKeys = lastSixMonthKeys();
     const trendStart = new Date(`${monthKeys[0]}-01T00:00:00.000Z`);
     const scopedAlumniWhere = adminScopeWhere(req.user, 'campus');
+    const scopedPaymentWhere = applyPaymentScope({}, req.user);
 
     const [
       totalAlumni,
@@ -157,10 +207,10 @@ router.get('/dashboard', requirePermission('dashboard:read'), async (req, res, n
       prisma.alumni.count({ where: { ...(scopedAlumniWhere || {}), verificationStatus: 'verified' } }),
       prisma.saccoMembership.count({ where: { status: 'active' } }),
       prisma.saccoMembership.count({ where: { status: 'pending' } }),
-      prisma.payment.count({ where: { status: { in: ['pending', 'pending_gateway_confirmation'] } } }),
-      prisma.payment.count({ where: { status: 'approved' } }),
-      prisma.payment.count({ where: { status: 'rejected' } }),
-      prisma.payment.aggregate({ where: { status: 'approved' }, _sum: { amount: true } }),
+      prisma.payment.count({ where: applyPaymentScope({ status: { in: ['pending', 'pending_gateway_confirmation'] } }, req.user) }),
+      prisma.payment.count({ where: applyPaymentScope({ status: 'approved' }, req.user) }),
+      prisma.payment.count({ where: applyPaymentScope({ status: 'rejected' }, req.user) }),
+      prisma.payment.aggregate({ where: applyPaymentScope({ status: 'approved' }, req.user), _sum: { amount: true } }),
       prisma.contactSubmission.count({ where: { status: 'new' } }),
       prisma.galleryItem.count(),
       prisma.adminDocument.count({ where: { isDeleted: false } }),
@@ -169,8 +219,8 @@ router.get('/dashboard', requirePermission('dashboard:read'), async (req, res, n
       prisma.campus.count({ where: { isActive: true } }),
       prisma.permission.count(),
       prisma.alumni.findMany({ where: scopedAlumniWhere, orderBy: { createdAt: 'desc' }, take: 8, select: { id: true, displayName: true, email: true, campus: true, gradYear: true, verificationStatus: true } }),
-      prisma.payment.findMany({ where: { status: 'approved', createdAt: { gte: trendStart } }, select: { amount: true, paymentType: true, createdAt: true } }),
-      prisma.payment.findMany({ include: { alumni: { select: { id: true, displayName: true, email: true, campus: true } }, receipt: true }, orderBy: { createdAt: 'desc' }, take: 8 }),
+      prisma.payment.findMany({ where: applyPaymentScope({ status: 'approved', createdAt: { gte: trendStart } }, req.user), select: { amount: true, paymentType: true, createdAt: true } }),
+      prisma.payment.findMany({ where: scopedPaymentWhere, include: { alumni: { select: { id: true, displayName: true, email: true, campus: true } }, receipt: true }, orderBy: { createdAt: 'desc' }, take: 8 }),
       prisma.auditLog.findMany({ orderBy: { createdAt: 'desc' }, take: 8 }),
       prisma.alumni.findMany({ where: scopedAlumniWhere, select: { campus: true, gradYear: true } })
     ]);
@@ -257,24 +307,15 @@ router.get('/sacco-members', requirePermission('alumni:read'), async (req, res, 
 
 router.get('/payments', requirePermission('payments:read'), async (req, res, next) => {
   try {
-    const where = {};
-    if (req.query.status) where.status = String(req.query.status);
-    if (req.query.type) where.paymentType = String(req.query.type);
-    if (req.query.search) {
-      const search = String(req.query.search).trim();
-      where.OR = [
-        { transactionRef: { contains: search, mode: 'insensitive' } },
-        { label: { contains: search, mode: 'insensitive' } },
-        { alumni: { displayName: { contains: search, mode: 'insensitive' } } },
-        { alumni: { email: { contains: search, mode: 'insensitive' } } }
-      ];
-    }
+    const where = buildPaymentWhere(req.query, req.user);
+
     const payments = await prisma.payment.findMany({
       where,
       include: { alumni: { select: { id: true, displayName: true, email: true, campus: true } }, receipt: true },
       orderBy: { createdAt: 'desc' },
       take: 250
     });
+
     res.json(payments);
   } catch (error) { next(error); }
 });
@@ -282,7 +323,7 @@ router.get('/payments', requirePermission('payments:read'), async (req, res, nex
 router.post('/payments/:id/approve', requirePermission('payments:review'), async (req, res, next) => {
   try {
     const id = parseId(req.params.id, 'payment ID');
-    const payment = await prisma.payment.findUnique({ where: { id } });
+    const payment = await prisma.payment.findFirst({ where: applyPaymentScope({ id }, req.user) });
     ensurePaymentCanBeFinalized(payment);
 
     if (payment.paymentType === 'sacco_membership_fee') {
@@ -348,7 +389,7 @@ router.post('/payments/:id/reject', requirePermission('payments:review'), async 
   try {
     const id = parseId(req.params.id, 'payment ID');
     const reason = requireNonEmpty(req.body.reason, 'Rejection reason');
-    const payment = await prisma.payment.findUnique({ where: { id } });
+    const payment = await prisma.payment.findFirst({ where: applyPaymentScope({ id }, req.user) });
     ensurePaymentCanBeFinalized(payment);
 
     const updated = await prisma.$transaction(async (tx) => {
