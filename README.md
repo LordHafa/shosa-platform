@@ -1,25 +1,39 @@
-# Seeta Alumni Website + SACCO Database
+﻿# SHOSA Platform
 
-Separate comparison project for evaluating a Seeta Alumni + SACCO system against the current SHOSA platform.
+Integrated alumni, SACCO, events, gallery, and merchandise platform for the Seeta High Old Students Association (SHOSA).
 
 ## Stack
 
 - Frontend: Vue 3 + Vite + TailwindCSS + Pinia
 - Backend: Node.js + Express + Prisma
 - Database: PostgreSQL
-- Auth: JWT unified alumni/admin login
+- Auth: JWT-based unified alumni/admin login
 
-## Local defaults
+## Local development defaults
 
-Backend API: http://localhost:5000/api  
-Frontend: http://localhost:5173  
-Database: `seeta_db` on PostgreSQL port `5433`
+- Backend API: `http://localhost:5000/api`
+- Frontend: `http://localhost:5173`
+- Database: PostgreSQL database configured in `backend/.env` (local example commonly uses `seeta_db` on port `5433`)
 
-Default seeded admin:
+## Seeded admin (local development only)
 
-- Email: `your-admin-email@example.com`
-- Password: `your-private-seed-admin-password`
+Seeded admin credentials are read from your local `backend/.env` file:
+
+- `SEED_ADMIN_EMAIL`
+- `SEED_ADMIN_PASSWORD`
+
+Do not commit real private credentials to Git.
 
 ## Important
 
-This is a separate test project. It should use the `seeta_db` database only and must not point to your SHOSA database.
+This repository is the main SHOSA platform codebase.
+
+Before deployment, make sure you set and verify:
+
+- a strong `JWT_SECRET`
+- the correct PostgreSQL connection in `DATABASE_URL`
+- your intended `SEED_ADMIN_EMAIL`
+- your intended `SEED_ADMIN_PASSWORD`
+- production-safe SMTP settings if email delivery is enabled
+
+Also confirm backup/restore readiness, uploads directory permissions, and private admin document storage before public launch.
