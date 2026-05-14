@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <div class="mx-auto max-w-md card">
     <h1 class="mb-6 text-center text-2xl font-black text-navy dark:text-gold">Unified Login</h1>
     <form class="space-y-4" @submit.prevent="submit">
@@ -27,4 +27,5 @@ async function submit() {
   finally { loading.value = false }
 }
 </script>
+
 

@@ -10,5 +10,6 @@ for (const dir of ['uploads', 'uploads/gallery', 'uploads/profiles']) {
 }
 
 app.listen(PORT, () => {
-  console.log(`Seeta Alumni API running on http://localhost:${PORT}/api`);
+  console.log(`SHOSA API running on http://localhost:${PORT}/api`);
 });
+

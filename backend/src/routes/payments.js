@@ -1,4 +1,4 @@
-﻿const express = require('express');
+const express = require('express');
 const prisma = require('../lib/prisma');
 const { auth, requireAlumni } = require('../middleware/auth');
 const { parsePositiveUgx, cleanOptional } = require('../lib/validators');
@@ -92,4 +92,5 @@ router.post('/mobilemoney', async (req, res, next) => {
 });
 
 module.exports = router;
+
 

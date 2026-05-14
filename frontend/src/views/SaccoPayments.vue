@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <section class="mx-auto max-w-6xl space-y-6">
     <div class="rounded-3xl bg-navy p-6 text-white shadow-xl md:p-8">
       <p class="font-bold text-gold">SACCO payments</p>
@@ -384,3 +384,4 @@ async function submitPayment() {
 
 onMounted(loadAll)
 </script>
+

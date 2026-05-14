@@ -1,11 +1,11 @@
-﻿<template>
+<template>
   <section class="mx-auto max-w-6xl space-y-6">
     <section class="overflow-hidden rounded-3xl bg-navy text-white shadow-xl">
       <div class="relative p-6 md:p-8">
         <div class="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(252,211,77,0.26),transparent_35%),radial-gradient(circle_at_bottom_right,rgba(59,130,246,0.18),transparent_35%)]"></div>
         <div class="relative z-10">
           <p class="font-bold text-gold">Join the SACCO</p>
-          <h1 class="mt-2 text-3xl font-black md:text-5xl">Start your Seeta Alumni SACCO membership</h1>
+          <h1 class="mt-2 text-3xl font-black md:text-5xl">Start your SHOSA SACCO membership</h1>
           <p class="mt-3 max-w-3xl leading-7 text-slate-200">
             Choose your saver tier, upload required SACCO onboarding documents, and submit your registration for admin verification.
           </p>
@@ -437,3 +437,4 @@ async function submit() {
   }
 }
 </script>
+

@@ -1,4 +1,4 @@
-﻿const REQUIRED_SACCO_DOCUMENT_TYPES = [
+const REQUIRED_SACCO_DOCUMENT_TYPES = [
   'sacco_passport_photo',
   'sacco_identity_document',
   'sacco_application_form',
@@ -98,3 +98,4 @@ module.exports = {
   getSaccoDocumentStatus,
   ensureSaccoDocumentsVerified
 };
+

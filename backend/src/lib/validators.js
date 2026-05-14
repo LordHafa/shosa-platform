@@ -79,3 +79,4 @@ module.exports = {
   validateVerificationStatus,
   FINALIZABLE_PAYMENT_STATUSES
 };
+

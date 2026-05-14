@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <div :class="theme.theme === 'dark' ? 'dark' : ''">
     <div class="app-shell min-h-[100dvh] bg-cream text-ink transition-colors dark:bg-slate-950 dark:text-slate-100">
       <Navbar />
@@ -19,3 +19,4 @@ import { useThemeStore } from './stores/theme'
 const theme = useThemeStore()
 onMounted(() => theme.applyTheme())
 </script>
+

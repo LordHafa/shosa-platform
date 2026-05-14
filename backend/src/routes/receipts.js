@@ -1,4 +1,4 @@
-﻿const express = require('express');
+const express = require('express');
 const prisma = require('../lib/prisma');
 const { auth } = require('../middleware/auth');
 const { receiptInclude, sendReceiptEmail } = require('../lib/receipts');
@@ -70,3 +70,4 @@ router.post('/:receiptNumber/email', async (req, res, next) => {
 });
 
 module.exports = router;
+

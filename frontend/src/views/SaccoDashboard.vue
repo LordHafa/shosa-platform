@@ -1,7 +1,7 @@
-﻿<template>
+<template>
   <section class="mx-auto max-w-6xl space-y-6">
     <div class="rounded-3xl bg-navy p-6 text-white shadow-xl md:p-8">
-      <p class="font-bold text-gold">Seeta Alumni SACCO</p>
+      <p class="font-bold text-gold">SHOSA SACCO</p>
       <h1 class="mt-2 text-3xl font-black md:text-4xl">My SACCO dashboard</h1>
       <p class="mt-3 max-w-3xl leading-7 text-slate-200">
         Track your membership status, registration fee, yearly subscription, savings and payment history.
@@ -158,3 +158,4 @@ async function load() {
 
 onMounted(load)
 </script>
+

@@ -21,7 +21,7 @@ const PERMISSION_DEFINITIONS = [
 ];
 
 const ROLE_DEFINITIONS = [
-  { code: 'super_admin', name: 'Super Admin', scopeLevel: 'global', description: 'Full control of the Seeta Alumni System.' },
+  { code: 'super_admin', name: 'Super Admin', scopeLevel: 'global', description: 'Full control of the SHOSA System.' },
   { code: 'system_auditor', name: 'System Auditor', scopeLevel: 'global', description: 'Can inspect dashboards and audit trails but should not mutate records.' },
   { code: 'central_secretary', name: 'Central Secretary', scopeLevel: 'global', description: 'Coordinates alumni records, communication, gallery and contacts.' },
   { code: 'central_treasurer', name: 'Central Treasurer', scopeLevel: 'global', description: 'Oversees central financial records and summaries.' },
@@ -60,3 +60,4 @@ function adminScopeWhere(user, field = 'campus') {
 }
 
 module.exports = { CAMPUSES, PERMISSION_DEFINITIONS, ROLE_DEFINITIONS, ROLE_PERMISSIONS, hasPermission, adminScopeWhere };
+

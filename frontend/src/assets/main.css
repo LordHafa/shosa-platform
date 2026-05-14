@@ -1,4 +1,4 @@
-﻿@tailwind base;
+@tailwind base;
 @tailwind components;
 @tailwind utilities;
 
@@ -73,3 +73,4 @@
     background-color: rgb(11 31 77 / 0.98);
   }
 }
+

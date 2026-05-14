@@ -4,7 +4,7 @@
       <div>
         <p class="font-bold text-gold">Governance & Roles</p>
         <h1 class="text-3xl font-black text-navy dark:text-gold">Admin Users</h1>
-        <p class="mt-2 max-w-3xl text-slate-600 dark:text-slate-300">Manage admin accounts, campus scope and role assignments without exposing password hashes. This screen supports the final Seeta governance foundation.</p>
+        <p class="mt-2 max-w-3xl text-slate-600 dark:text-slate-300">Manage admin accounts, campus scope and role assignments without exposing password hashes. This screen supports the final SHOSA governance foundation.</p>
       </div>
       <router-link class="btn-secondary" to="/admin">Back to Dashboard</router-link>
     </div>
@@ -82,8 +82,8 @@ const form = reactive({ fullName: '', email: '', role: 'admin', campusScope: '',
 const roles = ref([])
 const campuses = ref([])
 
-function nice(value){ return String(value || '—').replaceAll('_',' ').replace(/\b\w/g, c => c.toUpperCase()) }
-function date(value){ return value ? new Date(value).toLocaleDateString() : '—' }
+function nice(value){ return String(value || 'â€”').replaceAll('_',' ').replace(/\b\w/g, c => c.toUpperCase()) }
+function date(value){ return value ? new Date(value).toLocaleDateString() : 'â€”' }
 function roleName(code){ const role = roles.value.find(r => r.code === code); return role?.name || nice(code) }
 function campusName(code){ if(!code) return 'All campuses'; const campus = campuses.value.find(c => c.code === code); return campus?.name || nice(code) }
 
@@ -110,3 +110,4 @@ async function createAdmin(){
 
 onMounted(load)
 </script>
+

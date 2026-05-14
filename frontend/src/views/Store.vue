@@ -1,11 +1,11 @@
-﻿<template>
+<template>
   <div class="space-y-8">
     <section class="rounded-3xl bg-navy p-6 text-white shadow-xl md:p-8">
       <p class="font-bold text-gold">Official merchandise</p>
-      <h1 class="mt-2 text-3xl font-black md:text-4xl">Wear the Seeta Alumni identity with pride.</h1>
+      <h1 class="mt-2 text-3xl font-black md:text-4xl">Wear the SHOSA identity with pride.</h1>
       <p class="mt-4 max-w-3xl leading-8 text-slate-200">
         Browse official items, choose preferred colours or variants, build an order request,
-        and copy one clean WhatsApp-ready summary for follow-up.
+        and send one clean WhatsApp-ready summary for follow-up.
       </p>
     </section>
 
@@ -16,7 +16,7 @@
       <div class="card text-center"><div class="text-3xl font-black text-gold">WRB</div><strong>Wristbands</strong></div>
     </div>
 
-    <div class="grid gap-6 lg:grid-cols-[1fr_380px]">
+    <div class="grid gap-6 lg:grid-cols-[1fr_390px]">
       <section>
         <h2 class="mb-5 text-2xl font-black text-navy dark:text-gold">Signature collection</h2>
 
@@ -59,9 +59,9 @@
               <div class="mt-4 flex items-center justify-between gap-3">
                 <strong class="text-navy dark:text-gold">{{ money(product.price) }}</strong>
                 <div class="flex items-center gap-2">
-                  <button class="min-h-10 rounded-lg bg-slate-200 px-3 py-1 dark:bg-slate-700" @click="decrease(product)">-</button>
+                  <button class="min-h-10 rounded-lg bg-slate-200 px-3 py-1 dark:bg-slate-700" type="button" @click="decrease(product)">-</button>
                   <span class="min-w-5 text-center font-bold">{{ quantity(product) }}</span>
-                  <button class="min-h-10 rounded-lg bg-gold px-3 py-1 font-bold text-navy" @click="increase(product)">+</button>
+                  <button class="min-h-10 rounded-lg bg-gold px-3 py-1 font-bold text-navy" type="button" @click="increase(product)">+</button>
                 </div>
               </div>
             </div>
@@ -72,7 +72,7 @@
       <aside class="card h-fit lg:sticky lg:top-24">
         <h2 class="text-xl font-black text-navy dark:text-gold">Send a merchandise request</h2>
         <p class="mt-2 text-sm text-slate-500">
-          Build your order, add your details, then copy a clean summary for WhatsApp or admin follow-up.
+          Build your order, add your details, then send it directly to the SHOSA WhatsApp line or copy it for admin follow-up.
         </p>
 
         <div class="mt-5 space-y-3">
@@ -100,7 +100,26 @@
           </div>
         </div>
 
-        <button class="mt-5 w-full btn-secondary" @click="copySummary">Copy order summary</button>
+        <div class="mt-5 grid gap-3">
+          <button
+            class="w-full btn-primary disabled:cursor-not-allowed disabled:opacity-50"
+            type="button"
+            :disabled="!selectedItems.length"
+            @click="sendOrderToWhatsApp"
+          >
+            Send order on WhatsApp
+          </button>
+
+          <button
+            class="w-full btn-secondary disabled:cursor-not-allowed disabled:opacity-50"
+            type="button"
+            :disabled="!selectedItems.length"
+            @click="copySummary"
+          >
+            Copy order summary
+          </button>
+        </div>
+
         <p v-if="message" class="mt-3 rounded-lg bg-green-100 p-3 text-sm text-green-700">{{ message }}</p>
       </aside>
     </div>
@@ -109,6 +128,7 @@
 
 <script setup>
 import { computed, reactive, ref } from 'vue'
+import { SHOSA_WHATSAPP_NUMBER } from '../data/brand'
 import { defaultVariant, money, products } from '../data/storeProducts'
 
 const message = ref('')
@@ -164,6 +184,22 @@ const selectedItems = computed(() => {
 
 const total = computed(() => selectedItems.value.reduce((sum, item) => sum + item.qty * item.price, 0))
 
+const orderSummary = computed(() => {
+  return [
+    'SHOSA STORE ORDER',
+    `Name: ${customer.name || '-'}`,
+    `Phone: ${customer.phone || '-'}`,
+    `Email: ${customer.email || '-'}`,
+    `Delivery: ${customer.delivery}`,
+    '',
+    'Items:',
+    ...selectedItems.value.map(i => `- ${i.qty} x ${i.name} (${i.variantLabel}) = ${money(i.qty * i.price)}`),
+    '',
+    `Total: ${money(total.value)}`,
+    `Notes: ${customer.notes || '-'}`
+  ].join('\n')
+})
+
 function increase(product) {
   const key = cartKey(product)
   cart[key] = (cart[key] || 0) + 1
@@ -175,19 +211,19 @@ function decrease(product) {
 }
 
 async function copySummary() {
-  const lines = [
-    'SEETA ALUMNI STORE ORDER',
-    `Name: ${customer.name || '-'}`,
-    `Phone: ${customer.phone || '-'}`,
-    `Email: ${customer.email || '-'}`,
-    `Delivery: ${customer.delivery}`,
-    'Items:',
-    ...selectedItems.value.map(i => `- ${i.qty} x ${i.name} (${i.variantLabel}) = ${money(i.qty * i.price)}`),
-    `Total: ${money(total.value)}`,
-    `Notes: ${customer.notes || '-'}`
-  ]
-
-  await navigator.clipboard.writeText(lines.join('\n'))
+  await navigator.clipboard.writeText(orderSummary.value)
   message.value = 'Order summary copied. You can paste it into WhatsApp or a message.'
+}
+
+function sendOrderToWhatsApp() {
+  if (!selectedItems.value.length) {
+    message.value = 'Please add at least one item before sending an order.'
+    return
+  }
+
+  const number = String(SHOSA_WHATSAPP_NUMBER || '').replace(/\D/g, '')
+  const url = `https://wa.me/${number}?text=${encodeURIComponent(orderSummary.value)}`
+  window.open(url, '_blank', 'noopener,noreferrer')
+  message.value = 'WhatsApp order opened. Confirm and send it to SHOSA.'
 }
 </script>

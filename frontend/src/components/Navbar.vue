@@ -1,25 +1,26 @@
-﻿<template>
-  <header class="sticky top-0 z-50 bg-navy text-white shadow-lg">
-    <nav class="mx-auto flex max-w-7xl items-center justify-between gap-3 px-4 py-3 md:px-5">
+<template>
+  <header class="sticky top-0 z-50 border-b border-white/10 bg-navy/98 text-white shadow-xl backdrop-blur">
+    <nav class="mx-auto flex max-w-7xl items-center justify-between gap-3 px-4 py-2.5 md:px-5">
       <router-link to="/" class="flex min-w-0 items-center gap-3" @click="closeMenu">
         <img
-          src="/assets/reference/seeta-reference-logo.jpeg"
-          alt="Seeta Alumni logo"
-          class="h-11 w-11 shrink-0 rounded-full border-2 border-gold bg-white object-cover md:h-12 md:w-12"
+          :src="BRAND_ASSETS.mainLogo"
+          alt="SHOSA logo"
+          class="h-11 w-11 shrink-0 rounded-full border-2 border-gold bg-white object-cover"
         />
+
         <span class="min-w-0">
-          <span class="block truncate text-lg font-black leading-tight md:text-xl">Seeta Alumni</span>
-          <span class="block truncate text-xs font-semibold text-gold">Website + SACCO</span>
+          <span class="block truncate text-lg font-black leading-tight">{{ BRAND_NAME }}</span>
+          <span class="block truncate text-[11px] font-bold leading-tight text-gold">{{ BRAND_SUBTITLE }}</span>
         </span>
       </router-link>
 
-      <div class="hidden items-center gap-3 text-sm font-semibold lg:flex">
+      <div class="hidden items-center gap-1 rounded-full bg-white/5 px-2 py-1 text-sm font-bold lg:flex">
         <router-link
           v-for="item in navLinks"
           :key="item.to + item.label"
           :to="item.to"
-          class="rounded-lg px-2 py-2 transition-colors hover:bg-white/10 hover:text-gold"
-          active-class="text-gold"
+          class="rounded-full px-3 py-2 transition hover:bg-white/10 hover:text-gold"
+          active-class="bg-white/10 text-gold"
         >
           {{ item.label }}
         </router-link>
@@ -27,7 +28,7 @@
 
       <div class="flex shrink-0 items-center gap-2">
         <button
-          class="rounded-xl border border-white/30 px-3 py-2 text-sm font-bold transition hover:bg-white/10"
+          class="rounded-xl border border-white/25 px-3 py-2 text-sm font-black transition hover:bg-white/10"
           type="button"
           @click="theme.toggleTheme()"
         >
@@ -38,13 +39,14 @@
           v-if="!auth.isLoggedIn"
           class="hidden rounded-xl bg-gold px-4 py-2 text-sm font-black text-navy shadow transition hover:scale-[1.02] md:inline-flex"
           to="/login"
+          @click="closeMenu"
         >
           Login
         </router-link>
 
         <button
           v-else
-          class="hidden rounded-xl bg-red-600 px-4 py-2 text-sm font-black text-white shadow transition hover:scale-[1.02] md:inline-flex"
+          class="hidden rounded-xl bg-red-600 px-4 py-2 text-sm font-black text-white shadow transition hover:bg-red-700 md:inline-flex"
           type="button"
           @click="logout"
         >
@@ -52,28 +54,29 @@
         </button>
 
         <button
-          class="inline-flex min-h-11 items-center gap-2 rounded-xl border border-white/30 px-3 py-2 text-sm font-black transition hover:bg-white/10 lg:hidden"
+          class="inline-flex items-center gap-2 rounded-xl border border-white/25 px-3 py-2 text-sm font-black text-white lg:hidden"
           type="button"
-          :aria-expanded="mobileMenuOpen ? 'true' : 'false'"
-          aria-label="Toggle navigation menu"
           @click="mobileMenuOpen = !mobileMenuOpen"
         >
-          <span>Menu</span>
-          <span class="flex flex-col gap-1">
-            <span class="block h-0.5 w-5 rounded bg-gold"></span>
-            <span class="block h-0.5 w-5 rounded bg-gold"></span>
-            <span class="block h-0.5 w-5 rounded bg-gold"></span>
-          </span>
+          Menu
+          <span class="text-gold">{{ mobileMenuOpen ? '×' : '☰' }}</span>
         </button>
       </div>
     </nav>
 
-    <div v-if="mobileMenuOpen" class="border-t border-white/10 bg-navy/98 lg:hidden">
-      <div class="mx-auto max-w-7xl space-y-4 px-4 py-4">
+    <transition
+      enter-active-class="transition duration-200 ease-out"
+      enter-from-class="-translate-y-2 opacity-0"
+      enter-to-class="translate-y-0 opacity-100"
+      leave-active-class="transition duration-150 ease-in"
+      leave-from-class="translate-y-0 opacity-100"
+      leave-to-class="-translate-y-2 opacity-0"
+    >
+      <div v-if="mobileMenuOpen" class="border-t border-white/10 bg-navy px-4 pb-4 pt-3 shadow-xl lg:hidden">
         <div class="grid gap-2">
           <router-link
             v-for="item in navLinks"
-            :key="item.to + item.label"
+            :key="'mobile-' + item.to + item.label"
             :to="item.to"
             :class="mobileLinkClass"
             active-class="bg-white/10 text-gold"
@@ -81,30 +84,19 @@
           >
             {{ item.label }}
           </router-link>
-        </div>
 
-        <div class="grid gap-2 border-t border-white/10 pt-4">
           <router-link
             v-if="!auth.isLoggedIn"
             to="/login"
-            class="flex min-h-12 items-center justify-center rounded-xl bg-gold px-4 py-3 font-black text-navy shadow"
+            class="mt-2 flex min-h-12 items-center justify-center rounded-xl bg-gold px-4 py-3 text-base font-black text-navy"
             @click="closeMenu"
           >
             Login
           </router-link>
 
-          <router-link
-            v-if="!auth.isLoggedIn"
-            to="/register"
-            class="flex min-h-12 items-center justify-center rounded-xl border border-gold px-4 py-3 font-black text-gold"
-            @click="closeMenu"
-          >
-            Join Alumni
-          </router-link>
-
           <button
-            v-if="auth.isLoggedIn"
-            class="flex min-h-12 items-center justify-center rounded-xl bg-red-600 px-4 py-3 font-black text-white shadow"
+            v-else
+            class="mt-2 flex min-h-12 items-center justify-center rounded-xl bg-red-600 px-4 py-3 text-base font-black text-white"
             type="button"
             @click="logout"
           >
@@ -112,7 +104,7 @@
           </button>
         </div>
       </div>
-    </div>
+    </transition>
   </header>
 </template>
 
@@ -121,6 +113,7 @@ import { computed, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
 import { useThemeStore } from '../stores/theme'
+import { BRAND_NAME, BRAND_SUBTITLE, LEAGUE_LINK, BRAND_ASSETS } from '../data/brand'
 
 const router = useRouter()
 const route = useRoute()
@@ -138,6 +131,7 @@ const publicLinks = [
   { label: 'Gallery', to: '/gallery' },
   { label: 'Store', to: '/store' },
   { label: 'SACCO', to: '/sacco/register' },
+  { label: 'League', to: LEAGUE_LINK },
   { label: 'Contact', to: '/contact' }
 ]
 

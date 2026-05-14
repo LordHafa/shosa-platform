@@ -1,4 +1,4 @@
-﻿const express = require('express');
+const express = require('express');
 const prisma = require('../lib/prisma');
 const { auth, requireAlumni } = require('../middleware/auth');
 const { makeUpload } = require('../middleware/upload');
@@ -110,3 +110,4 @@ router.post('/profile/photo', auth, requireAlumni, uploadProfile.single('photo')
 });
 
 module.exports = router;
+

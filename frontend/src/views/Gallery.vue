@@ -1,54 +1,106 @@
-﻿<template>
+<template>
   <div class="space-y-8">
-    <section class="rounded-3xl bg-navy p-8 text-white shadow-xl">
-      <p class="font-bold text-gold">Seeta Alumni Gallery</p>
-      <h1 class="mt-2 text-4xl font-black">Moments that keep the community real.</h1>
-      <p class="mt-4 max-w-3xl leading-8 text-slate-200">
-        A visual record of alumni gatherings, mentorship, celebrations, school support, SACCO activities,
-        and the Seeta High Old Students Association journey.
-      </p>
+    <section class="relative overflow-hidden rounded-3xl bg-navy p-6 text-white shadow-xl md:p-10">
+      <div class="absolute inset-0 opacity-20">
+        <img src="/assets/reference/alumni-orientation.jpg" alt="SHOSA gallery background" class="h-full w-full object-cover" />
+      </div>
+      <div class="absolute inset-0 bg-gradient-to-br from-navy via-navy/95 to-slate-950"></div>
+
+      <div class="relative z-10">
+        <p class="font-bold text-gold">SHOSA Gallery</p>
+        <h1 class="mt-2 max-w-4xl text-3xl font-black leading-tight md:text-5xl">
+          Moments that keep the community real.
+        </h1>
+        <p class="mt-4 max-w-3xl leading-8 text-slate-200">
+          A pictorial journey of alumni leadership, reunions, SACCO, league, mentorship, outreach,
+          campus chapters and official SHOSA identity.
+        </p>
+      </div>
     </section>
 
-    <section v-if="collections.length" class="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
-      <article
-        v-for="(collection, index) in collections"
-        :key="collection.key"
-        class="card overflow-hidden p-0"
+    <nav class="flex flex-wrap gap-2">
+      <button
+        v-for="tab in tabs"
+        :key="tab.value"
+        type="button"
+        class="rounded-full px-4 py-2 text-sm font-bold transition"
+        :class="activeTab === tab.value ? 'bg-gold text-navy' : 'bg-slate-100 text-slate-600 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700'"
+        @click="setActiveTab(tab.value)"
       >
-        <div class="relative">
-          <img
-            :src="imageUrl(currentImage(collection, index)?.imagePath || currentImage(collection, index)?.image)"
-            :alt="collection.title"
-            class="h-64 w-full object-cover transition-all duration-500"
-          />
+        {{ tab.label }}
+      </button>
+    </nav>
 
-          <div class="absolute left-4 top-4 rounded-full bg-navy/85 px-3 py-1 text-xs font-bold uppercase text-gold">
-            {{ niceType(collection.category) }}
+    <section v-if="activeTab === 'all'" class="space-y-10">
+      <article v-for="cat in visibleCategorySections" :key="cat.value" class="space-y-4">
+        <div class="flex flex-wrap items-end justify-between gap-3">
+          <div>
+            <p class="font-black uppercase tracking-[0.24em] text-gold">{{ cat.shortLabel }}</p>
+            <h2 class="text-3xl font-black text-navy dark:text-gold">{{ cat.label }}</h2>
           </div>
+          <button class="btn-primary" type="button" @click="setActiveTab(cat.value)">View collection</button>
         </div>
 
-        <div class="p-5">
-          <h2 class="text-xl font-black text-navy dark:text-gold">
-            {{ collection.title }}
-          </h2>
-
-          <p class="mt-2 text-sm leading-6 text-slate-600 dark:text-slate-300">
-            {{ collection.description }}
-          </p>
-
-          <div v-if="collection.images.length > 1" class="mt-4 flex items-center gap-2">
-            <span
-              v-for="n in Math.min(collection.images.length, 8)"
-              :key="n"
-              class="h-2 rounded-full transition-all"
-              :class="activeDot(collection, index, n - 1) ? 'w-6 bg-gold' : 'w-2 bg-slate-300 dark:bg-slate-600'"
-            ></span>
-          </div>
+        <div class="grid grid-cols-2 gap-2 md:grid-cols-4 lg:grid-cols-6">
+          <button
+            v-for="(item, index) in categoryPreview(cat.value)"
+            :key="itemKey(item)"
+            type="button"
+            class="group overflow-hidden rounded-2xl bg-slate-200 shadow-sm"
+            :class="index === 0 ? 'md:col-span-2 md:row-span-2' : ''"
+            @click="setActiveTab(cat.value)"
+          >
+            <img
+              :src="imageUrl(item.imagePath || item.image)"
+              :alt="cat.shortLabel"
+              class="h-32 w-full object-cover transition duration-500 group-hover:scale-105 md:h-full"
+              :class="index === 0 ? 'md:h-72' : 'md:h-36'"
+            />
+          </button>
         </div>
       </article>
     </section>
 
-    <section v-else class="card text-center">
+    <section v-else class="space-y-6">
+      <div class="flex flex-wrap items-end justify-between gap-4">
+        <div>
+          <p class="font-black uppercase tracking-[0.24em] text-gold">Collection</p>
+          <h2 class="text-3xl font-black text-navy dark:text-gold">{{ activeCategory?.shortLabel }}</h2>
+          <p class="mt-2 max-w-3xl text-slate-600 dark:text-slate-300">{{ activeCategory?.description }}</p>
+        </div>
+        <button class="btn-secondary" type="button" @click="setActiveTab('all')">Back to all collections</button>
+      </div>
+
+      <div v-if="visibleItems.length" class="grid grid-cols-2 gap-2 md:grid-cols-4 lg:grid-cols-6">
+        <button
+          v-for="(item, index) in visibleItems"
+          :key="itemKey(item)"
+          type="button"
+          class="group overflow-hidden rounded-2xl bg-slate-200 shadow-sm"
+          :class="index % 11 === 0 ? 'md:col-span-2 md:row-span-2' : ''"
+        >
+          <img
+            :src="imageUrl(item.imagePath || item.image)"
+            :alt="activeCategory?.shortLabel || 'SHOSA memory'"
+            class="h-32 w-full object-cover transition duration-500 group-hover:scale-105 md:h-full"
+            :class="index % 11 === 0 ? 'md:h-72' : 'md:h-36'"
+          />
+        </button>
+      </div>
+
+      <section v-else class="card text-center">
+        <h3 class="text-2xl font-black text-navy dark:text-gold">This collection is ready for uploads.</h3>
+        <p class="mt-2 text-slate-600 dark:text-slate-300">
+          The admin team can add approved photos into this SHOSA collection.
+        </p>
+      </section>
+
+      <div v-if="hasMore" class="text-center">
+        <button class="btn-primary" type="button" @click="showMore">Show more memories</button>
+      </div>
+    </section>
+
+    <section v-if="!hasItems" class="card text-center">
       <h2 class="text-2xl font-black text-navy dark:text-gold">No gallery items yet.</h2>
       <p class="mt-2 text-slate-600 dark:text-slate-300">
         Alumni memories will appear here once they are uploaded by the admin team.
@@ -58,145 +110,58 @@
 </template>
 
 <script setup>
-import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import api, { UPLOADS_URL } from '../api'
+import { GALLERY_CATEGORIES, getGalleryCategory, categorizeGalleryItem } from '../data/galleryCategories'
 
 const items = ref([])
-const tick = ref(0)
-let timer = null
+const activeTab = ref('all')
+const visibleCount = ref(24)
 
-const fallbackItems = [
-  {
-    title: 'Orientation and mentorship',
-    category: 'mentorship',
-    image: '/assets/reference/alumni-orientation.jpg',
-    description: 'Alumni presence reminds current students that Seeta is a community they can grow into.'
-  },
-  {
-    title: 'Seeta Alumni League and Sports',
-    category: 'league_sports',
-    image: '/assets/reference/seeta-gallery-2.jpg',
-    description: 'Alumni league and sports activities bring old students together through teamwork, friendship and school spirit.'
-  }
-]
+const tabs = computed(() => [
+  { value: 'all', label: 'All / Highlights' },
+  ...GALLERY_CATEGORIES.map(cat => ({ value: cat.value, label: cat.shortLabel }))
+])
 
-const leagueReferenceTitles = [
-  'Community Gathering',
-  'Career Guidance and Mentorship',
-  'Alumni Outreach Moment',
-  'Seeta Alumni League Moment'
-]
+const activeCategory = computed(() => getGalleryCategory(activeTab.value))
 
-const collections = computed(() => {
+const categorizedItems = computed(() => {
   const source = items.value.length ? items.value : fallbackItems
-  const grouped = new Map()
 
-  for (const item of source) {
-    const title = cleanCollectionTitle(item)
-    const category = cleanCollectionCategory(title, item.category)
-    const key = `${category}-${title}`.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')
-
-    if (!grouped.has(key)) {
-      grouped.set(key, {
-        key,
-        title,
-        category,
-        description: cleanDescription(title, category, item.description),
-        images: []
-      })
-    }
-
-    grouped.get(key).images.push(item)
-  }
-
-  return Array.from(grouped.values())
+  return source.map(item => ({
+    ...item,
+    category: categorizeGalleryItem(item)
+  }))
 })
 
-function cleanCollectionTitle(item) {
-  const value = String(item?.title || 'Seeta Alumni Memory').trim()
-  const imagePath = String(item?.imagePath || item?.image || '').toLowerCase()
+const visibleCategorySections = computed(() => {
+  return GALLERY_CATEGORIES.filter(cat => categoryItems(cat.value).length > 0)
+})
 
-  if (
-    leagueReferenceTitles.includes(value) &&
-    /seeta-gallery-[2-5]\.jpg/.test(imagePath)
-  ) {
-    return 'Seeta Alumni League and Sports'
-  }
+const categoryItemsForActiveTab = computed(() => {
+  if (activeTab.value === 'all') return []
+  return categoryItems(activeTab.value)
+})
 
-  if (value.includes(' - p')) {
-    return polishTitle(value.split(' - p')[0].trim())
-  }
+const visibleItems = computed(() => categoryItemsForActiveTab.value.slice(0, visibleCount.value))
+const hasMore = computed(() => categoryItemsForActiveTab.value.length > visibleCount.value)
+const hasItems = computed(() => categorizedItems.value.length > 0)
 
-  return polishTitle(value)
+function setActiveTab(value) {
+  activeTab.value = value
+  visibleCount.value = 24
 }
 
-function polishTitle(value) {
-  return String(value || 'Seeta Alumni Memory')
-    .replace(/\bShosa\b/g, 'SHOSA')
-    .replace(/\bSacco\b/g, 'SACCO')
-    .replace(/\bS5\b/g, 'S.5')
-    .replace(/\bAnd\b/g, 'and')
-    .replace(/\bMr\b/g, 'Mr.')
-    .replace(/\bMrs\b/g, 'Mrs.')
-    .replace(/\bDr\b/g, 'Dr.')
+function categoryItems(category) {
+  return categorizedItems.value.filter(item => item.category === category)
 }
 
-function cleanCollectionCategory(title, originalCategory) {
-  if (String(title || '').toLowerCase().includes('league and sports')) {
-    return 'league_sports'
-  }
-
-  return originalCategory || 'events'
+function categoryPreview(category) {
+  return categoryItems(category).slice(0, 9)
 }
 
-function cleanDescription(title, category, originalDescription) {
-  const lower = String(title || '').toLowerCase()
-
-  if (lower.includes('league') || lower.includes('sports')) {
-    return 'Alumni league and sports activities bring old students together through teamwork, friendship and school spirit.'
-  }
-
-  if (lower.includes('cover and logos')) {
-    return 'Official SHOSA identity visuals representing the association journey and its connected initiatives.'
-  }
-
-  if (lower.includes('founders')) {
-    return 'A tribute to the founding vision and leadership that shaped the Seeta High story.'
-  }
-
-  if (lower.includes('dinner') || lower.includes('reunion')) {
-    return 'Formal alumni reunion memories celebrating connection, recognition and the Seeta bond.'
-  }
-
-  if (lower.includes('sacco')) {
-    return 'SACCO planning and savings moments showing alumni commitment to financial growth and cooperation.'
-  }
-
-  if (lower.includes('medical')) {
-    return 'Medical outreach memories showing alumni service to the school and surrounding community.'
-  }
-
-  if (lower.includes('orientation')) {
-    return 'Orientation moments where alumni encourage current students through presence, guidance and shared experience.'
-  }
-
-  if (lower.includes('prefects') || lower.includes('debating') || lower.includes('career')) {
-    return 'Leadership, career guidance and student-development moments supported by the alumni community.'
-  }
-
-  if (lower.includes('campus') || lower.includes('headteacher') || lower.includes('director')) {
-    return 'Campus and leadership memories connecting old students with the people and places that shaped them.'
-  }
-
-  if (lower.includes('fest')) {
-    return 'SHOSA Fest memories celebrating alumni unity, school spirit and community activity.'
-  }
-
-  if (originalDescription && !String(originalDescription).toLowerCase().includes('pictorial journey image')) {
-    return originalDescription
-  }
-
-  return 'A Seeta High Old Students Association memory preserved as part of the alumni journey.'
+function itemKey(item) {
+  return item.id || item.imagePath || item.image || `${item.category}-${item.title}`
 }
 
 function imageUrl(path) {
@@ -204,30 +169,8 @@ function imageUrl(path) {
   return path.startsWith('/uploads') ? UPLOADS_URL + path : path
 }
 
-function currentImage(collection, index) {
-  if (!collection.images.length) return null
-  const imageIndex = (tick.value + index) % collection.images.length
-  return collection.images[imageIndex]
-}
-
-function activeDot(collection, index, dotIndex) {
-  if (!collection.images.length) return false
-  return ((tick.value + index) % collection.images.length) === dotIndex
-}
-
-function niceType(value) {
-  const mapped = {
-    league_sports: 'League Sports',
-    sacco_activities: 'SACCO Activities',
-    alumni_orientation: 'Alumni Orientation',
-    career_guidance: 'Career Guidance'
-  }
-
-  if (mapped[value]) return mapped[value]
-
-  return String(value || '')
-    .replaceAll('_', ' ')
-    .replace(/\b\w/g, c => c.toUpperCase())
+function showMore() {
+  visibleCount.value += 24
 }
 
 async function load() {
@@ -238,15 +181,20 @@ async function load() {
   }
 }
 
-onMounted(async () => {
-  await load()
-  timer = setInterval(() => {
-    tick.value += 1
-  }, 3500)
-})
+const fallbackItems = [
+  {
+    title: 'Orientation and mentorship',
+    category: 'career_orientation',
+    image: '/assets/reference/alumni-orientation.jpg',
+    description: 'Alumni presence reminds current students that SHOSA is a community they can grow into.'
+  },
+  {
+    title: 'SHOSA League and Sports',
+    category: 'league_sports',
+    image: '/assets/reference/seeta-gallery-2.jpg',
+    description: 'Alumni league and sports activities bring old students together through teamwork, friendship and school spirit.'
+  }
+]
 
-onBeforeUnmount(() => {
-  if (timer) clearInterval(timer)
-})
+onMounted(load)
 </script>
-

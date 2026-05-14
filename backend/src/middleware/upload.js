@@ -51,3 +51,4 @@ function makeUpload(folder, options = {}) {
 }
 
 module.exports = { makeUpload };
+

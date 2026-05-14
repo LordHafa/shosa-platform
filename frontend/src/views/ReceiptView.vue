@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <section class="mx-auto max-w-5xl space-y-6 px-4 py-6">
     <div class="no-print flex flex-wrap items-center justify-between gap-3">
       <router-link class="btn-secondary" to="/sacco/payments">Back to payments</router-link>
@@ -15,23 +15,23 @@
 
     <article v-if="receipt" class="receipt-shell mx-auto overflow-hidden rounded-3xl bg-navy text-white shadow-xl ring-1 ring-slate-200 dark:ring-slate-800 print:shadow-none print:ring-0 print:rounded-none print:bg-white">
       <div class="receipt-document bg-white text-navy print:text-black">
-        <header class="receipt-print-header flex items-center justify-between gap-4 border-b border-slate-200 bg-white px-8 py-8 print:px-6 print:py-6 print:gap-6">
+        <header class="receipt-print-header flex flex-col gap-4 border-b border-slate-200 bg-white px-8 py-8 print:px-6 print:py-6 print:gap-6 md:flex-row md:items-center md:justify-between">
           <div class="flex items-center gap-4 print:gap-3">
-            <img src="/assets/reference/seeta-reference-logo.jpeg" alt="Seeta Alumni Association logo" class="h-16 w-16 rounded-2xl border-4 border-gold bg-white object-cover print:h-12 print:w-12 print:rounded-lg print:border-2" />
+            <img src="/assets/brand/shosa-primary-logo-web.png" alt="SHOSA logo" class="h-16 w-16 rounded-2xl border-4 border-gold bg-white object-cover print:h-12 print:w-12 print:rounded-lg print:border-2" />
             <div class="min-w-0 flex-1">
-              <p class="text-xs font-semibold uppercase tracking-[0.24em] text-gold print:text-navy">Seeta Alumni Association</p>
+              <p class="text-xs font-semibold uppercase tracking-[0.24em] text-gold print:text-navy">SHOSA</p>
               <h1 class="mt-1 text-2xl font-black text-navy print:text-black print:text-xl">Official Receipt</h1>
               <p class="mt-1 text-xs text-slate-500 print:text-slate-600 print:text-xs">Premium alumni and SACCO payment record</p>
             </div>
           </div>
 
-          <div class="text-center print:text-left">
+          <div class="text-center md:text-right print:text-left">
             <p class="text-xs font-semibold uppercase tracking-[0.24em] text-slate-500 print:text-slate-600">Receipt No.</p>
             <p class="mt-2 text-xl font-black text-gold print:text-navy print:text-lg">{{ receipt.receiptNumber }}</p>
           </div>
 
           <div class="flex items-center justify-end print:justify-start">
-            <img src="/assets/reference/sacco-placeholder-logo.svg" alt="SACCO logo" class="h-16 w-16 rounded-2xl border-4 border-gold bg-white object-contain print:h-12 print:w-12 print:rounded-lg print:border-2" />
+            <img src="/assets/brand/shosa-sacco-logo-web.png" alt="SACCO logo" class="h-16 w-16 rounded-2xl border-4 border-gold bg-white object-contain print:h-12 print:w-12 print:rounded-lg print:border-2" />
           </div>
         </header>
 
@@ -46,7 +46,7 @@
 
             <div class="rounded-2xl bg-slate-50 p-6 print:rounded-lg print:bg-white print:border print:border-slate-200 print:p-4">
               <p class="text-xs font-semibold uppercase tracking-[0.24em] text-slate-500 print:text-slate-600">Issued by</p>
-              <p class="mt-2 text-lg font-black text-navy print:text-black print:text-base">{{ receipt.issuedByAdmin?.fullName || 'Seeta Alumni Admin' }}</p>
+              <p class="mt-2 text-lg font-black text-navy print:text-black print:text-base">{{ receipt.issuedByAdmin?.fullName || 'SHOSA Admin' }}</p>
               <p class="mt-1 text-sm text-slate-500 print:text-slate-600">{{ formatDate(receipt.issuedAt) }}</p>
               <p class="mt-4 text-xs font-semibold uppercase tracking-[0.24em] text-slate-500 print:text-slate-600">Email status</p>
               <p class="mt-1 text-sm font-semibold text-navy print:text-black">{{ receipt.emailStatusMessage }}</p>
@@ -63,7 +63,7 @@
             <div class="grid gap-4 md:grid-cols-3 print:grid-cols-3 print:gap-3">
               <div class="md:col-span-2 print:col-span-2">
                 <p class="text-xs font-semibold uppercase tracking-[0.24em] text-slate-500 print:text-slate-600">Payment for</p>
-                <p class="mt-1 text-lg font-black text-navy print:text-black print:text-base">{{ paymentLabel(receipt.paymentType, receipt.label) }}</p>
+                <p class="mt-1 text-lg font-black text-navy print:text-black print:text-base">{{ paymentLabel(receipt) }}</p>
               </div>
 
               <div>
@@ -121,27 +121,20 @@ function niceType(value) {
   return String(value || '-').replaceAll('_', ' ').replace(/\b\w/g, c => c.toUpperCase())
 }
 
-function paymentLabel(type, label) {
-  if (label) return label
+function paymentLabel(receiptValue) {
+  const raw = receiptValue?.label || receiptValue?.paymentType || '-'
 
-  switch (type) {
-    case 'donation':
-      return 'Donation'
-    case 'sacco_savings_quarterly':
-      return 'Quarterly SACCO Savings'
-    case 'sacco_yearly_subscription':
-      return 'Yearly SACCO Subscription'
-    case 'sacco_savings_monthly':
-      return 'Monthly SACCO Savings'
-    case 'sacco_membership_fee':
-      return 'SACCO Membership Fee'
-    case 'merchandise_order':
-      return 'Merchandise Order'
-    case 'event_fee':
-      return 'Event Fee'
-    default:
-      return niceType(type)
+  const known = {
+    donation: 'Donation',
+    sacco_savings_quarterly: 'Quarterly SACCO Savings',
+    sacco_yearly_subscription: 'Yearly SACCO Subscription',
+    sacco_savings_monthly: 'Monthly SACCO Savings',
+    sacco_membership_fee: 'SACCO Membership Fee',
+    merchandise_order: 'Merchandise Order',
+    event_fee: 'Event Fee'
   }
+
+  return known[raw] || niceType(raw)
 }
 
 function niceStatus(value) {
@@ -199,10 +192,7 @@ onMounted(loadReceipt)
 }
 
 .receipt-print-header {
-  display: grid;
-  grid-template-columns: auto 1fr auto;
   gap: 1rem;
-  align-items: center;
 }
 
 .receipt-section {
@@ -248,6 +238,13 @@ onMounted(loadReceipt)
     break-inside: avoid;
   }
 
+  .receipt-print-header {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    gap: 1rem;
+    align-items: center;
+  }
+
   .receipt-print-header img {
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
@@ -259,5 +256,6 @@ onMounted(loadReceipt)
   }
 }
 </style>
+
 
 

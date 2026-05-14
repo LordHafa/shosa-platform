@@ -1,11 +1,11 @@
-﻿const assetBase = '/assets/store-merchandise'
+const assetBase = '/assets/store-merchandise'
 
 export const products = [
   {
     id: 1,
     tag: 'Best seller',
-    name: 'Seeta Alumni T-Shirt',
-    description: 'Classic unisex alumni tee for reunions, volunteering, sports days, and everyday Seeta pride.',
+    name: 'SHOSA T-Shirt',
+    description: 'Classic unisex alumni tee for reunions, volunteering, sports days, and everyday SHOSA pride.',
     price: 35000,
     variants: [
       { id: 'white', label: 'White', image: `${assetBase}/03_tshirts_unisex/tshirt_unisex_white.png` },
@@ -17,8 +17,8 @@ export const products = [
   {
     id: 2,
     tag: 'Women',
-    name: "Women's Seeta Alumni T-Shirt",
-    description: "A fitted women's tee for alumni events, casual wear, and proud Seeta representation.",
+    name: "Women's SHOSA T-Shirt",
+    description: "A fitted women's tee for alumni events, casual wear, and proud SHOSA representation.",
     price: 35000,
     variants: [
       { id: 'white', label: 'White', image: `${assetBase}/04_tshirts_women/tshirt_women_white.png` },
@@ -56,7 +56,7 @@ export const products = [
   {
     id: 5,
     tag: 'Outdoor',
-    name: 'Seeta Alumni Cap',
+    name: 'SHOSA Cap',
     description: 'A simple branded cap for outreach days, road trips, school activity, and casual wear.',
     price: 30000,
     variants: [
@@ -89,7 +89,8 @@ export const products = [
       { id: 'natural', label: 'Natural', image: `${assetBase}/07_tote_bags/tote_bag_natural.png` },
       { id: 'navy_blue', label: 'Navy Blue', image: `${assetBase}/07_tote_bags/tote_bag_navy_blue.png` },
       { id: 'black', label: 'Black', image: `${assetBase}/07_tote_bags/tote_bag_black.png` },
-      { id: 'maroon', label: 'Maroon', image: `${assetBase}/07_tote_bags/tote_bag_maroon.png` }
+      { id: 'maroon', label: 'Maroon', image: `${assetBase}/07_tote_bags/tote_bag_maroon.png` },
+      { id: 'shosa_logo', label: 'SHOSA Logo', image: '/assets/merchandise/totebags/shosa-made-me-tote-unisex-logo-web.png' }
     ]
   },
   {
@@ -114,3 +115,4 @@ export function defaultVariant(product) {
 export function money(value) {
   return 'UGX ' + Number(value || 0).toLocaleString('en-UG')
 }
+

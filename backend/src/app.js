@@ -1,4 +1,4 @@
-﻿const express = require('express');
+const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
@@ -23,7 +23,7 @@ app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
 
 app.use('/api/', rateLimit({ windowMs: 15 * 60 * 1000, limit: 300 }));
 
-app.get('/api/health', (req, res) => res.json({ ok: true, service: 'seeta-alumni-api' }));
+app.get('/api/health', (req, res) => res.json({ ok: true, service: 'shosa-api' }));
 app.use('/api/auth', authRoutes);
 app.use('/api', publicRoutes);
 app.use('/api', profileRoutes);
@@ -41,4 +41,5 @@ app.use((err, req, res, next) => {
 });
 
 module.exports = app;
+
 

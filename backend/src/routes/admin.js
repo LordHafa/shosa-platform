@@ -1,4 +1,4 @@
-﻿const express = require('express');
+const express = require('express');
 const path = require('path');
 const fs = require('fs');
 const bcrypt = require('bcryptjs');
@@ -674,6 +674,7 @@ router.put('/documents/:documentId/reject', requirePermission('documents:manage'
 });
 
 module.exports = router;
+
 
 
 

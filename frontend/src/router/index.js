@@ -1,4 +1,4 @@
-﻿import { createRouter, createWebHistory } from 'vue-router'
+import { createRouter, createWebHistory } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
 
 import Home from '../views/Home.vue'
@@ -61,4 +61,5 @@ router.beforeEach((to) => {
 })
 
 export default router
+
 

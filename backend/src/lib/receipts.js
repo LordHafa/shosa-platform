@@ -34,6 +34,22 @@ function prettyPaymentLabel(paymentType, suppliedLabel) {
   }
 }
 
+function receiptPaymentLabel(receipt) {
+  const raw = receipt?.label || receipt?.paymentType || '-'
+
+  const known = {
+    donation: 'Donation',
+    sacco_savings_quarterly: 'Quarterly SACCO Savings',
+    sacco_yearly_subscription: 'Yearly SACCO Subscription',
+    sacco_savings_monthly: 'Monthly SACCO Savings',
+    sacco_membership_fee: 'SACCO Membership Fee',
+    merchandise_order: 'Merchandise Order',
+    event_fee: 'Event Fee'
+  }
+
+  return known[raw] || niceType(raw)
+}
+
 function receiptScope(paymentType) {
   if (String(paymentType || '').startsWith('sacco_')) return 'SACCO';
   if (paymentType === 'donation') return 'DONATION';
@@ -45,7 +61,7 @@ function receiptScope(paymentType) {
 function receiptNumberFor(payment) {
   const year = new Date().getFullYear();
   const scope = receiptScope(payment.paymentType);
-  return `SEETA-${scope}-${year}-${String(payment.id).padStart(6, '0')}`;
+  return `SHOSA-${scope}-${year}-${String(payment.id).padStart(6, '0')}`;
 }
 
 function verificationCodeFor(payment) {
@@ -118,7 +134,7 @@ function emailAsset(name, envUrl, defaultFile) {
   }
 
   return {
-    src: envUrl || frontendAssetUrl(`/assets/reference/${defaultFile}`),
+    src: envUrl || frontendAssetUrl(`/assets/brand/${defaultFile}`),
     attachment: hasLocalFile ? { filename: defaultFile, path: localPath, cid: name } : null
   };
 }
@@ -126,15 +142,15 @@ function emailAsset(name, envUrl, defaultFile) {
 function buildReceiptEmail(receipt) {
   const title = `Official Receipt ${receipt.receiptNumber}`;
   const receiptUrl = frontendReceiptUrl(receipt.receiptNumber);
-  const seetaLogoAsset = emailAsset('seeta-logo', process.env.SEETA_LOGO_URL, 'seeta-reference-logo.jpeg');
-  const saccoLogoAsset = emailAsset('sacco-logo', process.env.SACCO_LOGO_URL, 'sacco-placeholder-logo.svg');
+  const shosaLogoAsset = emailAsset('shosa-logo', process.env.SHOSA_LOGO_URL || process.env.SEETA_LOGO_URL, 'shosa-primary-logo-web.png');
+  const saccoLogoAsset = emailAsset('sacco-logo', process.env.SACCO_LOGO_URL, 'shosa-sacco-logo-web.png');
 
   const text = `
 ${title}
 
 Member: ${receipt.alumni?.displayName || '-'}
 Email: ${receipt.alumni?.email || '-'}
-Payment: ${prettyPaymentLabel(receipt.paymentType, receipt.label)}
+Payment: ${receiptPaymentLabel(receipt)}
 Amount: ${money(receipt.amount, receipt.currency)}
 Network: ${receipt.payment?.network || '-'}
 Transaction Ref: ${receipt.payment?.transactionRef || '-'}
@@ -149,9 +165,9 @@ View receipt: ${receiptUrl}
     <div style="max-width:760px;margin:0 auto;background:#ffffff;border-radius:20px;overflow:hidden;border:1px solid #e2e8f0;">
       <div style="display:flex;justify-content:space-between;align-items:center;padding:24px 24px 16px;background:#0b1f4d;color:white;gap:12px;flex-wrap:wrap;">
         <div style="display:flex;align-items:center;gap:12px;min-width:180px;">
-          <img src="${seetaLogoAsset.src}" alt="Seeta Alumni Association Logo" width="64" height="64" style="border-radius:18px;background:white;object-fit:cover;border:2px solid #facc15;" />
+          <img src="${shosaLogoAsset.src}" alt="SHOSA Logo" width="64" height="64" style="border-radius:18px;background:white;object-fit:cover;border:2px solid #facc15;" />
           <div>
-            <p style="margin:0;color:#facc15;font-size:12px;font-weight:700;letter-spacing:1px;">Seeta Alumni Association</p>
+            <p style="margin:0;color:#facc15;font-size:12px;font-weight:700;letter-spacing:1px;">SHOSA</p>
             <h1 style="margin:8px 0 0;font-size:24px;line-height:1.05;">Official Receipt</h1>
           </div>
         </div>
@@ -176,7 +192,7 @@ View receipt: ${receiptUrl}
               <td style="padding:14px 0;border-bottom:1px solid #e2e8f0;vertical-align:top;width:50%;">
                 <p style="margin:0 0 8px;font-size:12px;text-transform:uppercase;color:#475569;font-weight:700;">Issued At</p>
                 <p style="margin:0;font-size:16px;font-weight:700;">${new Date(receipt.issuedAt).toLocaleString()}</p>
-                <p style="margin:6px 0 0;color:#64748b;">Issued by ${receipt.issuedByAdmin?.fullName || 'Seeta Alumni Admin'}</p>
+                <p style="margin:6px 0 0;color:#64748b;">Issued by ${receipt.issuedByAdmin?.fullName || 'SHOSA Admin'}</p>
               </td>
             </tr>
           </tbody>
@@ -187,7 +203,7 @@ View receipt: ${receiptUrl}
           <table width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;font-size:14px;color:#0f172a;">
             <tr>
               <td style="padding:10px 0;border-bottom:1px solid #e2e8f0;width:45%;font-weight:700;">Payment description</td>
-              <td style="padding:10px 0;border-bottom:1px solid #e2e8f0;">${prettyPaymentLabel(receipt.paymentType, receipt.label)}</td>
+              <td style="padding:10px 0;border-bottom:1px solid #e2e8f0;">${receiptPaymentLabel(receipt)}</td>
             </tr>
             <tr>
               <td style="padding:10px 0;border-bottom:1px solid #e2e8f0;font-weight:700;">Amount</td>
@@ -220,7 +236,7 @@ View receipt: ${receiptUrl}
   </div>`;
 
   const attachments = [];
-  if (seetaLogoAsset.attachment) attachments.push(seetaLogoAsset.attachment);
+  if (shosaLogoAsset.attachment) attachments.push(shosaLogoAsset.attachment);
   if (saccoLogoAsset.attachment) attachments.push(saccoLogoAsset.attachment);
 
   return { subject: title, text, html, attachments };
@@ -350,7 +366,7 @@ async function issueReceiptForPayment(prisma, { paymentId, adminId }) {
       alumniId: payment.alumniId,
       issuedByAdminId: adminId || payment.reviewedBy || payment.confirmedBy || null,
       paymentType: payment.paymentType,
-      label: prettyPaymentLabel(payment.paymentType, payment.label),
+      label: receiptPaymentLabel({ label: payment.label, paymentType: payment.paymentType }),
       amount: payment.amount,
       currency: payment.currency || 'UGX',
       status: 'issued',
@@ -370,4 +386,5 @@ module.exports = {
   money,
   niceType
 };
+
 

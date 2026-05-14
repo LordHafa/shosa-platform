@@ -35,3 +35,4 @@ async function writeAudit(req, data = {}) {
 }
 
 module.exports = { writeAudit };
+

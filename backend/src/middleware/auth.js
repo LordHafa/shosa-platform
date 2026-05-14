@@ -48,3 +48,4 @@ function requirePermission(permission) {
 }
 
 module.exports = { auth, requireAdmin, requireAlumni, requirePermission };
+

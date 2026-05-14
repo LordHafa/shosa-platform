@@ -56,8 +56,8 @@ async function seedGovernance(superAdmin) {
     { key: 'sacco.registration_fee', value: process.env.SACCO_REG_FEE || '50000', group: 'sacco', description: 'SACCO registration fee in UGX.' },
     { key: 'sacco.yearly_subscription', value: '100000', group: 'sacco', description: 'Suggested yearly SACCO subscription in UGX.' },
     { key: 'system.currency', value: 'UGX', group: 'system', description: 'Default system currency.' },
-    { key: 'contact.general_email', value: 'alumni@seetahigh.ug', group: 'contact', description: 'General alumni contact email placeholder.' },
-    { key: 'contact.sacco_email', value: 'sacco@seetaalumni.ug', group: 'contact', description: 'SACCO contact email placeholder.' }
+    { key: 'contact.general_email', value: 'alumni@shosa.ug', group: 'contact', description: 'General alumni contact email placeholder.' },
+    { key: 'contact.sacco_email', value: 'sacco@shosa.ug', group: 'contact', description: 'SACCO contact email placeholder.' }
   ];
   for (const setting of settings) {
     await prisma.setting.upsert({
@@ -69,14 +69,14 @@ async function seedGovernance(superAdmin) {
 }
 
 async function main() {
-  console.log('Seeding Seeta Alumni database...');
+  console.log('Seeding SHOSA database...');
 
   const hashedPassword = await bcrypt.hash('Admin123!', 10);
   const superAdmin = await prisma.admin.upsert({
-    where: { email: 'admin@seetaalumni.ug' },
+    where: { email: 'admin@shosa.ug' },
     update: { passwordHash: hashedPassword, fullName: 'Super Admin', role: 'super_admin' },
     create: {
-      email: 'admin@seetaalumni.ug',
+      email: 'admin@shosa.ug',
       passwordHash: hashedPassword,
       fullName: 'Super Admin',
       role: 'super_admin'
@@ -91,7 +91,7 @@ async function main() {
       data: [
         {
           title: 'Annual Alumni Reunion 2026',
-          description: 'Join us for the biggest Seeta alumni gathering of the year.',
+          description: 'Join us for the biggest SHOSA gathering of the year.',
           startDate: new Date('2026-06-15T09:00:00+03:00'),
           location: 'Seeta High Main Campus',
           category: 'reunion',
@@ -113,15 +113,15 @@ async function main() {
   if (productCount === 0) {
     await prisma.storeProduct.createMany({
       data: [
-        { name: 'Seeta Alumni T-Shirt', description: 'Premium cotton alumni t-shirt.', price: 25000, category: 'tshirt', stockStatus: 'in_stock' },
-        { name: 'Seeta Alumni Hoodie', description: 'Warm hoodie with alumni branding.', price: 75000, category: 'hoodie', stockStatus: 'in_stock' },
-        { name: 'Seeta Alumni Cap', description: 'Classic branded alumni cap.', price: 20000, category: 'cap', stockStatus: 'in_stock' }
+        { name: 'SHOSA T-Shirt', description: 'Premium cotton alumni t-shirt.', price: 25000, category: 'tshirt', stockStatus: 'in_stock' },
+        { name: 'SHOSA Hoodie', description: 'Warm hoodie with alumni branding.', price: 75000, category: 'hoodie', stockStatus: 'in_stock' },
+        { name: 'SHOSA Cap', description: 'Classic branded alumni cap.', price: 20000, category: 'cap', stockStatus: 'in_stock' }
       ]
     });
   }
 
   console.log('Database seeded successfully.');
-  console.log('Admin login: admin@seetaalumni.ug / Admin123!');
+  console.log('Admin login: admin@shosa.ug / Admin123!');
 }
 
 main()

@@ -1,4 +1,4 @@
-﻿export const countries = [
+export const countries = [
   { name: 'Uganda', code: 'UG', dialCode: '+256' },
   { name: 'Kenya', code: 'KE', dialCode: '+254' },
   { name: 'Tanzania', code: 'TZ', dialCode: '+255' },
@@ -55,3 +55,4 @@ export function findCountryByName(name) {
 export function findCountryByDialCode(dialCode) {
   return countries.find(country => country.dialCode === dialCode) || defaultCountry()
 }
+

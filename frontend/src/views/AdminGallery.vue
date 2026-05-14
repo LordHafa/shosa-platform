@@ -1,44 +1,65 @@
-﻿<template>
+<template>
   <div class="space-y-6">
-    <div class="flex flex-wrap items-end justify-between gap-4">
-      <div>
-        <p class="font-bold text-gold">Admin gallery management</p>
-        <h1 class="text-3xl font-black text-navy dark:text-gold">Gallery Uploads</h1>
-        <p class="mt-2 max-w-3xl text-slate-600 dark:text-slate-300">
-          Upload public-safe alumni memories as a single image, a batch, or a whole folder. Folder/batch uploads use one
-          collection title so the public Gallery can rotate the photos inside one clean container.
-        </p>
-      </div>
+    <section class="rounded-3xl bg-navy p-6 text-white shadow-xl md:p-8">
+      <div class="flex flex-wrap items-end justify-between gap-4">
+        <div>
+          <p class="font-bold text-gold">Admin media command center</p>
+          <h1 class="mt-2 text-3xl font-black md:text-4xl">Gallery Management</h1>
+          <p class="mt-3 max-w-3xl leading-7 text-slate-200">
+            Organize SHOSA memories into clean public collections. Admins see counts and controls;
+            the public sees only the image journey.
+          </p>
+        </div>
 
-      <router-link class="btn-secondary" to="/admin">Back to dashboard</router-link>
-    </div>
+        <router-link class="btn-secondary" to="/admin">Back to dashboard</router-link>
+      </div>
+    </section>
+
+    <section class="grid gap-4 md:grid-cols-4">
+      <article class="card">
+        <p class="text-sm text-slate-500">Total images</p>
+        <p class="mt-2 text-3xl font-black text-navy dark:text-gold">{{ items.length }}</p>
+      </article>
+
+      <article class="card">
+        <p class="text-sm text-slate-500">Categories used</p>
+        <p class="mt-2 text-3xl font-black text-navy dark:text-gold">{{ usedCategoryCount }}</p>
+      </article>
+
+      <article class="card">
+        <p class="text-sm text-slate-500">Visible after search</p>
+        <p class="mt-2 text-3xl font-black text-navy dark:text-gold">{{ visibleImageCount }}</p>
+      </article>
+
+      <article class="card">
+        <p class="text-sm text-slate-500">Latest upload</p>
+        <p class="mt-2 text-lg font-black text-navy dark:text-gold">{{ latestUploadLabel }}</p>
+      </article>
+    </section>
 
     <form class="card space-y-5" @submit.prevent="upload">
+      <div>
+        <p class="font-bold text-gold">Upload gallery memory</p>
+        <h2 class="text-2xl font-black text-navy dark:text-gold">Add images to a SHOSA collection</h2>
+      </div>
+
       <div class="grid gap-4 md:grid-cols-2">
         <div>
           <label class="label">Collection / Image Title *</label>
           <input
             v-model.trim="form.title"
             class="input"
-            placeholder="e.g. SHOSA League and Sports"
+            placeholder="e.g. SHOSA League 2026 opening weekend"
             required
           />
-          <p class="mt-1 text-xs text-slate-500 dark:text-slate-400">
-            For folder uploads, this becomes the public rotating collection title.
-          </p>
         </div>
 
         <div>
           <label class="label">Category *</label>
           <select v-model="form.category" class="input">
-            <option value="alumni_orientation">Alumni orientation</option>
-            <option value="league_sports">League / sports</option>
-            <option value="events">Events</option>
-            <option value="career_guidance">Career guidance</option>
-            <option value="dinners">Dinners</option>
-            <option value="campuses">Campuses</option>
-            <option value="sacco_activities">SACCO activities</option>
-            <option value="mentorship">Mentorship</option>
+            <option v-for="cat in GALLERY_CATEGORIES" :key="cat.value" :value="cat.value">
+              {{ cat.label }}
+            </option>
           </select>
         </div>
 
@@ -46,14 +67,14 @@
           <label class="label">Description</label>
           <textarea
             v-model.trim="form.description"
-            class="input min-h-28"
-            placeholder="Short public-safe description for this memory collection"
+            class="input min-h-24"
+            placeholder="Optional admin note"
           ></textarea>
         </div>
       </div>
 
       <div
-        class="group rounded-3xl border-2 border-dashed border-gold/60 bg-gradient-to-br from-gold/15 via-cream to-white p-5 text-center transition hover:border-gold hover:shadow-xl dark:from-gold/10 dark:via-slate-900 dark:to-slate-950"
+        class="rounded-3xl border-2 border-dashed border-gold/60 bg-gradient-to-br from-gold/15 via-cream to-white p-5 text-center transition hover:border-gold hover:shadow-xl dark:from-gold/10 dark:via-slate-900 dark:to-slate-950"
         :class="isDragging ? 'scale-[1.01] border-gold shadow-xl' : ''"
         @dragenter.prevent="isDragging = true"
         @dragover.prevent="isDragging = true"
@@ -65,56 +86,23 @@
             UP
           </div>
 
-          <h2 class="mt-4 text-2xl font-black text-navy dark:text-gold">
-            Drop memories here
-          </h2>
+          <h2 class="mt-4 text-2xl font-black text-navy dark:text-gold">Drop memories here</h2>
 
           <p class="mt-2 max-w-xl text-sm leading-6 text-slate-600 dark:text-slate-300">
-            Choose one image, select many images, or upload a whole folder from your computer.
-            Accepted formats: JPG, PNG, WEBP.
+            Choose one image, many images, or a whole folder. Accepted formats: JPG, PNG, WEBP.
           </p>
 
           <div class="mt-5 flex flex-wrap justify-center gap-3">
-            <button type="button" class="btn-primary" @click="openSinglePicker">
-              Choose single image
-            </button>
-
-            <button type="button" class="btn-secondary" @click="openMultiPicker">
-              Choose many images
-            </button>
-
+            <button type="button" class="btn-primary" @click="openSinglePicker">Choose single image</button>
+            <button type="button" class="btn-secondary" @click="openMultiPicker">Choose many images</button>
             <button type="button" class="rounded-xl bg-navy px-5 py-3 font-bold text-gold shadow hover:opacity-90" @click="openFolderPicker">
               Upload folder
             </button>
           </div>
 
-          <input
-            ref="singleInput"
-            class="hidden"
-            type="file"
-            accept="image/jpeg,image/png,image/webp"
-            @change="handleFileSelect"
-          />
-
-          <input
-            ref="multiInput"
-            class="hidden"
-            type="file"
-            accept="image/jpeg,image/png,image/webp"
-            multiple
-            @change="handleFileSelect"
-          />
-
-          <input
-            ref="folderInput"
-            class="hidden"
-            type="file"
-            accept="image/jpeg,image/png,image/webp"
-            multiple
-            webkitdirectory
-            directory
-            @change="handleFileSelect"
-          />
+          <input ref="singleInput" class="hidden" type="file" accept="image/jpeg,image/png,image/webp" @change="handleFileSelect" />
+          <input ref="multiInput" class="hidden" type="file" accept="image/jpeg,image/png,image/webp" multiple @change="handleFileSelect" />
+          <input ref="folderInput" class="hidden" type="file" accept="image/jpeg,image/png,image/webp" multiple webkitdirectory directory @change="handleFileSelect" />
         </div>
       </div>
 
@@ -141,16 +129,8 @@
             class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-800"
           >
             <img :src="preview.url" :alt="preview.name" class="h-32 w-full object-cover" />
-            <div class="p-2">
-              <p class="truncate text-xs font-bold text-slate-700 dark:text-slate-200">{{ preview.name }}</p>
-              <p v-if="preview.folder" class="truncate text-[11px] text-slate-400">{{ preview.folder }}</p>
-            </div>
           </div>
         </div>
-
-        <p v-if="selectedFiles.length > previews.length" class="mt-3 text-xs text-slate-500 dark:text-slate-400">
-          Showing first {{ previews.length }} previews. All {{ selectedFiles.length }} selected images will upload.
-        </p>
       </div>
 
       <div v-if="uploading" class="rounded-2xl bg-gold/20 p-4 text-sm font-semibold text-navy dark:text-gold">
@@ -165,25 +145,104 @@
         {{ error }}
       </div>
 
-      <button class="w-full btn-primary disabled:cursor-not-allowed disabled:opacity-60" :disabled="!selectedFiles.length || uploading">
+      <button class="w-full btn-primary disabled:cursor-not-allowed disabled:opacity-60" :disabled="!canUpload || uploading">
         {{ selectedFiles.length > 1 ? 'Upload Collection' : 'Upload Image' }}
       </button>
     </form>
 
-    <section class="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
-      <article v-for="item in items" :key="item.id" class="card overflow-hidden p-0">
-        <img class="h-56 w-full object-cover" :src="imageUrl(item.imagePath)" :alt="item.title" />
-
-        <div class="p-5">
-          <p class="text-xs font-bold uppercase text-gold">{{ niceType(item.category) }}</p>
-          <h2 class="text-xl font-black text-navy dark:text-gold">{{ item.title }}</h2>
-          <p class="mt-2 text-sm text-slate-600 dark:text-slate-300">{{ item.description || 'No description' }}</p>
-
-          <button class="mt-4 rounded-xl bg-red-600 px-4 py-2 text-white" @click="remove(item.id)">
-            Delete
-          </button>
+    <section class="card">
+      <div class="mb-5 flex flex-wrap items-end justify-between gap-4">
+        <div>
+          <p class="font-bold text-gold">Organized gallery containers</p>
+          <h2 class="text-2xl font-black text-navy dark:text-gold">Manage images by category</h2>
+          <p class="mt-1 text-sm text-slate-500">
+            No long flat list. Open each container and manage images where they belong.
+          </p>
         </div>
-      </article>
+
+        <button class="btn-secondary" type="button" @click="resetFilters">Reset filters</button>
+      </div>
+
+      <div class="mb-6 grid gap-3 md:grid-cols-[1fr_280px_160px]">
+        <input
+          v-model.trim="filters.search"
+          class="input"
+          placeholder="Search category, title, description"
+        />
+
+        <select v-model="filters.category" class="input">
+          <option value="">All categories</option>
+          <option v-for="cat in GALLERY_CATEGORIES" :key="cat.value" :value="cat.value">
+            {{ cat.label }}
+          </option>
+        </select>
+
+        <button class="btn-primary" type="button" @click="load">Refresh</button>
+      </div>
+
+      <div class="space-y-6">
+        <article
+          v-for="container in visibleContainers"
+          :key="container.value"
+          class="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900"
+        >
+          <button
+            type="button"
+            class="flex w-full flex-wrap items-center justify-between gap-4 border-b border-slate-100 p-5 text-left dark:border-slate-800"
+            @click="toggleContainer(container.value)"
+          >
+            <div>
+              <p class="text-xs font-black uppercase tracking-[0.22em] text-gold">{{ container.shortLabel }}</p>
+              <h3 class="mt-1 text-2xl font-black text-navy dark:text-gold">{{ container.label }}</h3>
+              <p class="mt-1 text-sm text-slate-500">{{ container.description }}</p>
+            </div>
+
+            <div class="flex items-center gap-3">
+              <span class="rounded-full bg-navy px-4 py-2 text-sm font-black text-gold">
+                {{ container.items.length }} image{{ container.items.length === 1 ? '' : 's' }}
+              </span>
+              <span class="rounded-full border border-slate-300 px-3 py-2 text-sm font-black dark:border-slate-700">
+                {{ isOpen(container.value) ? 'Hide' : 'Open' }}
+              </span>
+            </div>
+          </button>
+
+          <div v-if="isOpen(container.value)" class="p-4">
+            <div v-if="container.items.length" class="grid grid-cols-2 gap-3 md:grid-cols-4 xl:grid-cols-6">
+              <div
+                v-for="item in container.items"
+                :key="item.id"
+                class="group relative overflow-hidden rounded-2xl bg-slate-200 shadow-sm"
+              >
+                <img
+                  :src="imageUrl(item.imagePath)"
+                  :alt="container.shortLabel"
+                  class="h-36 w-full object-cover transition duration-500 group-hover:scale-105"
+                />
+
+                <div class="absolute inset-0 flex items-end justify-end bg-gradient-to-t from-black/70 via-black/0 to-black/0 p-2 opacity-0 transition group-hover:opacity-100">
+                  <button
+                    type="button"
+                    class="rounded-xl bg-red-600 px-3 py-2 text-xs font-black text-white shadow"
+                    @click.stop="remove(item.id)"
+                  >
+                    Delete
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <div v-else class="rounded-2xl border border-dashed border-slate-300 p-6 text-center text-slate-500 dark:border-slate-700">
+              No images in this container yet.
+            </div>
+          </div>
+        </article>
+      </div>
+
+      <div v-if="!visibleContainers.length" class="rounded-3xl border border-dashed border-slate-300 p-8 text-center dark:border-slate-700">
+        <h3 class="text-xl font-black text-navy dark:text-gold">No gallery records match your filters.</h3>
+        <p class="mt-2 text-slate-500">Try another search term or reset filters.</p>
+      </div>
     </section>
   </div>
 </template>
@@ -191,6 +250,7 @@
 <script setup>
 import { computed, onBeforeUnmount, onMounted, reactive, ref } from 'vue'
 import api, { UPLOADS_URL } from '../api'
+import { GALLERY_CATEGORIES, categorizeGalleryItem } from '../data/galleryCategories'
 
 const items = ref([])
 const selectedFiles = ref([])
@@ -199,21 +259,96 @@ const message = ref('')
 const error = ref('')
 const uploading = ref(false)
 const isDragging = ref(false)
+const openContainers = ref(new Set())
 const uploadProgress = reactive({ done: 0, total: 0 })
 
 const singleInput = ref(null)
 const multiInput = ref(null)
 const folderInput = ref(null)
 
+const filters = reactive({
+  search: '',
+  category: ''
+})
+
 const form = reactive({
   title: '',
-  category: 'events',
+  category: GALLERY_CATEGORIES[0]?.value || 'campus_chapters',
   description: ''
 })
 
 const canUpload = computed(() => {
   return form.title.trim().length > 0 && selectedFiles.value.length > 0
 })
+
+const normalizedItems = computed(() => {
+  return items.value.map(item => ({
+    ...item,
+    normalizedCategory: categorizeGalleryItem(item)
+  }))
+})
+
+const categoryContainers = computed(() => {
+  return GALLERY_CATEGORIES.map(cat => ({
+    ...cat,
+    items: filteredItemsForCategory(cat.value)
+  }))
+})
+
+const visibleContainers = computed(() => {
+  return categoryContainers.value.filter(container => {
+    if (filters.category && container.value !== filters.category) return false
+    return container.items.length > 0 || filters.category === container.value
+  })
+})
+
+const usedCategoryCount = computed(() => {
+  return new Set(normalizedItems.value.map(item => item.normalizedCategory)).size
+})
+
+const visibleImageCount = computed(() => {
+  return visibleContainers.value.reduce((sum, container) => sum + container.items.length, 0)
+})
+
+const latestUploadLabel = computed(() => {
+  if (!items.value.length) return 'None yet'
+  const latest = items.value[0]?.createdAt
+  if (!latest) return 'Available'
+  return new Date(latest).toLocaleDateString()
+})
+
+function filteredItemsForCategory(category) {
+  const search = filters.search.trim().toLowerCase()
+
+  return normalizedItems.value.filter(item => {
+    if (item.normalizedCategory !== category) return false
+
+    const haystack = `${item.title || ''} ${item.description || ''} ${item.category || ''} ${category}`.toLowerCase()
+    return !search || haystack.includes(search)
+  })
+}
+
+function toggleContainer(value) {
+  const next = new Set(openContainers.value)
+
+  if (next.has(value)) {
+    next.delete(value)
+  } else {
+    next.add(value)
+  }
+
+  openContainers.value = next
+}
+
+function isOpen(value) {
+  return openContainers.value.has(value)
+}
+
+function resetFilters() {
+  filters.search = ''
+  filters.category = ''
+  openContainers.value = new Set(GALLERY_CATEGORIES.map(cat => cat.value))
+}
 
 function openSinglePicker() {
   singleInput.value?.click()
@@ -261,11 +396,9 @@ function setFiles(files) {
 
   buildPreviews()
 
-  if (rejected > 0) {
-    message.value = `${allowed.length} image(s) selected. ${rejected} unsupported file(s) ignored.`
-  } else {
-    message.value = `${allowed.length} image(s) selected and ready to upload.`
-  }
+  message.value = rejected > 0
+    ? `${allowed.length} image(s) selected. ${rejected} unsupported file(s) ignored.`
+    : `${allowed.length} image(s) selected and ready to upload.`
 }
 
 function suggestTitleFromFiles(files) {
@@ -300,8 +433,6 @@ function buildPreviews() {
 
   previews.value = selectedFiles.value.slice(0, 12).map((file, index) => ({
     key: `${file.name}-${file.size}-${index}`,
-    name: file.name,
-    folder: file.webkitRelativePath ? file.webkitRelativePath.split('/').slice(0, -1).join('/') : '',
     url: URL.createObjectURL(file)
   }))
 }
@@ -327,23 +458,12 @@ function imageUrl(path) {
   return path?.startsWith('/uploads') ? UPLOADS_URL + path : path
 }
 
-function niceType(value) {
-  const mapped = {
-    league_sports: 'League Sports',
-    sacco_activities: 'SACCO Activities',
-    alumni_orientation: 'Alumni Orientation',
-    career_guidance: 'Career Guidance'
-  }
-
-  if (mapped[value]) return mapped[value]
-
-  return String(value || '')
-    .replaceAll('_', ' ')
-    .replace(/\b\w/g, c => c.toUpperCase())
-}
-
 async function load() {
   items.value = (await api.get('/admin/gallery')).data
+
+  if (!openContainers.value.size) {
+    openContainers.value = new Set(GALLERY_CATEGORIES.map(cat => cat.value))
+  }
 }
 
 async function upload() {
@@ -381,6 +501,8 @@ async function upload() {
       ? 'Gallery image uploaded and audit logged.'
       : `${selectedFiles.value.length} gallery images uploaded as one collection and audit logged.`
 
+    filters.category = form.category
+    openContainers.value = new Set([form.category])
     form.title = ''
     form.description = ''
     clearSelection()
@@ -393,10 +515,10 @@ async function upload() {
 }
 
 async function remove(id) {
-  if (!confirm('Delete this gallery item?')) return
+  if (!confirm('Delete this gallery image?')) return
 
   await api.delete(`/admin/gallery/${id}`)
-  message.value = 'Gallery item deleted and audit logged.'
+  message.value = 'Gallery image deleted and audit logged.'
   await load()
 }
 
@@ -406,4 +528,3 @@ onBeforeUnmount(() => {
   clearPreviews()
 })
 </script>
-

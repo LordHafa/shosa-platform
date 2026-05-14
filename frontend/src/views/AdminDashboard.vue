@@ -1,11 +1,11 @@
-﻿<template>
+<template>
   <div class="space-y-6">
     <section class="overflow-hidden rounded-3xl bg-navy text-white shadow-xl">
       <div class="relative p-6 md:p-8">
         <div class="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(252,211,77,0.28),transparent_35%),radial-gradient(circle_at_bottom_right,rgba(59,130,246,0.22),transparent_35%)]"></div>
         <div class="relative z-10 flex flex-wrap items-start justify-between gap-5">
           <div>
-            <p class="font-bold text-gold">Seeta Admin Command Center</p>
+            <p class="font-bold text-gold">SHOSA Admin Command Center</p>
             <h1 class="mt-2 text-3xl font-black md:text-5xl">Admin Dashboard</h1>
             <p class="mt-3 max-w-3xl leading-7 text-slate-200">
               A fintech-style command room for alumni growth, SACCO collections, payment verification, files, gallery, contacts and audit activity.
@@ -357,3 +357,4 @@ onMounted(async () => {
   loading.value = false
 })
 </script>
+

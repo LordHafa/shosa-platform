@@ -1,4 +1,4 @@
-﻿const express = require('express');
+const express = require('express');
 const fs = require('fs');
 const path = require('path');
 const prisma = require('../lib/prisma');
@@ -206,4 +206,5 @@ router.post('/register', uploadSaccoDocuments.fields(SACCO_DOCUMENT_UPLOAD_FIELD
 });
 
 module.exports = router;
+
 

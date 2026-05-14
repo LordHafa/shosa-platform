@@ -1,4 +1,4 @@
-﻿const SACCO_REGISTRATION_FEE = 50000;
+const SACCO_REGISTRATION_FEE = 50000;
 const SACCO_YEARLY_SUBSCRIPTION = 100000;
 
 const SACCO_MEMBERSHIP_TIERS = {
@@ -282,3 +282,4 @@ module.exports = {
   getSaccoPaymentContext,
   validateSaccoPaymentRequest
 };
+

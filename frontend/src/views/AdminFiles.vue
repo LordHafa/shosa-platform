@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <div class="space-y-6">
     <section class="overflow-hidden rounded-3xl bg-navy text-white shadow-xl">
       <div class="relative p-6 md:p-8">
@@ -494,3 +494,4 @@ onMounted(() => {
   loadDocuments()
 })
 </script>
+

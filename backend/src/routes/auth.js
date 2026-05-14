@@ -1,4 +1,4 @@
-﻿const express = require('express');
+const express = require('express');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const prisma = require('../lib/prisma');
@@ -129,3 +129,4 @@ router.post('/logout', (req, res) => {
 });
 
 module.exports = router;
+
