@@ -2,9 +2,16 @@ const express = require('express');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const prisma = require('../lib/prisma');
-const { auth } = require('../middleware/auth');
+const { auth, getJwtSecret } = require('../middleware/auth');
 const { makeUpload } = require('../middleware/upload');
-const { normalizeEmail, cleanOptional } = require('../lib/validators');
+const {
+  normalizeEmail,
+  validateEmail,
+  validatePassword,
+  isPasswordWithinBounds,
+  cleanOptional,
+  getBcryptRounds
+} = require('../lib/validators');
 
 const router = express.Router();
 const uploadProfile = makeUpload('profiles');
@@ -17,6 +24,15 @@ function safeUser(user, type, role = null) {
 
 function isConsentAccepted(value) {
   return value === true || value === 'true' || value === '1' || value === 'on' || value === 'yes';
+}
+
+async function emailExistsAnywhere(email) {
+  const [alumni, admin] = await Promise.all([
+    prisma.alumni.findUnique({ where: { email } }),
+    prisma.admin.findUnique({ where: { email } })
+  ]);
+
+  return Boolean(alumni || admin);
 }
 
 router.post('/register', uploadProfile.single('photo'), async (req, res, next) => {
@@ -38,16 +54,19 @@ router.post('/register', uploadProfile.single('photo'), async (req, res, next) =
       return res.status(400).json({ error: 'Consent is required to register' });
     }
 
+    const normalizedEmail = validateEmail(email);
+    validatePassword(password);
+
     const year = parseInt(gradYear, 10);
     if (!Number.isInteger(year) || year < 2000) {
       return res.status(400).json({ error: 'Graduation year cannot be before 2000' });
     }
 
-    const normalizedEmail = normalizeEmail(email);
-    const existing = await prisma.alumni.findUnique({ where: { email: normalizedEmail } });
-    if (existing) return res.status(400).json({ error: 'Email already registered' });
+    if (await emailExistsAnywhere(normalizedEmail)) {
+      return res.status(400).json({ error: 'Email already registered' });
+    }
 
-    const passwordHash = await bcrypt.hash(password, 10);
+    const passwordHash = await bcrypt.hash(password, getBcryptRounds());
     const displayName = [firstName, otherNames, lastName].filter(Boolean).join(' ');
     const profilePhoto = req.file ? `/uploads/profiles/${req.file.filename}` : null;
 
@@ -83,6 +102,11 @@ router.post('/login', async (req, res, next) => {
     if (!email || !password) return res.status(400).json({ error: 'Email and password are required' });
 
     const normalizedEmail = normalizeEmail(email);
+
+    if (!isPasswordWithinBounds(password)) {
+      return res.status(401).json({ error: 'Invalid credentials' });
+    }
+
     let user = await prisma.alumni.findUnique({ where: { email: normalizedEmail } });
     let type = 'alumni';
     let role = null;
@@ -94,12 +118,13 @@ router.post('/login', async (req, res, next) => {
     }
 
     if (!user) return res.status(401).json({ error: 'Invalid credentials' });
+
     const valid = await bcrypt.compare(password, user.passwordHash);
     if (!valid) return res.status(401).json({ error: 'Invalid credentials' });
 
     const token = jwt.sign(
       { id: user.id, email: user.email, type, role, campusScope: user.campusScope || null, name: user.fullName || user.displayName },
-      process.env.JWT_SECRET || 'dev-secret',
+      getJwtSecret(),
       { expiresIn: '7d' }
     );
 
@@ -129,4 +154,3 @@ router.post('/logout', (req, res) => {
 });
 
 module.exports = router;
-

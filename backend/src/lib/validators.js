@@ -2,6 +2,42 @@ function normalizeEmail(email) {
   return String(email || '').trim().toLowerCase();
 }
 
+function isValidEmail(email) {
+  const value = normalizeEmail(email);
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+}
+
+function validateEmail(email) {
+  const normalized = normalizeEmail(email);
+  if (!isValidEmail(normalized)) {
+    const error = new Error('Please enter a valid email address');
+    error.status = 400;
+    throw error;
+  }
+  return normalized;
+}
+
+function validatePassword(password, label = 'Password') {
+  const value = String(password || '');
+  if (value.length < 8 || value.length > 128) {
+    const error = new Error(`${label} must be 8-128 characters`);
+    error.status = 400;
+    throw error;
+  }
+  return value;
+}
+
+function isPasswordWithinBounds(password) {
+  const value = String(password || '');
+  return value.length >= 8 && value.length <= 128;
+}
+
+function getBcryptRounds() {
+  const parsed = Number.parseInt(process.env.BCRYPT_ROUNDS || '12', 10);
+  if (!Number.isInteger(parsed)) return 12;
+  return Math.min(14, Math.max(10, parsed));
+}
+
 function parsePositiveUgx(amount) {
   if (amount === undefined || amount === null || amount === '') {
     const error = new Error('Amount is required'); error.status = 400; throw error;
@@ -41,6 +77,7 @@ function parseId(value, label = 'ID') {
 }
 
 const FINALIZABLE_PAYMENT_STATUSES = new Set(['pending', 'pending_gateway_confirmation']);
+
 function ensurePaymentCanBeFinalized(payment) {
   if (!payment) {
     const error = new Error('Payment not found'); error.status = 404; throw error;
@@ -70,6 +107,11 @@ function validateVerificationStatus(status) {
 
 module.exports = {
   normalizeEmail,
+  isValidEmail,
+  validateEmail,
+  validatePassword,
+  isPasswordWithinBounds,
+  getBcryptRounds,
   parsePositiveUgx,
   cleanOptional,
   requireNonEmpty,
@@ -79,4 +121,3 @@ module.exports = {
   validateVerificationStatus,
   FINALIZABLE_PAYMENT_STATUSES
 };
-

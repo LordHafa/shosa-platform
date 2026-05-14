@@ -6,7 +6,7 @@ const prisma = require('../lib/prisma');
 const { auth, requireAdmin, requirePermission } = require('../middleware/auth');
 const { makeUpload } = require('../middleware/upload');
 const { writeAudit } = require('../lib/audit');
-const { normalizeEmail } = require('../lib/validators');
+const { normalizeEmail, isValidEmail, validatePassword, getBcryptRounds } = require('../lib/validators');
 const { adminScopeWhere, CAMPUSES, ROLE_DEFINITIONS, PERMISSION_DEFINITIONS, ROLE_PERMISSIONS } = require('../lib/permissions');
 const {
   parseId,
@@ -491,7 +491,7 @@ router.get('/audit-logs', requirePermission('audit:read'), async (req, res, next
   } catch (error) { next(error); }
 });
 
-router.get('/users', requirePermission('dashboard:read'), async (req, res, next) => {
+router.get('/users', requirePermission('users:manage'), async (req, res, next) => {
   try {
     const admins = await prisma.admin.findMany({ orderBy: { createdAt: 'desc' }, include: { adminRoles: { include: { role: true } } } });
     res.json(admins.map(safeAdmin));
@@ -501,11 +501,11 @@ router.get('/users', requirePermission('dashboard:read'), async (req, res, next)
 router.post('/users', requirePermission('*'), async (req, res, next) => {
   try {
     const email = normalizeEmail(req.body.email);
+    if (!isValidEmail(email)) return res.status(400).json({ error: 'Please enter a valid email address' });
     const fullName = requireNonEmpty(req.body.fullName, 'Full name');
     const role = cleanOptional(req.body.role) || 'admin';
-    const password = requireNonEmpty(req.body.password, 'Password');
-    if (password.length < 8) return res.status(400).json({ error: 'Password must be at least 8 characters' });
-    const passwordHash = await bcrypt.hash(password, 10);
+    const password = validatePassword(requireNonEmpty(req.body.password, 'Password'));
+    const passwordHash = await bcrypt.hash(password, getBcryptRounds());
     const campusScope = cleanOptional(req.body.campusScope);
     const admin = await prisma.$transaction(async (tx) => {
       const created = await tx.admin.create({ data: { email, fullName, role, campusScope, passwordHash } });

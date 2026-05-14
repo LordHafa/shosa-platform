@@ -1,6 +1,10 @@
+require('dotenv').config();
+
 const { PrismaClient } = require('@prisma/client');
 const bcrypt = require('bcryptjs');
 const { CAMPUSES, PERMISSION_DEFINITIONS, ROLE_DEFINITIONS, ROLE_PERMISSIONS } = require('../src/lib/permissions');
+const { validatePassword, getBcryptRounds, validateEmail } = require('../src/lib/validators');
+
 const prisma = new PrismaClient();
 
 async function seedGovernance(superAdmin) {
@@ -31,9 +35,11 @@ async function seedGovernance(superAdmin) {
   for (const [roleCode, permissionCodes] of Object.entries(ROLE_PERMISSIONS)) {
     const role = await prisma.role.findUnique({ where: { code: roleCode } });
     if (!role) continue;
+
     for (const permissionCode of permissionCodes) {
       const permission = await prisma.permission.findUnique({ where: { code: permissionCode } });
       if (!permission) continue;
+
       await prisma.rolePermission.upsert({
         where: { roleId_permissionId: { roleId: role.id, permissionId: permission.id } },
         update: {},
@@ -47,6 +53,7 @@ async function seedGovernance(superAdmin) {
     const existing = await prisma.adminRole.findFirst({
       where: { adminId: superAdmin.id, roleId: superRole.id, scopeType: null, scopeValue: null }
     });
+
     if (!existing) {
       await prisma.adminRole.create({ data: { adminId: superAdmin.id, roleId: superRole.id } });
     }
@@ -59,6 +66,7 @@ async function seedGovernance(superAdmin) {
     { key: 'contact.general_email', value: 'alumni@shosa.ug', group: 'contact', description: 'General alumni contact email placeholder.' },
     { key: 'contact.sacco_email', value: 'sacco@shosa.ug', group: 'contact', description: 'SACCO contact email placeholder.' }
   ];
+
   for (const setting of settings) {
     await prisma.setting.upsert({
       where: { key: setting.key },
@@ -68,16 +76,32 @@ async function seedGovernance(superAdmin) {
   }
 }
 
+function seedAdminCredentials() {
+  const email = validateEmail(process.env.SEED_ADMIN_EMAIL || 'admin@shosa.ug');
+  const password = process.env.SEED_ADMIN_PASSWORD;
+
+  if (!password) {
+    console.error('FATAL: Set SEED_ADMIN_PASSWORD before running npm run seed.');
+    process.exit(1);
+  }
+
+  validatePassword(password, 'SEED_ADMIN_PASSWORD');
+
+  return { email, password };
+}
+
 async function main() {
   console.log('Seeding SHOSA database...');
 
-  const hashedPassword = await bcrypt.hash('Admin123!', 10);
+  const { email, password } = seedAdminCredentials();
+  const passwordHash = await bcrypt.hash(password, getBcryptRounds());
+
   const superAdmin = await prisma.admin.upsert({
-    where: { email: 'admin@shosa.ug' },
-    update: { passwordHash: hashedPassword, fullName: 'Super Admin', role: 'super_admin' },
+    where: { email },
+    update: { passwordHash, fullName: 'Super Admin', role: 'super_admin' },
     create: {
-      email: 'admin@shosa.ug',
-      passwordHash: hashedPassword,
+      email,
+      passwordHash,
       fullName: 'Super Admin',
       role: 'super_admin'
     }
@@ -121,7 +145,7 @@ async function main() {
   }
 
   console.log('Database seeded successfully.');
-  console.log('Admin login: admin@shosa.ug / Admin123!');
+  console.log(`Seeded super admin email: ${email}`);
 }
 
 main()

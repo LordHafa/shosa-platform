@@ -2,6 +2,18 @@ const jwt = require('jsonwebtoken');
 const { hasPermission } = require('../lib/permissions');
 const { writeAudit } = require('../lib/audit');
 
+function getJwtSecret() {
+  const secret = process.env.JWT_SECRET;
+
+  if (!secret || !String(secret).trim()) {
+    const error = new Error('Server authentication is not configured');
+    error.status = 500;
+    throw error;
+  }
+
+  return secret;
+}
+
 function auth(req, res, next) {
   const header = req.headers.authorization || '';
   const token = header.startsWith('Bearer ') ? header.slice(7) : null;
@@ -11,7 +23,7 @@ function auth(req, res, next) {
   }
 
   try {
-    req.user = jwt.verify(token, process.env.JWT_SECRET || 'dev-secret');
+    req.user = jwt.verify(token, getJwtSecret());
     return next();
   } catch (error) {
     return res.status(401).json({ error: 'Invalid or expired token' });
@@ -47,5 +59,4 @@ function requirePermission(permission) {
   };
 }
 
-module.exports = { auth, requireAdmin, requireAlumni, requirePermission };
-
+module.exports = { auth, requireAdmin, requireAlumni, requirePermission, getJwtSecret };

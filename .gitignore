@@ -50,3 +50,8 @@ backend/private_admin_documents/
 .DS_Store
 Thumbs.db
 .vscode/
+# Development backup/temp artifacts
+*.backup
+*backup-before*
+pass_*_source_dump.txt
+pass_*_readiness_report.txt

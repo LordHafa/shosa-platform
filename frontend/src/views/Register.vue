@@ -435,6 +435,7 @@ async function submit() {
     appendFormData(payload, 'country', form.country)
     appendFormData(payload, 'password', form.password)
     appendFormData(payload, 'passwordConfirm', form.passwordConfirm)
+    appendFormData(payload, 'consent', form.consent ? 'true' : 'false')
 
     if (photoFile.value) payload.append('photo', photoFile.value)
 
